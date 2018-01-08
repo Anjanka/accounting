@@ -4,7 +4,7 @@ import org.scalacheck.{Prop, Properties}
 
 import util.Composition.comp
 
-class CompositionTest extends Properties("Composition properties") {
+object CompositionTest extends Properties("Composition properties") {
 
   property("translations commute") = Prop.forAll { (t: Long, s: Long) =>
     val first = t + (_: Long)
