@@ -1,5 +1,7 @@
 package base
 
+import scala.Numeric.Implicits._
+
 trait Account {
   /**
     * @return The unique number associated with this account.
