@@ -1,9 +1,10 @@
-# IntelliJ miscellanea
-
-.idea
-.idea/*
-
-# Compiled files
-
+logs
 target
-target/*
+/.idea
+/.idea_modules
+/.classpath
+/.project
+/.settings
+/RUNNING_PID
+/null
+/.g8
