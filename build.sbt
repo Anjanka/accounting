@@ -23,7 +23,8 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
-  "org.typelevel" %% "spire" % "0.14.1"
+  "org.typelevel" %% "spire" % "0.14.1",
+  "org.flywaydb" %% "flyway-play" % "6.0.0"
 )
 
 // Adds additional packages into Twirl
