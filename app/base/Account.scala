@@ -19,23 +19,23 @@ trait Account {
     * @param entries Collection of '''ALL''' current accounting entries.
     * @return The current (w.r.t. the given entries) balance of this account.
     */
-  def balance(entries: List[AEntry]): Balance = Account.balance(this, entries)
+  def balance(entries: List[AccountingEntry]): Balance = Account.balance(this, entries)
 }
 
 object Account {
 
 
-  private def balance(account: Account, entries: List[AEntry]): Balance = {
+  private def balance(account: Account, entries: List[AccountingEntry]): Balance = {
     /* takes an Account returns a collection of Accounting entries where the
     credit or debit matches the given Account
      */
-    def byAccount(cd: AEntry => Account): List[AEntry] =
+    def byAccount(cd: AccountingEntry => Account): List[AccountingEntry] =
       entries.filter(entry => cd(entry).id == account.id)
-    val credit: List[AEntry] = byAccount(_.credit)
-    val debit: List[AEntry] = byAccount(_.debit)
+    val credit: List[AccountingEntry] = byAccount(_.credit)
+    val debit: List[AccountingEntry] = byAccount(_.debit)
 
     // takes a collection of Accounting Entries and returns the sum of the amounts
-    def makeSum (es: List[AEntry]): MonetaryValue = es.map(_.amount).sum
+    def makeSum (es: List[AccountingEntry]): MonetaryValue = es.map(_.amount).sum
     val creditSum = makeSum(credit)
     val debitSum = makeSum(debit)
 

@@ -4,7 +4,7 @@ import java.time.Year
 import java.util.Date
 
 
-trait AEntry {
+trait AccountingEntry {
 
   //todo add comments
   def orderId: Int
