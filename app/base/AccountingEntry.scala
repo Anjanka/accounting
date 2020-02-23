@@ -11,12 +11,12 @@ trait AccountingEntry {
   def accountingYear: Year
 
   //Todo #7 switch to own Date type
-  def date: Date
+  def bookingDate: Date
 
   def receiptNumber: String
   def description: String
-  def credit: Account
-  def debit: Account
+  def credit: Account //SOLL
+  def debit: Account  //HABEN
   def amount: MonetaryValue
 }
 
