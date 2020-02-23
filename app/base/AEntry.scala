@@ -1,5 +1,6 @@
 package base
 
+import java.time.Year
 import java.util.Date
 
 
@@ -7,11 +8,12 @@ trait AEntry {
 
   //todo add comments
   def orderId: Int
+  def accountingYear: Year
 
   //Todo #7 switch to own Date type
   def date: Date
 
-  def receiptNumber: Int
+  def receiptNumber: String
   def description: String
   def credit: Account
   def debit: Account
