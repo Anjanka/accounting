@@ -25,5 +25,5 @@ create table accounting_entry_template (
  credit integer NOT NULL REFERENCES account(id),
  debit integer NOT NULL REFERENCES account(id),
  amount_whole integer,
- amount_change integer,
+ amount_change integer
 );
