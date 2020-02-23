@@ -26,6 +26,20 @@ sealed trait Digit {
 }
 
 object Digit {
+
+  def apply(int: Int): Digit = int match {
+    case n if n <= 0 => _0
+    case 1 => _1
+    case 2 => _2
+    case 3 => _3
+    case 4 => _4
+    case 5 => _5
+    case 6 => _6
+    case 7 => _7
+    case 8 => _8
+    case _ => _9
+  }
+
   case object _0 extends Digit {
     override val id: Int = 0
   }
