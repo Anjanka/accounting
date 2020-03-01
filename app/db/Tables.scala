@@ -14,4 +14,8 @@ object Tables {
     override def * : ProvenShape[Account] = (id, title) <> ({ case (i, t) => Account(i, t)}, Account.unapply)
   }
 
+  val accountTable: TableQuery[AccountDB] = TableQuery[AccountDB]
+
+
+
 }
