@@ -1,6 +1,6 @@
 package db
 
-import java.util.Date
+import java.sql.Date
 
 
 case class DBAccountingEntry(id: Int,
