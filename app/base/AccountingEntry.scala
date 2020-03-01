@@ -4,7 +4,7 @@ import java.time.Year
 import java.util.Date
 
 
-case class AccountingEntry(orderId: Int,
+case class AccountingEntry(id: Int,
                            accountingYear: Year,
                            //Todo #7 switch to own Date type
                            bookingDate: Date,
