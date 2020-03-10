@@ -1,7 +1,7 @@
 package base
 
 import java.time.Year
-import java.util.Date
+import java.sql.Date
 
 
 case class AccountingEntry(id: Int,
