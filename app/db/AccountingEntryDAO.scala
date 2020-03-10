@@ -37,13 +37,13 @@ object AccountingEntryDAO {
       triples <- DBIO.sequence(xs)
 
     } yield {
-      for{
+      for {
         (accounts, dbAccountingEntry, mv) <- triples.headOption
         (credit, debit) <- accounts
-      }yield{
+      } yield {
         AccountingEntry(
           id = dbAccountingEntry.id,
-          accountingYear = new Year (dbAccountingEntry.accountingYear),
+          accountingYear = new Year(dbAccountingEntry.accountingYear),
           bookingDate = dbAccountingEntry.bookingDate,
           receiptNumber = dbAccountingEntry.receiptNumber,
           description = dbAccountingEntry.description,
@@ -61,7 +61,35 @@ object AccountingEntryDAO {
                                  (implicit ec: ExecutionContext): DBIO[Unit] =
     fetch(accountingEntryID, accountingYear).delete.map(_ => ())
 
-  def repsertAccountingEntryAction(accountingEntry: AccountingEntry)(implicit ec: ExecutionContext): DBIO[AccountingEntry] = ???
+  def repsertAccountingEntryAction(accountingEntry: AccountingEntry)(implicit ec: ExecutionContext): DBIO[AccountingEntry] = {
+
+    val entry = DBAccountingEntry(
+      accountingEntry.id,
+      accountingEntry.accountingYear.getValue,
+      accountingEntry.bookingDate,
+      accountingEntry.receiptNumber,
+      accountingEntry.description,
+      accountingEntry.credit.id,
+      accountingEntry.debit.id,
+      accountingEntry.amount.whole.toInt,
+      accountingEntry.amount.change.toCents.toInt
+    )
+    Tables.dbAccountingEntryTable.returning(Tables.dbAccountingEntryTable).insertOrUpdate(entry).flatMap {
+      case Some(dbEntry) if accountingEntry.credit.id == dbEntry.credit && accountingEntry.debit.id == dbEntry.debit =>
+        DBIO.successful(
+          accountingEntry.copy(
+            id = dbEntry.id,
+            accountingYear = new Year(dbEntry.accountingYear),
+            bookingDate = dbEntry.bookingDate,
+            receiptNumber = dbEntry.receiptNumber,
+            description = dbEntry.description,
+            amount = MonetaryValue.fromAllCents(100 * dbEntry.amountWhole + dbEntry.amountChange)
+          )
+        )
+      case Some(dbEntry) => DBIO.failed(new Throwable(s"Inserted entry $dbEntry doesn't match given entry $accountingEntry."))
+      case None => DBIO.successful(accountingEntry)
+    }
+  }
 
   private def fetch(accountingEntryID: Int,
                     accountingYear: Year): Query[Tables.DBAccountingEntryDB, DBAccountingEntry, Seq] =
