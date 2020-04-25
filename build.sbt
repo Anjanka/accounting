@@ -26,7 +26,8 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "spire" % "0.14.1",
   "org.flywaydb" %% "flyway-play" % "6.0.0",
   "com.typesafe.play" %% "play-slick" % "5.0.0",
-  "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0"
+  "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
+  "com.dripower" %% "play-circe" % "2712.0"
 )
 
 // Adds additional packages into Twirl
