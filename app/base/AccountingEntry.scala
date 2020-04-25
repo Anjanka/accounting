@@ -4,6 +4,7 @@ import java.time.Year
 import java.sql.Date
 
 import io.circe.generic.JsonCodec
+import JsonCodecs.Implicits._
 
 @JsonCodec
 case class AccountingEntry(id: Int,
