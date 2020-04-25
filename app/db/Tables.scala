@@ -45,4 +45,22 @@ object Tables {
   }
 
   val dbAccountingEntryTable: TableQuery[DBAccountingEntryDB] = TableQuery[DBAccountingEntryDB]
+
+  class DBAccountingEntryTemplateDB(tag: Tag) extends Table[DBAccountingEntryTemplate](_tableTag = tag, _tableName = "accounting_entry_template") {
+
+    def description: Rep[String] = column[String]("description", O.PrimaryKey)
+
+    def credit: Rep[Int] = column[Int]("credit")
+
+    def debit: Rep[Int] = column[Int]("debit")
+
+    def amountWhole: Rep[Int] = column[Int]("amount_whole")
+
+    def amountChange: Rep[Int] = column[Int]("amount_change")
+
+    override def * : ProvenShape[DBAccountingEntryTemplate] = (description, credit, debit, amountWhole, amountChange) <> ((DBAccountingEntryTemplate.apply _).tupled, DBAccountingEntryTemplate.unapply)
+  }
+
+  val dbAccountingEntryTemplateTable: TableQuery[DBAccountingEntryTemplateDB] = TableQuery[DBAccountingEntryTemplateDB]
+
 }
