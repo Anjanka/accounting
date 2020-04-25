@@ -52,7 +52,7 @@ object AccountingEntryDAO {
       } yield {
         AccountingEntry(
           id = dbAccountingEntry.id,
-          accountingYear = new Year(dbAccountingEntry.accountingYear),
+          accountingYear = Year.of(dbAccountingEntry.accountingYear),
           bookingDate = dbAccountingEntry.bookingDate,
           receiptNumber = dbAccountingEntry.receiptNumber,
           description = dbAccountingEntry.description,
@@ -88,7 +88,7 @@ object AccountingEntryDAO {
         DBIO.successful(
           accountingEntry.copy(
             id = dbEntry.id,
-            accountingYear = new Year(dbEntry.accountingYear),
+            accountingYear = Year.of(dbEntry.accountingYear),
             bookingDate = dbEntry.bookingDate,
             receiptNumber = dbEntry.receiptNumber,
             description = dbEntry.description,
