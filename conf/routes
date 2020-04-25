@@ -3,4 +3,5 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET     /account/get/*id               controllers.HomeController.getAccount(id: Int)
+GET     /account/get/*id               controllers.AccountController.getAccount(id: Int)
+POST    /account/repsert               controllers.AccountController.repsert
