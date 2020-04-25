@@ -3,7 +3,9 @@ package base
 import java.time.Year
 import java.sql.Date
 
+import io.circe.generic.JsonCodec
 
+@JsonCodec
 case class AccountingEntry(id: Int,
                            accountingYear: Year,
                            //Todo #7 switch to own Date type
