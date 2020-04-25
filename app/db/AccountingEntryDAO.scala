@@ -8,10 +8,19 @@ import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.PostgresProfile.api._
 import slick.jdbc.PostgresProfile
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
-class AccountingEntryDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider) extends HasDatabaseConfigProvider[PostgresProfile] {
+class AccountingEntryDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
+                                  (implicit executionContext: ExecutionContext)
+  extends HasDatabaseConfigProvider[PostgresProfile] {
+  def findAccountingEntry(accountingEntryID: Int, accountingYear: Year): Future[Option[AccountingEntry]] =
+    db.run(AccountingEntryDAO.findAccountingEntryAction(accountingEntryID, accountingYear))
 
+  def deleteAccountingEntry(accountingEntryID: Int, accountingYear: Year): Future[Unit] =
+    db.run(AccountingEntryDAO.deleteAccountingEntryAction(accountingEntryID, accountingYear))
+
+  def repsertAccount(accountingEntry: AccountingEntry): Future[AccountingEntry] =
+    db.run(AccountingEntryDAO.repsertAccountingEntryAction(accountingEntry))
 }
 
 object AccountingEntryDAO {

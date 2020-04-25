@@ -8,10 +8,19 @@ import slick.jdbc.PostgresProfile
 import slick.lifted.Query
 import slick.jdbc.PostgresProfile.api._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
-class AccountingEntryTemplateDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider) extends HasDatabaseConfigProvider[PostgresProfile] {
+class AccountingEntryTemplateDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
+                                          (implicit executionContext: ExecutionContext)
+  extends HasDatabaseConfigProvider[PostgresProfile] {
+  def findAccountingEntryTemplate(description: String): Future[Option[AccountingEntryTemplate]] =
+    db.run(AccountingEntryTemplateDAO.findAccountingEntryTemplateAction(description))
 
+  def deleteAccountingEntryTemplate(description: String): Future[Unit] =
+    db.run(AccountingEntryTemplateDAO.deleteAccountingEntryTemplateAction(description))
+
+  def repsertAccount(accountingEntryTemplate: AccountingEntryTemplate): Future[AccountingEntryTemplate] =
+    db.run(AccountingEntryTemplateDAO.repsertAccountingEntryTemplateAction(accountingEntryTemplate))
 }
 
 object AccountingEntryTemplateDAO {
@@ -50,11 +59,11 @@ object AccountingEntryTemplateDAO {
     }
   }
 
-  def deleteAccountingEntryAction(description: String)
+  def deleteAccountingEntryTemplateAction(description: String)
                                  (implicit ec: ExecutionContext): DBIO[Unit] =
     fetch(description).delete.map(_ => ())
 
-  def repsertAccountingEntryAction(accountingEntryTemplate: AccountingEntryTemplate)(implicit ec: ExecutionContext): DBIO[AccountingEntryTemplate] = {
+  def repsertAccountingEntryTemplateAction(accountingEntryTemplate: AccountingEntryTemplate)(implicit ec: ExecutionContext): DBIO[AccountingEntryTemplate] = {
 
     val entryTemplate = DBAccountingEntryTemplate(
       accountingEntryTemplate.description,
