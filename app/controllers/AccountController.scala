@@ -20,7 +20,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   def getAccount(id: Int): Action[AnyContent] = Action.async {
     accountDAO.findAccount(id).map {
       x =>
-        Ok(x.asJson.noSpaces)
+        Ok(x.asJson)
     }
   }
 
