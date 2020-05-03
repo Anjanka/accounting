@@ -18,7 +18,7 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
                                          (implicit ec: ExecutionContext)
   extends BaseController with Circe {
 
-  def getAccountingEntry(id: Int, accountingYear: Int): Action[AnyContent] = Action.async {
+  def findAccountingEntry(id: Int, accountingYear: Int): Action[AnyContent] = Action.async {
     accountingEntryDAO.findAccountingEntry(id, Year.of(accountingYear)).map {
       x =>
         Ok(x.asJson)

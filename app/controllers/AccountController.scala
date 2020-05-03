@@ -17,7 +17,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   extends BaseController with Circe {
 
 
-  def getAccount(id: Int): Action[AnyContent] = Action.async {
+  def findAccount(id: Int): Action[AnyContent] = Action.async {
     accountDAO.findAccount(id).map {
       x =>
         Ok(x.asJson)
