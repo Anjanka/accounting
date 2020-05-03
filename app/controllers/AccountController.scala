@@ -43,4 +43,11 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
         Future(BadRequest(s"Could not parse ${request.body} as valid account Id: $decodingFailure."))
     }
   }
+
+  def getAllAccounts: Action[AnyContent] = Action.async {
+    accountDAO.getAllAccounts.map {
+      x =>
+        Ok(x.asJson)
+    }
+  }
 }
