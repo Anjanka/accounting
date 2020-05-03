@@ -25,6 +25,13 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
     }
   }
 
+  def findAccountingEntriesByYear(accountingYear: Int): Action[AnyContent] = Action.async {
+    accountingEntryDAO.findAccountingEntriesByYear(Year.of(accountingYear)).map {
+      x =>
+        Ok(x.asJson)
+    }
+  }
+
   def repsert: Action[Json] = Action.async(circe.json) { request =>
     val accountingEntryCandidate = request.body.as[AccountingEntry]
     accountingEntryCandidate match {
