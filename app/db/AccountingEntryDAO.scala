@@ -19,7 +19,7 @@ class AccountingEntryDAO @Inject()(override protected val dbConfigProvider: Data
   def deleteAccountingEntry(accountingEntryID: Int, accountingYear: Year): Future[Unit] =
     db.run(AccountingEntryDAO.deleteAccountingEntryAction(accountingEntryID, accountingYear))
 
-  def repsertAccount(accountingEntry: AccountingEntry): Future[AccountingEntry] =
+  def repsertAccountingEntry(accountingEntry: AccountingEntry): Future[AccountingEntry] =
     db.run(AccountingEntryDAO.repsertAccountingEntryAction(accountingEntry))
 }
 
