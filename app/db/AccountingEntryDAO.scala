@@ -2,13 +2,19 @@ package db
 
 import java.time.Year
 
-import base.{AccountingEntry, MonetaryValue}
+import base.{Account, AccountingEntry, MonetaryValue}
+import cats.Monad
+import cats.syntax.flatMap._
+import cats.syntax.functor._
+import cats.instances.option._
+import base.CatsInstances.seq._
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.PostgresProfile.api._
 import slick.jdbc.PostgresProfile
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.higherKinds
 
 class AccountingEntryDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
                                   (implicit executionContext: ExecutionContext)
@@ -21,14 +27,33 @@ class AccountingEntryDAO @Inject()(override protected val dbConfigProvider: Data
 
   def repsertAccountingEntry(accountingEntry: AccountingEntry): Future[AccountingEntry] =
     db.run(AccountingEntryDAO.repsertAccountingEntryAction(accountingEntry))
+
+  def findAccountingEntriesByYear(accountingYear: Year): Future[Seq[AccountingEntry]] =
+    db.run(AccountingEntryDAO.findAccountingEntriesByYearAction(accountingYear))
 }
 
 object AccountingEntryDAO {
 
   def findAccountingEntryAction(accountingEntryID: Int, accountingYear: Year)
-                               (implicit ec: ExecutionContext): DBIO[Option[AccountingEntry]] = {
+                               (implicit ec: ExecutionContext): DBIO[Option[AccountingEntry]] =
+    findAccountingEntryWithAction(fetch(accountingEntryID, accountingYear), _.headOption, identity)
+
+  def findAccountingEntriesByYearAction(accountingYear: Year)
+                                       (implicit ec: ExecutionContext): DBIO[Seq[AccountingEntry]] =
+    findAccountingEntryWithAction(
+      Tables.dbAccountingEntryTable.filter(entry => entry.accountingYear === accountingYear.getValue),
+      identity,
+      _.toSeq
+    )
+
+  private type AccountingEntryTriple = (Option[(Account, Account)], DBAccountingEntry, MonetaryValue)
+
+  private def findAccountingEntryWithAction[Container[_] : Monad](query: Query[Tables.DBAccountingEntryDB, DBAccountingEntry, Seq],
+                                                                  relevantTriples: Seq[AccountingEntryTriple] => Container[AccountingEntryTriple],
+                                                                  fromOption: Option[(Account, Account)] => Container[(Account, Account)])
+                                                                 (implicit ec: ExecutionContext): DBIO[Container[AccountingEntry]] = {
     for {
-      dbAccountingEntries <- fetch(accountingEntryID, accountingYear).result
+      dbAccountingEntries <- query.result
       xs = dbAccountingEntries.map {
         db =>
           val accountsOpt = for {
@@ -46,22 +71,21 @@ object AccountingEntryDAO {
       triples <- DBIO.sequence(xs)
 
     } yield {
-      for {
-        (accounts, dbAccountingEntry, mv) <- triples.headOption
-        (credit, debit) <- accounts
-      } yield {
-        AccountingEntry(
-          id = dbAccountingEntry.id,
-          accountingYear = Year.of(dbAccountingEntry.accountingYear),
-          bookingDate = dbAccountingEntry.bookingDate,
-          receiptNumber = dbAccountingEntry.receiptNumber,
-          description = dbAccountingEntry.description,
-          credit = credit,
-          debit = debit,
-          amount = mv
-        )
-      }
+      relevantTriples(triples).flatMap { case (accounts, dbAccountingEntry, mv) =>
+        fromOption(accounts).map { case (credit, debit) =>
+          AccountingEntry(
+            id = dbAccountingEntry.id,
+            accountingYear = Year.of(dbAccountingEntry.accountingYear),
+            bookingDate = dbAccountingEntry.bookingDate,
+            receiptNumber = dbAccountingEntry.receiptNumber,
+            description = dbAccountingEntry.description,
+            credit = credit,
+            debit = debit,
+            amount = mv
+          )
 
+        }
+      }
     }
   }
 
