@@ -1,6 +1,6 @@
 package controllers
 
-import base.Account
+import base.{Account, Id}
 import db.AccountDAO
 import io.circe.Json
 import io.circe.syntax._
@@ -20,7 +20,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   def getAccount(id: Int): Action[AnyContent] = Action.async {
     accountDAO.findAccount(id).map {
       x =>
-        Ok(x.asJson.noSpaces)
+        Ok(x.asJson)
     }
   }
 
@@ -34,4 +34,13 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
     }
   }
 
+  def delete: Action[Json] = Action.async(circe.json) { request =>
+    val accountIdCandidate = request.body.as[Id[Int]]
+    accountIdCandidate match {
+      case Right(value) =>
+        accountDAO.deleteAccount(value.id).map(_ => Ok(s"Account ${value.id} was deleted successfully."))
+      case Left(decodingFailure) =>
+        Future(BadRequest(s"Could not parse ${request.body} as valid account Id: $decodingFailure."))
+    }
+  }
 }
