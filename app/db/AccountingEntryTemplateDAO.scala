@@ -1,14 +1,18 @@
 package db
 
-import base.{AccountingEntryTemplate, MonetaryValue}
+import base.{Account, AccountingEntryTemplate, MonetaryValue}
+import cats.Monad
+import cats.implicits._
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile
 import slick.lifted.Query
 import slick.jdbc.PostgresProfile.api._
+import base.CatsInstances.seq._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.higherKinds
 
 class AccountingEntryTemplateDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
                                           (implicit executionContext: ExecutionContext)
@@ -21,13 +25,29 @@ class AccountingEntryTemplateDAO @Inject()(override protected val dbConfigProvid
 
   def repsertAccount(accountingEntryTemplate: AccountingEntryTemplate): Future[AccountingEntryTemplate] =
     db.run(AccountingEntryTemplateDAO.repsertAccountingEntryTemplateAction(accountingEntryTemplate))
+
+  def getAllAccountingEntryTemplates: Future[Seq[AccountingEntryTemplate]] =
+    db.run(AccountingEntryTemplateDAO.getAllAccountingEntryTemplatesAction)
+
 }
 
 object AccountingEntryTemplateDAO {
+
   def findAccountingEntryTemplateAction(description: String)
-                                       (implicit ec: ExecutionContext): DBIO[Option[AccountingEntryTemplate]] = {
+                                       (implicit ec: ExecutionContext): DBIO[Option[AccountingEntryTemplate]] =
+    findAccountingEntryTemplateWithAction(fetch(description), _.headOption, identity)
+
+  def getAllAccountingEntryTemplatesAction (implicit ec: ExecutionContext): DBIO[Seq[AccountingEntryTemplate]] =
+    findAccountingEntryTemplateWithAction(Tables.dbAccountingEntryTemplateTable, identity, _.toSeq)
+
+  private type AccountingTemplateTriple = (Option[(Account, Account)], DBAccountingEntryTemplate, MonetaryValue)
+
+  private def findAccountingEntryTemplateWithAction[Container[_] : Monad](query: Query[Tables.DBAccountingEntryTemplateDB, DBAccountingEntryTemplate, Seq],
+                                                                          relevantTriples: Seq[AccountingTemplateTriple] => Container[AccountingTemplateTriple],
+                                                                          fromOption: Option[(Account, Account)] => Container[(Account, Account)])
+                                                                         (implicit ec: ExecutionContext): DBIO[Container[AccountingEntryTemplate]] = {
     for {
-      dbAccountingEntryTemplates <- fetch(description).result
+      dbAccountingEntryTemplates <- query.result
       xs = dbAccountingEntryTemplates.map {
         db =>
           val accountsOpt = for {
@@ -45,22 +65,22 @@ object AccountingEntryTemplateDAO {
       triples <- DBIO.sequence(xs)
 
     } yield {
-      for {
-        (accounts, dbAccountingEntry, mv) <- triples.headOption
-        (credit, debit) <- accounts
-      } yield {
-        AccountingEntryTemplate(
-          description = dbAccountingEntry.description,
-          credit = credit,
-          debit = debit,
-          amount = mv
-        )
+      relevantTriples(triples).flatMap { case (accounts, dbAccountingEntryTemplate, mv) =>
+        fromOption(accounts).map { case (credit, debit) =>
+          AccountingEntryTemplate(
+            description = dbAccountingEntryTemplate.description,
+            credit = credit,
+            debit = debit,
+            amount = mv
+          )
+        }
+
       }
     }
   }
 
   def deleteAccountingEntryTemplateAction(description: String)
-                                 (implicit ec: ExecutionContext): DBIO[Unit] =
+                                         (implicit ec: ExecutionContext): DBIO[Unit] =
     fetch(description).delete.map(_ => ())
 
   def repsertAccountingEntryTemplateAction(accountingEntryTemplate: AccountingEntryTemplate)(implicit ec: ExecutionContext): DBIO[AccountingEntryTemplate] = {

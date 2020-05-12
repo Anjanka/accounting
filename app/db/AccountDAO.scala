@@ -16,6 +16,8 @@ class AccountDAO @Inject()(override protected val dbConfigProvider: DatabaseConf
   def deleteAccount(accountID: Int): Future[Unit] = db.run(AccountDAO.deleteAccountAction(accountID))
 
   def repsertAccount(account: Account): Future[Account] = db.run(AccountDAO.repsertAccountAction(account))
+
+  def getAllAccounts: Future[Seq[Account]] = db.run(AccountDAO.getAllAccountsAction)
 }
 
 object AccountDAO {
@@ -28,5 +30,7 @@ object AccountDAO {
     case Some(value) => value
     case None => account
   }
+
+  def getAllAccountsAction : DBIO[Seq[Account]] = Tables.accountTable.result
 
 }
