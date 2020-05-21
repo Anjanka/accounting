@@ -79,5 +79,5 @@ view model =
 getAccounts : Cmd Msg
 getAccounts =
     Http.get
-        {url = "localhost:9000/account/getAllAccounts"
+        {url = "http://localhost:9000/account/getAllAccounts"
         , expect = Http.expectString GotResponse}
