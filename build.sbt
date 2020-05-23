@@ -32,6 +32,12 @@ libraryDependencies ++= Seq(
   "com.github.pathikrit" %% "better-files" % "3.9.1"
 )
 
+lazy val elmGenerate = Command.command("elmGenerate") { state =>
+  "runMain elm.Bridge" :: state
+}
+
+commands += elmGenerate
+
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "org.peabuddies.controllers._"
 
