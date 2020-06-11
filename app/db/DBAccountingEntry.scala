@@ -2,7 +2,9 @@ package db
 
 import java.sql.Date
 
+import io.circe.generic.JsonCodec
 
+@JsonCodec
 case class DBAccountingEntry(id: Int,
                              accountingYear: Int,
                              bookingDate: Date,
