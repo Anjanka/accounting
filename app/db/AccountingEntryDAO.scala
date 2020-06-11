@@ -13,25 +13,25 @@ import scala.language.higherKinds
 class AccountingEntryDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
                                   (implicit executionContext: ExecutionContext)
   extends HasDatabaseConfigProvider[PostgresProfile] {
-  def findAccountingEntry(accountingEntryID: Int, accountingYear: Year): Future[Option[DBAccountingEntry]] =
+  def findAccountingEntry(accountingEntryID: Int, accountingYear: Year): Future[Option[AccountingEntry]] =
     db.run(AccountingEntryDAO.findAccountingEntryAction(accountingEntryID, accountingYear))
 
   def deleteAccountingEntry(accountingEntryID: Int, accountingYear: Year): Future[Unit] =
     db.run(AccountingEntryDAO.deleteAccountingEntryAction(accountingEntryID, accountingYear))
 
-  def repsertAccountingEntry(accountingEntry: DBAccountingEntry): Future[DBAccountingEntry] =
+  def repsertAccountingEntry(accountingEntry: AccountingEntry): Future[AccountingEntry] =
     db.run(AccountingEntryDAO.repsertAccountingEntryAction(accountingEntry))
 
-  def findAccountingEntriesByYear(accountingYear: Year): Future[Seq[DBAccountingEntry]] =
+  def findAccountingEntriesByYear(accountingYear: Year): Future[Seq[AccountingEntry]] =
     db.run(AccountingEntryDAO.findAccountingEntriesByYearAction(accountingYear))
 }
 
 object AccountingEntryDAO {
 
-  def findAccountingEntryAction(accountingEntryID: Int, accountingYear: Year): DBIO[Option[DBAccountingEntry]] =
+  def findAccountingEntryAction(accountingEntryID: Int, accountingYear: Year): DBIO[Option[AccountingEntry]] =
     fetch(accountingEntryID, accountingYear).result.headOption
 
-  def findAccountingEntriesByYearAction(accountingYear: Year): DBIO[Seq[DBAccountingEntry]] =
+  def findAccountingEntriesByYearAction(accountingYear: Year): DBIO[Seq[AccountingEntry]] =
     Tables.dbAccountingEntryTable.filter(entry => entry.accountingYear === accountingYear.getValue).result
 
   def deleteAccountingEntryAction(accountingEntryID: Int,
@@ -39,7 +39,7 @@ object AccountingEntryDAO {
                                  (implicit ec: ExecutionContext): DBIO[Unit] =
     fetch(accountingEntryID, accountingYear).delete.map(_ => ())
 
-  def repsertAccountingEntryAction(accountingEntry: DBAccountingEntry)(implicit ec: ExecutionContext): DBIO[DBAccountingEntry] = {
+  def repsertAccountingEntryAction(accountingEntry: AccountingEntry)(implicit ec: ExecutionContext): DBIO[AccountingEntry] = {
     Tables.dbAccountingEntryTable.returning(Tables.dbAccountingEntryTable).insertOrUpdate(accountingEntry).flatMap {
       case Some(dbEntry) if accountingEntry.credit == dbEntry.credit && accountingEntry.debit == dbEntry.debit =>
         DBIO.successful(accountingEntry)
@@ -49,6 +49,6 @@ object AccountingEntryDAO {
   }
 
   private def fetch(accountingEntryID: Int,
-                    accountingYear: Year): Query[Tables.DBAccountingEntryDB, DBAccountingEntry, Seq] =
+                    accountingYear: Year): Query[Tables.DBAccountingEntryDB, AccountingEntry, Seq] =
     Tables.dbAccountingEntryTable.filter(entry => entry.id === accountingEntryID && entry.accountingYear === accountingYear.getValue)
 }

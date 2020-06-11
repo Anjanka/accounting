@@ -3,7 +3,7 @@ package controllers
 import java.time.Year
 
 import base.Id2
-import db.{AccountingEntryDAO, DBAccountingEntry}
+import db.{AccountingEntryDAO, AccountingEntry}
 import io.circe.Json
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
@@ -33,7 +33,7 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
   }
 
   def repsert: Action[Json] = Action.async(circe.json) { request =>
-    val accountingEntryCandidate = request.body.as[DBAccountingEntry]
+    val accountingEntryCandidate = request.body.as[AccountingEntry]
     accountingEntryCandidate match {
       case Right(value) =>
         accountingEntryDAO.repsertAccountingEntry(value).map(entry => Ok(entry.asJson))

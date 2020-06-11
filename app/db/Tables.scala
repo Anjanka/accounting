@@ -21,7 +21,7 @@ object Tables {
 
   val accountTable: TableQuery[AccountDB] = TableQuery[AccountDB]
 
-  class DBAccountingEntryDB(tag: Tag) extends Table[DBAccountingEntry](_tableTag = tag, _tableName = "accounting_entry") {
+  class DBAccountingEntryDB(tag: Tag) extends Table[AccountingEntry](_tableTag = tag, _tableName = "accounting_entry") {
     def id: Rep[Int] = column[Int]("id", O.PrimaryKey)
 
     def accountingYear: Rep[Int] = column[Int]("accounting_year", O.PrimaryKey)
@@ -40,7 +40,7 @@ object Tables {
 
     def amountChange: Rep[Int] = column[Int]("amount_change")
 
-    override def * : ProvenShape[DBAccountingEntry] = (id, accountingYear, bookingDate, receiptNumber, description, credit, debit, amountWhole, amountChange) <> ((DBAccountingEntry.apply _).tupled, DBAccountingEntry.unapply)
+    override def * : ProvenShape[AccountingEntry] = (id, accountingYear, bookingDate, receiptNumber, description, credit, debit, amountWhole, amountChange) <> ((AccountingEntry.apply _).tupled, AccountingEntry.unapply)
   }
 
   val dbAccountingEntryTable: TableQuery[DBAccountingEntryDB] = TableQuery[DBAccountingEntryDB]

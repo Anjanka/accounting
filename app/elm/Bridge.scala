@@ -5,7 +5,7 @@ import bridges.core.Type.Ref
 import bridges.core._
 import bridges.core.syntax._
 import bridges.elm._
-import db.{Account, DBAccountingEntry, DBAccountingEntryTemplate}
+import db.{Account, AccountingEntry, DBAccountingEntryTemplate}
 import shapeless.Lazy
 
 import scala.reflect.runtime.universe.TypeTag
@@ -56,7 +56,7 @@ object Bridge {
   def main(args: Array[String]): Unit = {
     mkAndWrite[Date](withDateReplacement = false)
     mkAndWrite[Account]()
-    mkAndWrite[DBAccountingEntry]()
+    mkAndWrite[AccountingEntry]()
     mkAndWrite[DBAccountingEntryTemplate]()
   }
 
