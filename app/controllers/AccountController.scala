@@ -1,7 +1,7 @@
 package controllers
 
-import base.{Account, Id}
-import db.AccountDAO
+import base.Id
+import db.{AccountDAO, DBAccount}
 import io.circe.Json
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
@@ -25,7 +25,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   }
 
   def repsert: Action[Json] = Action.async(circe.json) { request =>
-    val accountCandidate = request.body.as[Account]
+    val accountCandidate = request.body.as[DBAccount]
     accountCandidate match {
       case Right(value) =>
         accountDAO.repsertAccount(value).map(acc => Ok(acc.asJson))
