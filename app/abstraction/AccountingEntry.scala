@@ -1,10 +1,10 @@
-package base
+package abstraction
 
-import java.time.Year
 import java.sql.Date
+import java.time.Year
 
+import base.MonetaryValue
 import io.circe.generic.JsonCodec
-import JsonCodecs.Implicits._
 
 @JsonCodec
 case class AccountingEntry(id: Int,

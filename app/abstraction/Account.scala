@@ -1,5 +1,6 @@
-package base
+package abstraction
 
+import base.{Balance, MonetaryValue}
 import io.circe.generic.JsonCodec
 
 import scala.Numeric.Implicits._
