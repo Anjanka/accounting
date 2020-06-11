@@ -1,6 +1,6 @@
 package abstraction
 
-import base.{Account, MonetaryValue}
+import base.MonetaryValue
 import io.circe.generic.JsonCodec
 
 @JsonCodec
