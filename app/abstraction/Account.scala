@@ -39,4 +39,6 @@ object Account {
     creditSum - debitSum
   }
 
+  def fromDB(account: db.Account): Account =
+    Account(id = account.id, title = account.title)
 }
