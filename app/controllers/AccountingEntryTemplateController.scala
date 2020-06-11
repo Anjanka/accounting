@@ -1,7 +1,7 @@
 package controllers
 
-import base.{AccountingEntryTemplate, Id}
-import db.AccountingEntryTemplateDAO
+import base.Id
+import db.{AccountingEntryTemplateDAO, DBAccountingEntryTemplate}
 import io.circe.Json
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
@@ -11,10 +11,10 @@ import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AccountingEntryTemplateController  @Inject()(val controllerComponents: ControllerComponents,
-                                                   val accountingEntryTemplateDAO: AccountingEntryTemplateDAO)
-                                                  (implicit ec: ExecutionContext)
-  extends BaseController with Circe  {
+class AccountingEntryTemplateController @Inject()(val controllerComponents: ControllerComponents,
+                                                  val accountingEntryTemplateDAO: AccountingEntryTemplateDAO)
+                                                 (implicit ec: ExecutionContext)
+  extends BaseController with Circe {
 
 
   def findAccountingEntryTemplate(description: String): Action[AnyContent] = Action.async {
@@ -25,7 +25,7 @@ class AccountingEntryTemplateController  @Inject()(val controllerComponents: Con
   }
 
   def repsert: Action[Json] = Action.async(circe.json) { request =>
-    val accountingEntryTemplateCandidate = request.body.as[AccountingEntryTemplate]
+    val accountingEntryTemplateCandidate = request.body.as[DBAccountingEntryTemplate]
     accountingEntryTemplateCandidate match {
       case Right(value) =>
         accountingEntryTemplateDAO.repsertAccount(value).map(acc => Ok(acc.asJson))
