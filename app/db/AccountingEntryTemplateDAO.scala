@@ -49,6 +49,6 @@ object AccountingEntryTemplateDAO {
     }
   }
 
-  private def fetch(description: String): Query[Tables.DBAccountingEntryTemplateDB, AccountingEntryTemplate, Seq] =
+  private def fetch(description: String): Query[Tables.AccountingEntryTemplateDB, AccountingEntryTemplate, Seq] =
     Tables.dbAccountingEntryTemplateTable.filter(entryTemplate => entryTemplate.description === description)
 }
