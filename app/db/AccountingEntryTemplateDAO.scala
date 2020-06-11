@@ -13,34 +13,34 @@ import scala.language.higherKinds
 class AccountingEntryTemplateDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
                                           (implicit executionContext: ExecutionContext)
   extends HasDatabaseConfigProvider[PostgresProfile] {
-  def findAccountingEntryTemplate(description: String): Future[Option[DBAccountingEntryTemplate]] =
+  def findAccountingEntryTemplate(description: String): Future[Option[AccountingEntryTemplate]] =
     db.run(AccountingEntryTemplateDAO.findAccountingEntryTemplateAction(description))
 
   def deleteAccountingEntryTemplate(description: String): Future[Unit] =
     db.run(AccountingEntryTemplateDAO.deleteAccountingEntryTemplateAction(description))
 
-  def repsertAccount(accountingEntryTemplate: DBAccountingEntryTemplate): Future[DBAccountingEntryTemplate] =
+  def repsertAccount(accountingEntryTemplate: AccountingEntryTemplate): Future[AccountingEntryTemplate] =
     db.run(AccountingEntryTemplateDAO.repsertAccountingEntryTemplateAction(accountingEntryTemplate))
 
-  def getAllAccountingEntryTemplates: Future[Seq[DBAccountingEntryTemplate]] =
+  def getAllAccountingEntryTemplates: Future[Seq[AccountingEntryTemplate]] =
     db.run(AccountingEntryTemplateDAO.getAllAccountingEntryTemplatesAction)
 
 }
 
 object AccountingEntryTemplateDAO {
 
-  def findAccountingEntryTemplateAction(description: String): DBIO[Option[DBAccountingEntryTemplate]] =
+  def findAccountingEntryTemplateAction(description: String): DBIO[Option[AccountingEntryTemplate]] =
     fetch(description).result.headOption
 
-  def getAllAccountingEntryTemplatesAction: DBIO[Seq[DBAccountingEntryTemplate]] =
+  def getAllAccountingEntryTemplatesAction: DBIO[Seq[AccountingEntryTemplate]] =
     Tables.dbAccountingEntryTemplateTable.result
 
   def deleteAccountingEntryTemplateAction(description: String)
                                          (implicit ec: ExecutionContext): DBIO[Unit] =
     fetch(description).delete.map(_ => ())
 
-  def repsertAccountingEntryTemplateAction(accountingEntryTemplate: DBAccountingEntryTemplate)
-                                          (implicit ec: ExecutionContext): DBIO[DBAccountingEntryTemplate] = {
+  def repsertAccountingEntryTemplateAction(accountingEntryTemplate: AccountingEntryTemplate)
+                                          (implicit ec: ExecutionContext): DBIO[AccountingEntryTemplate] = {
     Tables.dbAccountingEntryTemplateTable.returning(Tables.dbAccountingEntryTemplateTable).insertOrUpdate(accountingEntryTemplate).flatMap {
       case Some(dbEntryTemplate) if accountingEntryTemplate.credit == dbEntryTemplate.credit && accountingEntryTemplate.debit == dbEntryTemplate.debit =>
         DBIO.successful(accountingEntryTemplate)
@@ -49,6 +49,6 @@ object AccountingEntryTemplateDAO {
     }
   }
 
-  private def fetch(description: String): Query[Tables.DBAccountingEntryTemplateDB, DBAccountingEntryTemplate, Seq] =
+  private def fetch(description: String): Query[Tables.DBAccountingEntryTemplateDB, AccountingEntryTemplate, Seq] =
     Tables.dbAccountingEntryTemplateTable.filter(entryTemplate => entryTemplate.description === description)
 }
