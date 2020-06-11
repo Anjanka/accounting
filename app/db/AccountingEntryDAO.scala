@@ -49,6 +49,6 @@ object AccountingEntryDAO {
   }
 
   private def fetch(accountingEntryID: Int,
-                    accountingYear: Year): Query[Tables.DBAccountingEntryDB, AccountingEntry, Seq] =
+                    accountingYear: Year): Query[Tables.AccountingEntryDB, AccountingEntry, Seq] =
     Tables.dbAccountingEntryTable.filter(entry => entry.id === accountingEntryID && entry.accountingYear === accountingYear.getValue)
 }
