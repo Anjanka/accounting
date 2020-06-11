@@ -1,7 +1,6 @@
 package abstraction
 
 import base.{Balance, MonetaryValue}
-import io.circe.generic.JsonCodec
 
 import scala.Numeric.Implicits._
 
@@ -9,7 +8,6 @@ import scala.Numeric.Implicits._
   * @param id    The unique number associated with this account.
   * @param title The unique name associated with this account.
   */
-@JsonCodec
 case class Account(id: Int, title: String) {
   /**
     * Computes the balance of the account after collection of accounting entries.

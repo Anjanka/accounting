@@ -4,9 +4,7 @@ import java.sql.Date
 import java.time.Year
 
 import base.MonetaryValue
-import io.circe.generic.JsonCodec
 
-@JsonCodec
 case class AccountingEntry(id: Int,
                            accountingYear: Year,
                            //Todo #7 switch to own Date type
