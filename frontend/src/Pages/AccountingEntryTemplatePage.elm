@@ -1,7 +1,7 @@
 module Pages.AccountingEntryTemplatePage exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
-import Api.Types.DBAccountingEntryTemplate exposing (DBAccountingEntryTemplate, decoderDBAccountingEntryTemplate, encoderDBAccountingEntryTemplate)
+import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
 import Browser
 import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (disabled, placeholder, style, value)
@@ -10,8 +10,8 @@ import Http exposing (Error)
 import Json.Decode as Decode
 import Api.General.AccountUtil as AccountUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
-import Api.General.DBAccountingEntryTemplateUtil as DBAccountingEntryTemplateUtil
-import Api.Types.DBAccountingEntryTemplate
+import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
+import Api.Types.AccountingEntryTemplate
 
 
 
@@ -38,7 +38,7 @@ type alias Model =
     , contentCreditID : String
     , contentCreditName : String
     , contentAmount : String
-    , aet : DBAccountingEntryTemplate
+    , aet : AccountingEntryTemplate
     , allAccounts : List Account
     , response : String
     , feedback : String
@@ -48,7 +48,7 @@ type alias Model =
     }
 
 
-updateAccountingEntryTemplate : Model -> DBAccountingEntryTemplate -> Model
+updateAccountingEntryTemplate : Model -> AccountingEntryTemplate -> Model
 updateAccountingEntryTemplate model aet =
     { model | aet = aet }
 
@@ -69,7 +69,7 @@ init _ =
       , contentCreditID = ""
       , contentCreditName = "test"
       , contentAmount = ""
-      , aet = DBAccountingEntryTemplateUtil.empty
+      , aet = AccountingEntryTemplateUtil.empty
       , allAccounts = []
       , response = ""
       , feedback = ""
@@ -90,8 +90,8 @@ type Msg
     | ChangeDebit String
     | ChangeCredit String
     | ChangeAmount String
-    | GotResponse (Result Error (List DBAccountingEntryTemplate))
-    | GotResponse2 (Result Error DBAccountingEntryTemplate)
+    | GotResponse (Result Error (List AccountingEntryTemplate))
+    | GotResponse2 (Result Error AccountingEntryTemplate)
     | GotResponse3 (Result Error (List Account))
 
 
@@ -107,7 +107,7 @@ update msg model =
             case result of
                 Ok value ->
                     ( { model
-                        | response = value |> List.map DBAccountingEntryTemplateUtil.show |> String.join ",\n"
+                        | response = value |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
                         , feedback = ""
                       }
                     , Cmd.none
@@ -132,7 +132,7 @@ update msg model =
              let
                             newModel =
                                     model.aet
-                                          |> (\aet -> DBAccountingEntryTemplateUtil.updateDescription aet newContent)
+                                          |> (\aet -> AccountingEntryTemplateUtil.updateDescription aet newContent)
                                           |> updateAccountingEntryTemplate model
              in ( { newModel | contentDescription = newContent }, Cmd.none )
 
@@ -179,7 +179,7 @@ view model =
         , div [] [input [ placeholder "Debit Account", value model.contentDebitID, onInput ChangeDebit ] [], label [] [text model.contentDebitName] ]
         , div [] [input [ placeholder "Crebit Account", value model.contentCreditID, onInput ChangeCredit ] [], label [] [text model.contentCreditName] ]
         , div [] [input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] []]
-        , div [] [ text (DBAccountingEntryTemplateUtil.show model.aet) ]
+        , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
         , div [] ([ button [ onClick GetAccountingEntryTemplates ] [ text "Get All Accounting Entry Templates" ] ] ++ responseArea)
         ]
 
@@ -192,16 +192,16 @@ getAccountingEntryTemplates : Cmd Msg
 getAccountingEntryTemplates =
     Http.get
         { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates"
-        , expect = Http.expectJson GotResponse (Decode.list decoderDBAccountingEntryTemplate)
+        , expect = Http.expectJson GotResponse (Decode.list decoderAccountingEntryTemplate)
         }
 
 
-postAccountingEntryTemplate : DBAccountingEntryTemplate -> Cmd Msg
+postAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
 postAccountingEntryTemplate aet =
     Http.post
         { url = "http://localhost:9000/accountingEntryTemplate/repsert "
-        , expect = Http.expectJson GotResponse2 decoderDBAccountingEntryTemplate
-        , body = Http.jsonBody (encoderDBAccountingEntryTemplate aet)
+        , expect = Http.expectJson GotResponse2 decoderAccountingEntryTemplate
+        , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
         }
 
 getAccounts : Cmd Msg
@@ -226,7 +226,7 @@ findAccountName  accounts id =
                 ""
 
 
-parseAndUpdateAmount : String -> DBAccountingEntryTemplate -> DBAccountingEntryTemplate
+parseAndUpdateAmount : String -> AccountingEntryTemplate -> AccountingEntryTemplate
 parseAndUpdateAmount a aet =
     let wholeAndChange = String.split "," a
     in
