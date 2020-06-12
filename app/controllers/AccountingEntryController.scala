@@ -2,8 +2,8 @@ package controllers
 
 import java.time.Year
 
-import base.{AccountingEntry, Id2}
-import db.AccountingEntryDAO
+import base.Id2
+import db.{AccountingEntryDAO, AccountingEntry}
 import io.circe.Json
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
