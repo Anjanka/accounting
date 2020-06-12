@@ -1,7 +1,7 @@
 package controllers
 
-import base.{AccountingEntryTemplate, Id}
-import db.AccountingEntryTemplateDAO
+import base.Id
+import db.{AccountingEntryTemplateDAO, AccountingEntryTemplate}
 import io.circe.Json
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
@@ -11,10 +11,10 @@ import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AccountingEntryTemplateController  @Inject()(val controllerComponents: ControllerComponents,
-                                                   val accountingEntryTemplateDAO: AccountingEntryTemplateDAO)
-                                                  (implicit ec: ExecutionContext)
-  extends BaseController with Circe  {
+class AccountingEntryTemplateController @Inject()(val controllerComponents: ControllerComponents,
+                                                  val accountingEntryTemplateDAO: AccountingEntryTemplateDAO)
+                                                 (implicit ec: ExecutionContext)
+  extends BaseController with Circe {
 
 
   def findAccountingEntryTemplate(description: String): Action[AnyContent] = Action.async {

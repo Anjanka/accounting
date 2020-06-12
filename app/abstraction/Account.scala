@@ -1,6 +1,6 @@
-package base
+package abstraction
 
-import io.circe.generic.JsonCodec
+import base.{Balance, MonetaryValue}
 
 import scala.Numeric.Implicits._
 
@@ -8,7 +8,6 @@ import scala.Numeric.Implicits._
   * @param id    The unique number associated with this account.
   * @param title The unique name associated with this account.
   */
-@JsonCodec
 case class Account(id: Int, title: String) {
   /**
     * Computes the balance of the account after collection of accounting entries.
@@ -40,4 +39,6 @@ object Account {
     creditSum - debitSum
   }
 
+  def fromDB(account: db.Account): Account =
+    Account(id = account.id, title = account.title)
 }

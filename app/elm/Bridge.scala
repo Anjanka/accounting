@@ -1,15 +1,14 @@
 package elm
 
-import base.Account
-import bridges.elm._
+import better.files._
+import bridges.core.Type.Ref
 import bridges.core._
 import bridges.core.syntax._
+import bridges.elm._
+import db.{Account, AccountingEntry, AccountingEntryTemplate}
 import shapeless.Lazy
 
 import scala.reflect.runtime.universe.TypeTag
-import better.files._
-import bridges.core.Type.Ref
-import db.{DBAccountingEntry, DBAccountingEntryTemplate}
 
 object Bridge {
 
@@ -57,8 +56,8 @@ object Bridge {
   def main(args: Array[String]): Unit = {
     mkAndWrite[Date](withDateReplacement = false)
     mkAndWrite[Account]()
-    mkAndWrite[DBAccountingEntry]()
-    mkAndWrite[DBAccountingEntryTemplate]()
+    mkAndWrite[AccountingEntry]()
+    mkAndWrite[AccountingEntryTemplate]()
   }
 
 }

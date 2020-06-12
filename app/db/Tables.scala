@@ -3,10 +3,9 @@ package db
 
 import java.sql.Date
 
-import base.Account
-import slick.lifted.{ProvenShape, Tag}
-import slick.lifted.Shape._
 import slick.jdbc.PostgresProfile.api._
+import slick.lifted.Shape._
+import slick.lifted.{ProvenShape, Tag}
 
 object Tables {
 
@@ -22,7 +21,7 @@ object Tables {
 
   val accountTable: TableQuery[AccountDB] = TableQuery[AccountDB]
 
-  class DBAccountingEntryDB(tag: Tag) extends Table[DBAccountingEntry](_tableTag = tag, _tableName = "accounting_entry") {
+  class AccountingEntryDB(tag: Tag) extends Table[AccountingEntry](_tableTag = tag, _tableName = "accounting_entry") {
     def id: Rep[Int] = column[Int]("id", O.PrimaryKey)
 
     def accountingYear: Rep[Int] = column[Int]("accounting_year", O.PrimaryKey)
@@ -41,12 +40,12 @@ object Tables {
 
     def amountChange: Rep[Int] = column[Int]("amount_change")
 
-    override def * : ProvenShape[DBAccountingEntry] = (id, accountingYear, bookingDate, receiptNumber, description, credit, debit, amountWhole, amountChange) <> ((DBAccountingEntry.apply _).tupled, DBAccountingEntry.unapply)
+    override def * : ProvenShape[AccountingEntry] = (id, accountingYear, bookingDate, receiptNumber, description, credit, debit, amountWhole, amountChange) <> ((AccountingEntry.apply _).tupled, AccountingEntry.unapply)
   }
 
-  val dbAccountingEntryTable: TableQuery[DBAccountingEntryDB] = TableQuery[DBAccountingEntryDB]
+  val dbAccountingEntryTable: TableQuery[AccountingEntryDB] = TableQuery[AccountingEntryDB]
 
-  class DBAccountingEntryTemplateDB(tag: Tag) extends Table[DBAccountingEntryTemplate](_tableTag = tag, _tableName = "accounting_entry_template") {
+  class AccountingEntryTemplateDB(tag: Tag) extends Table[AccountingEntryTemplate](_tableTag = tag, _tableName = "accounting_entry_template") {
 
     def description: Rep[String] = column[String]("description", O.PrimaryKey)
 
@@ -58,9 +57,9 @@ object Tables {
 
     def amountChange: Rep[Int] = column[Int]("amount_change")
 
-    override def * : ProvenShape[DBAccountingEntryTemplate] = (description, credit, debit, amountWhole, amountChange) <> ((DBAccountingEntryTemplate.apply _).tupled, DBAccountingEntryTemplate.unapply)
+    override def * : ProvenShape[AccountingEntryTemplate] = (description, credit, debit, amountWhole, amountChange) <> ((AccountingEntryTemplate.apply _).tupled, AccountingEntryTemplate.unapply)
   }
 
-  val dbAccountingEntryTemplateTable: TableQuery[DBAccountingEntryTemplateDB] = TableQuery[DBAccountingEntryTemplateDB]
+  val dbAccountingEntryTemplateTable: TableQuery[AccountingEntryTemplateDB] = TableQuery[AccountingEntryTemplateDB]
 
 }

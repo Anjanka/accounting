@@ -1,7 +1,7 @@
 package controllers
 
-import base.{Account, Id}
-import db.AccountDAO
+import base.Id
+import db.{AccountDAO, Account}
 import io.circe.Json
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
