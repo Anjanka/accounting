@@ -138,10 +138,10 @@ update msg model =
 
 
         ChangeDebit newContent ->
-                   ( { model | contentDebitID = newContent, contentDebitName = findAccountName model.allAccounts newContent}, Cmd.none )
+                   ( parseAndUpdateDebit model newContent, Cmd.none )
 
         ChangeCredit newContent ->
-                   ( { model | contentCreditID = newContent, contentCreditName = findAccountName model.allAccounts newContent}, Cmd.none )
+                   ( parseAndUpdateCredit model newContent, Cmd.none )
 
         ChangeAmount newContent ->
                   ( { model | contentAmount = newContent, aet = parseAndUpdateAmount newContent model.aet  }, Cmd.none )
@@ -177,8 +177,8 @@ view model =
     div []
         [ div [] [input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] []]
         , div [] [input [ placeholder "Debit Account", value model.contentDebitID, onInput ChangeDebit ] [], label [] [text model.contentDebitName] ]
-        , div [] [input [ placeholder "Crebit Account", value model.contentCreditID, onInput ChangeCredit ] [], label [] [text model.contentCreditName] ]
-        , div [] [input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] []]
+        , div [] [input [ placeholder "Credit Account", value model.contentCreditID, onInput ChangeCredit ] [], label [] [text model.contentCreditName] ]
+        , div [] [input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [text model.error]]
         , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
         , div [] ([ button [ onClick GetAccountingEntryTemplates ] [ text "Get All Accounting Entry Templates" ] ] ++ responseArea)
         ]
@@ -212,18 +212,30 @@ getAccounts =
         }
 
 
-findAccountName : List Account -> String -> String
+parseAndUpdateCredit = parseWith (\m nc -> {m | contentCreditID = nc}) (\m nc acc -> {m | contentCreditID = nc, contentCreditName = acc.title, aet = AccountingEntryTemplateUtil.updateCredit m.aet acc.id})
+parseAndUpdateDebit = parseWith (\m nc -> {m | contentDebitID = nc}) (\m nc acc -> {m | contentDebitID = nc, contentDebitName = acc.title, aet = AccountingEntryTemplateUtil.updateDebit m.aet acc.id})
+
+parseWith : (Model -> String -> Model) -> (Model -> String -> Account -> Model) -> Model -> String -> Model
+parseWith  empty nonEmpty model newContent =
+    let account = findAccountName model.allAccounts newContent
+    in
+        if String.isEmpty account.title then
+            empty model newContent
+        else nonEmpty model newContent account
+
+
+findAccountName : List Account -> String -> Account
 findAccountName  accounts id =
     case String.toInt id of
             Just int ->
                 case List.head (List.filter (\acc -> acc.id == int) accounts) of
                     Just value ->
-                        value.title
+                         value
 
                     Nothing ->
-                        ""
+                      AccountUtil.empty
             Nothing ->
-                ""
+               AccountUtil.empty
 
 
 parseAndUpdateAmount : String -> AccountingEntryTemplate -> AccountingEntryTemplate
