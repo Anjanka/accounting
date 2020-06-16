@@ -65,9 +65,9 @@ init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { contentDescription = ""
       , contentDebitID = ""
-      , contentDebitName = "test"
+      , contentDebitName = "no account with that ID could be found"
       , contentCreditID = ""
-      , contentCreditName = "test"
+      , contentCreditName = "no account with that ID could be found"
       , contentAmount = ""
       , aet = AccountingEntryTemplateUtil.empty
       , allAccounts = []
@@ -93,6 +93,7 @@ type Msg
     | GotResponse (Result Error (List AccountingEntryTemplate))
     | GotResponse2 (Result Error AccountingEntryTemplate)
     | GotResponse3 (Result Error (List Account))
+    | CreateAccountingEntryTemplate
 
 
 
@@ -146,6 +147,9 @@ update msg model =
         ChangeAmount newContent ->
                   ( parseAndUpdateAmount model newContent , Cmd.none )
 
+        CreateAccountingEntryTemplate ->
+            (resetOnSuccessfulPost, postAccountingEntryTemplate model.aet)
+
 
 
 
@@ -176,16 +180,15 @@ view model =
     in
     div []
         [ div [] [input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] []]
-        , div [] [input [ placeholder "Debit Account", value model.contentDebitID, onInput ChangeDebit ] [], label [] [text model.contentDebitName] ]
-        , div [] [input [ placeholder "Credit Account", value model.contentCreditID, onInput ChangeCredit ] [], label [] [text model.contentCreditName] ]
+        , div [] [input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] [], label [] [text model.contentDebitName] ]
+        , div [] [input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] [], label [] [text model.contentCreditName] ]
         , div [] [input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [text model.error]]
         , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
+        , viewValidatedInput model.aet
         , div [] ([ button [ onClick GetAccountingEntryTemplates ] [ text "Get All Accounting Entry Templates" ] ] ++ responseArea)
         ]
 
 
-
--- Communication with backend
 
 
 getAccountingEntryTemplates : Cmd Msg
@@ -268,3 +271,29 @@ parseAndUpdateAmount model a =
           Nothing ->
              model
 
+
+
+viewValidatedInput : AccountingEntryTemplate -> Html Msg
+viewValidatedInput aet =
+    if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 then
+        button [ disabled False, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+
+    else
+        button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+
+
+resetOnSuccessfulPost : Model
+resetOnSuccessfulPost =
+        { contentDescription = ""
+              , contentDebitID = ""
+              , contentDebitName = "no account with that ID could be found"
+              , contentCreditID = ""
+              , contentCreditName = "no account with that ID could be found"
+              , contentAmount = ""
+              , aet = AccountingEntryTemplateUtil.empty
+              , allAccounts = []
+              , response = ""
+              , feedback = ""
+              , error = ""
+              , buttonPressed = False
+              }
