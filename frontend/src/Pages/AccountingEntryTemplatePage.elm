@@ -144,7 +144,7 @@ update msg model =
                    ( parseAndUpdateCredit model newContent, Cmd.none )
 
         ChangeAmount newContent ->
-                  ( { model | contentAmount = newContent, aet = parseAndUpdateAmount newContent model.aet  }, Cmd.none )
+                  ( parseAndUpdateAmount model newContent , Cmd.none )
 
 
 
@@ -238,8 +238,8 @@ findAccountName  accounts id =
                AccountUtil.empty
 
 
-parseAndUpdateAmount : String -> AccountingEntryTemplate -> AccountingEntryTemplate
-parseAndUpdateAmount a aet =
+parseAndUpdateAmount : Model -> String -> Model
+parseAndUpdateAmount model a =
     let wholeAndChange = String.split "," a
     in
       case List.head wholeAndChange of
@@ -250,17 +250,21 @@ parseAndUpdateAmount a aet =
                           Just tailList ->
                                case List.head tailList of
                                    Just changeString ->
-                                      case String.toInt changeString of
+                                      case String.toInt (String.left 2 changeString) of
                                           Just change ->
-                                              {aet | amountWhole = whole, amountChange = change}
+                                              if change < 10 && (String.length changeString) == 1 then
+                                              {model | contentAmount = String.concat [String.fromInt whole, ",", String.fromInt change], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet (change*10)) whole }
+                                              else if  change < 10 && (String.length changeString) >= 2 then
+                                              {model | contentAmount = String.concat [String.fromInt whole, ",0", String.fromInt change], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet change) whole }
+                                              else {model | contentAmount = String.concat [String.fromInt whole, ",", String.fromInt change], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet change) whole }
                                           Nothing ->
-                                               {aet | amountWhole = whole }
+                                               {model | contentAmount = String.concat [String.fromInt whole, ","], aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
                                    Nothing ->
-                                       {aet | amountWhole = whole }
+                                       {model | contentAmount = a, aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
                           Nothing ->
-                               {aet | amountWhole = whole }
+                               {model | contentAmount = a, aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
                   Nothing ->
-                       aet
+                      model
           Nothing ->
-              aet
+             model
 
