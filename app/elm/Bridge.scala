@@ -1,5 +1,6 @@
 package elm
 
+import base.Id
 import better.files._
 import bridges.core.Type.Ref
 import bridges.core._
@@ -58,6 +59,8 @@ object Bridge {
     mkAndWrite[Account]()
     mkAndWrite[AccountingEntry]()
     mkAndWrite[AccountingEntryTemplate]()
+    mkAndWrite[Id.IdString]()
+    mkAndWrite[Id.IdInt]()
   }
 
 }
