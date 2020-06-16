@@ -35,7 +35,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   }
 
   def delete: Action[Json] = Action.async(circe.json) { request =>
-    val accountIdCandidate = request.body.as[Id[Int]]
+    val accountIdCandidate = request.body.as[Id.IdInt]
     accountIdCandidate match {
       case Right(value) =>
         accountDAO.deleteAccount(value.id).map(_ => Ok(s"Account ${value.id} was deleted successfully."))

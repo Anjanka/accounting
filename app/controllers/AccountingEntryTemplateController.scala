@@ -35,7 +35,7 @@ class AccountingEntryTemplateController @Inject()(val controllerComponents: Cont
   }
 
   def delete: Action[Json] = Action.async(circe.json) { request =>
-    val accountIdCandidate = request.body.as[Id[String]]
+    val accountIdCandidate = request.body.as[Id.IdString]
     accountIdCandidate match {
       case Right(value) =>
         accountingEntryTemplateDAO.deleteAccountingEntryTemplate(value.id).map(_ => Ok(s"Accounting entry template '${value.id}' was deleted successfully."))
