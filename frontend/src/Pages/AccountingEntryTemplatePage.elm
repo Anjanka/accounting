@@ -2,8 +2,10 @@ module Pages.AccountingEntryTemplatePage exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
+import Api.Types.IdString exposing (encoderIdString)
 import Browser
-import Html exposing (Html, button, div, input, label, text)
+import Dropdown
+import Html exposing (Html, button, div, input, label, li, p, text, ul)
 import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
@@ -40,10 +42,12 @@ type alias Model =
     , contentAmount : String
     , aet : AccountingEntryTemplate
     , allAccounts : List Account
+    , allAccountingEntryTemplates : List AccountingEntryTemplate
     , response : String
     , feedback : String
     , error : String
     , buttonPressed : Bool
+    , selectedValue : Maybe String
 
     }
 
@@ -60,6 +64,19 @@ updateError model error =
 type alias Flags =
     ()
 
+dropdownOptions : List AccountingEntryTemplate -> Dropdown.Options Msg
+dropdownOptions allAccountingEntryTemplates =
+    let
+        defaultOptions =
+            Dropdown.defaultOptions DropdownChanged
+    in
+    { defaultOptions
+        | items =
+               List.map (\description -> {value = description, text = description, enabled = True}) (List.map (\aet -> aet.description) allAccountingEntryTemplates)
+        , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
+    }
+
+
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
@@ -71,10 +88,12 @@ init _ =
       , contentAmount = ""
       , aet = AccountingEntryTemplateUtil.empty
       , allAccounts = []
+      , allAccountingEntryTemplates = []
       , response = ""
       , feedback = ""
       , error = ""
       , buttonPressed = False
+      , selectedValue = Nothing
       }
     , getAccounts
     )
@@ -85,7 +104,7 @@ init _ =
 
 
 type Msg
-    = GetAccountingEntryTemplates
+    = ShowAllAccountingEntryTemplates
     | ChangeDescription String
     | ChangeDebit String
     | ChangeCredit String
@@ -93,41 +112,53 @@ type Msg
     | GotResponse (Result Error (List AccountingEntryTemplate))
     | GotResponse2 (Result Error AccountingEntryTemplate)
     | GotResponse3 (Result Error (List Account))
+    | GotResponse4 (Result Error ())
     | CreateAccountingEntryTemplate
+    | DeleteAccountingEntryTemplate
+    | DropdownChanged (Maybe String)
 
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GetAccountingEntryTemplates ->
-            ( { model | buttonPressed = True }, getAccountingEntryTemplates )
+        ShowAllAccountingEntryTemplates ->
+            ( { model | buttonPressed = True }, Cmd.none )
 
 
         GotResponse result ->
             case result of
                 Ok value ->
                     ( { model
-                        | response = value |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
+                        | allAccountingEntryTemplates = value
+                        , response = value |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
                         , feedback = ""
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | feedback = Debug.toString error }, Cmd.none )
+                    ( { model | error = Debug.toString error}, Cmd.none )
 
         GotResponse2 result ->
-                    ( model, Cmd.none )
+                    ( model, getAccountingEntryTemplates )
 
 
         GotResponse3 result ->
             case result of
                 Ok value ->
-                    ( { model | allAccounts = value}, Cmd.none)
+                    ( { model | allAccounts = value}, getAccountingEntryTemplates)
 
                 Err error ->
-                    ( { model | allAccounts = [] }, Cmd.none )
+                    ( { model | allAccounts = [], error = Debug.toString error }, Cmd.none )
+
+        GotResponse4 result ->
+              case result of
+                  Ok value ->
+                    ({model | selectedValue = Nothing}, getAccountingEntryTemplates)
+
+                  Err error ->
+                    ({model | error = Debug.toString error, selectedValue = Nothing }, Cmd.none)
 
         ChangeDescription newContent ->
              let
@@ -148,7 +179,13 @@ update msg model =
                   ( parseAndUpdateAmount model newContent , Cmd.none )
 
         CreateAccountingEntryTemplate ->
-            (resetOnSuccessfulPost, postAccountingEntryTemplate model.aet)
+            (resetOnSuccessfulPost model, postAccountingEntryTemplate model.aet)
+
+        DeleteAccountingEntryTemplate ->
+            (model, deleteAccountingEntryTemplate model.selectedValue)
+
+        DropdownChanged selectedValue ->
+             ({ model | selectedValue = selectedValue }, Cmd.none)
 
 
 
@@ -185,7 +222,19 @@ view model =
         , div [] [input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [text model.error]]
         , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
         , viewValidatedInput model.aet
-        , div [] ([ button [ onClick GetAccountingEntryTemplates ] [ text "Get All Accounting Entry Templates" ] ] ++ responseArea)
+        , div [] ([ button [ onClick ShowAllAccountingEntryTemplates ] [ text "Get All Accounting Entry Templates" ] ] ++ responseArea)
+        , Html.form []
+                [ p []
+                    [ label []
+                        [ Dropdown.dropdown
+                            (dropdownOptions model.allAccountingEntryTemplates)
+                            []
+                            model.selectedValue
+                        ]
+                    ]
+                ]
+        , deleteButton model.selectedValue
+        , div [] [ text model.error ]
         ]
 
 
@@ -206,6 +255,20 @@ postAccountingEntryTemplate aet =
         , expect = Http.expectJson GotResponse2 decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
         }
+
+deleteAccountingEntryTemplate : (Maybe String) -> Cmd Msg
+deleteAccountingEntryTemplate description =
+    case description of
+       Just string ->
+        Http.post
+          { url = "http://localhost:9000/accountingEntryTemplate/delete "
+          , expect = Http.expectWhatever GotResponse4
+          , body = Http.jsonBody (encoderIdString {id=string})
+          }
+       Nothing -> Cmd.none
+
+
+
 
 getAccounts : Cmd Msg
 getAccounts =
@@ -239,6 +302,15 @@ findAccountName  accounts id =
                       AccountUtil.empty
             Nothing ->
                AccountUtil.empty
+
+findEntry : (Maybe String) -> List AccountingEntryTemplate -> AccountingEntryTemplate
+findEntry selectedValue allAccountingEntryTemplates =
+    case selectedValue of
+       Just string ->
+          case List.head (List.filter (\aet -> aet.description == string) allAccountingEntryTemplates) of
+                Just value -> value
+                Nothing -> AccountingEntryTemplateUtil.empty
+       Nothing -> AccountingEntryTemplateUtil.empty
 
 
 parseAndUpdateAmount : Model -> String -> Model
@@ -281,19 +353,22 @@ viewValidatedInput aet =
     else
         button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
 
+deleteButton : (Maybe String) -> Html Msg
+deleteButton selectedValue =
+    case selectedValue of
+        Just value ->  button [ disabled False, onClick DeleteAccountingEntryTemplate ] [ text "Delete" ]
+        Nothing ->  button [ disabled True, onClick DeleteAccountingEntryTemplate ] [ text "Delete" ]
 
-resetOnSuccessfulPost : Model
-resetOnSuccessfulPost =
-        { contentDescription = ""
-              , contentDebitID = ""
-              , contentDebitName = "no account with that ID could be found"
-              , contentCreditID = ""
-              , contentCreditName = "no account with that ID could be found"
-              , contentAmount = ""
-              , aet = AccountingEntryTemplateUtil.empty
-              , allAccounts = []
-              , response = ""
-              , feedback = ""
-              , error = ""
-              , buttonPressed = False
+
+resetOnSuccessfulPost : Model -> Model
+resetOnSuccessfulPost model =
+        { model | contentDescription = ""
+                , contentDebitID = ""
+                , contentDebitName = "no account with that ID could be found"
+                , contentCreditID = ""
+                , contentCreditName = "no account with that ID could be found"
+                , contentAmount = ""
+                , aet = AccountingEntryTemplateUtil.empty
+                , error = ""
+                , buttonPressed = False
               }
