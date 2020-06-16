@@ -109,10 +109,10 @@ type Msg
     | ChangeDebit String
     | ChangeCredit String
     | ChangeAmount String
-    | GotResponse (Result Error (List AccountingEntryTemplate))
-    | GotResponse2 (Result Error AccountingEntryTemplate)
-    | GotResponse3 (Result Error (List Account))
-    | GotResponse4 (Result Error ())
+    | GotResponseAllAccountingEntryTemplates (Result Error (List AccountingEntryTemplate))
+    | GotResponseCreate (Result Error AccountingEntryTemplate)
+    | GotResponseAllAccounts (Result Error (List Account))
+    | GotResponseDelete (Result Error ())
     | CreateAccountingEntryTemplate
     | DeleteAccountingEntryTemplate
     | DropdownChanged (Maybe String)
@@ -126,7 +126,7 @@ update msg model =
             ( { model | buttonPressed = True }, Cmd.none )
 
 
-        GotResponse result ->
+        GotResponseAllAccountingEntryTemplates result ->
             case result of
                 Ok value ->
                     ( { model
@@ -140,11 +140,11 @@ update msg model =
                 Err error ->
                     ( { model | error = Debug.toString error}, Cmd.none )
 
-        GotResponse2 result ->
+        GotResponseCreate result ->
                     ( model, getAccountingEntryTemplates )
 
 
-        GotResponse3 result ->
+        GotResponseAllAccounts result ->
             case result of
                 Ok value ->
                     ( { model | allAccounts = value}, getAccountingEntryTemplates)
@@ -152,7 +152,7 @@ update msg model =
                 Err error ->
                     ( { model | allAccounts = [], error = Debug.toString error }, Cmd.none )
 
-        GotResponse4 result ->
+        GotResponseDelete result ->
               case result of
                   Ok value ->
                     ({model | selectedValue = Nothing}, getAccountingEntryTemplates)
@@ -244,7 +244,7 @@ getAccountingEntryTemplates : Cmd Msg
 getAccountingEntryTemplates =
     Http.get
         { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates"
-        , expect = Http.expectJson GotResponse (Decode.list decoderAccountingEntryTemplate)
+        , expect = Http.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
 
@@ -252,7 +252,7 @@ postAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
 postAccountingEntryTemplate aet =
     Http.post
         { url = "http://localhost:9000/accountingEntryTemplate/repsert "
-        , expect = Http.expectJson GotResponse2 decoderAccountingEntryTemplate
+        , expect = Http.expectJson GotResponseCreate decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
         }
 
@@ -262,7 +262,7 @@ deleteAccountingEntryTemplate description =
        Just string ->
         Http.post
           { url = "http://localhost:9000/accountingEntryTemplate/delete "
-          , expect = Http.expectWhatever GotResponse4
+          , expect = Http.expectWhatever GotResponseDelete
           , body = Http.jsonBody (encoderIdString {id=string})
           }
        Nothing -> Cmd.none
@@ -274,7 +274,7 @@ getAccounts : Cmd Msg
 getAccounts =
     Http.get
         { url = "http://localhost:9000/account/getAllAccounts"
-        , expect = Http.expectJson GotResponse3 (Decode.list decoderAccount)
+        , expect = Http.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 
 
