@@ -2,11 +2,8 @@ module Pages.AccountPage exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
-import Bootstrap.Button as Button
-import Bootstrap.Grid as Grid
-import Bootstrap.Modal as Modal
 import Browser
-import Html exposing (Html, button, div, input, text)
+import Html exposing (Html, Attribute, button, div, input, text)
 import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
@@ -37,7 +34,6 @@ type alias Model =
     , feedback : String
     , error : String
     , buttonPressed : Bool
-    , modalVisibility : Modal.Visibility
     }
 
 
@@ -68,8 +64,7 @@ init _ =
       , feedback = ""
       , error = "Account ID must be non-zero, positive 5-digit number."
       , buttonPressed = False
-      , modalVisibility = Modal.hidden
-      }
+     }
     , Cmd.none
     )
 
@@ -85,8 +80,8 @@ type Msg
     | ChangeID String
     | ChangeName String
     | CreateAccount
-    | CloseModal
-    | ShowModal
+
+
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -136,12 +131,6 @@ update msg model =
         CreateAccount ->
             ( model, postAccount model.account )
 
-        CloseModal ->
-            ( { model | modalVisibility = Modal.hidden }, Cmd.none )
-
-        ShowModal ->
-            ( { model | modalVisibility = Modal.shown }, Cmd.none )
-
 
 
 -- SUBSCRIPTIONS
@@ -167,28 +156,19 @@ view model =
 
             else
                 []
+
+
     in
-    Grid.container []
+    div []
         [ input [ placeholder "Account ID", value model.contentID, onInput ChangeID ] []
         , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
         , viewValidation model.error
         , viewValidatedInput model
         , div [] ([ button [ onClick GetAccounts ] [ text "Get All Accounts" ] ] ++ responseArea)
-        , Modal.config CloseModal
-            |> Modal.small
-            |> Modal.h5 [] [  ]
-            |> Modal.body []
-                [ text "Account was successfully created."
-                ]
-            |> Modal.footer []
-                [ Button.button
-                    [ Button.outlinePrimary
-                    , Button.attrs [ onClick CloseModal ]
-                    ]
-                    [ text "OK" ]
-                ]
-            |> Modal.view model.modalVisibility
-        ]
+         ]
+
+
+
 
 
 
@@ -256,5 +236,4 @@ resetOnSuccessfulPost =
     , feedback = ""
     , error = "Account ID must be non-zero, positive 5-digit number."
     , buttonPressed = False
-    , modalVisibility = Modal.shown
     }
