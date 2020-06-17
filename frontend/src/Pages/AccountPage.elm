@@ -2,6 +2,7 @@ module Pages.AccountPage exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
+import Api.Types.IdInt exposing (encoderIdInt)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, text)
@@ -67,7 +68,7 @@ dropdownOptions allAccounts =
     in
     { defaultOptions
         | items =
-            (List.map (\acc -> accountForDropdown acc) allAccounts)
+            List.map (\acc -> accountForDropdown acc) allAccounts
         , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
     }
 
@@ -95,9 +96,11 @@ type Msg
     = ShowAllAccounts
     | GotResponseForAllAccounts (Result Error (List Account))
     | GotResponseCreate (Result Error Account)
+    | GotResponseDelete (Result Error ())
     | ChangeID String
     | ChangeName String
     | CreateAccount
+    | DeleteAccount
     | DropdownChanged (Maybe String)
 
 
@@ -129,6 +132,14 @@ update msg model =
                 Err error ->
                     ( { model | error = Debug.toString error }, Cmd.none )
 
+        GotResponseDelete result ->
+            case result of
+                Ok value ->
+                    ( { model | selectedValue = Nothing }, getAccounts )
+
+                Err error ->
+                    ( { model | error = Debug.toString error, selectedValue = Nothing }, Cmd.none )
+
         ChangeID newContent ->
             let
                 newAccountAndFeedback =
@@ -153,6 +164,9 @@ update msg model =
 
         CreateAccount ->
             ( model, postAccount model.account )
+
+        DeleteAccount ->
+            ( model, deleteAccount model.selectedValue )
 
         DropdownChanged selectedValue ->
             ( { model | selectedValue = selectedValue }, Cmd.none )
@@ -199,10 +213,9 @@ view model =
                     ]
                 ]
             ]
+        , deleteButton model.selectedValue
         , div [] [ text model.error ]
         ]
-
-
 
 
 getAccounts : Cmd Msg
@@ -220,6 +233,28 @@ postAccount account =
         , expect = Http.expectJson GotResponseCreate decoderAccount
         , body = Http.jsonBody (encoderAccount account)
         }
+
+
+deleteAccount : Maybe String -> Cmd Msg
+deleteAccount selectedValue =
+    case selectedValue of
+        Just value ->
+            let
+                id =
+                    stringIsValidId value
+            in
+            if id.valid then
+                Http.post
+                    { url = "http://localhost:9000/account/delete "
+                    , expect = Http.expectWhatever GotResponseDelete
+                    , body = Http.jsonBody (encoderIdInt { id = id.id })
+                    }
+
+            else
+                Cmd.none
+
+        Nothing ->
+            Cmd.none
 
 
 viewValidation : String -> Html Msg
@@ -240,21 +275,30 @@ viewValidatedInput model =
         button [ disabled False, onClick CreateAccount ] [ text "Create new Account" ]
 
 
+deleteButton : Maybe String -> Html Msg
+deleteButton selectedValue =
+    case selectedValue of
+        Just value ->
+            button [ disabled False, onClick DeleteAccount ] [ text "Delete" ]
+
+        Nothing ->
+            button [ disabled True, onClick DeleteAccount ] [ text "Delete" ]
+
+
 parseAccount : Account -> String -> { account : Account, validationFeedback : String }
 parseAccount baseAccount newId =
     let
         errorMessage =
             "Account ID must be non-zero, positive 5-digit number."
-        id = (stringIsValidId newId)
+
+        id =
+            stringIsValidId newId
     in
+    if id.valid then
+        { account = AccountUtil.updateId baseAccount id.id, validationFeedback = "" }
 
-            if id.valid then
-                { account = AccountUtil.updateId baseAccount id.id, validationFeedback = "" }
-
-            else
-                { account = baseAccount, validationFeedback = errorMessage }
-
-
+    else
+        { account = baseAccount, validationFeedback = errorMessage }
 
 
 type alias ValidID =
@@ -265,21 +309,25 @@ type alias ValidID =
 
 stringIsValidId : String -> ValidID
 stringIsValidId id =
-        case String.toInt id of
-            Just int ->
-                if int > 10000 && int <= 99999 then
-                   {id = int, valid = True}
-                else {id = 0, valid = False}
-            Nothing -> {id = 0, valid = False}
+    case String.toInt id of
+        Just int ->
+            if int > 10000 && int <= 99999 then
+                { id = int, valid = True }
+
+            else
+                { id = 0, valid = False }
+
+        Nothing ->
+            { id = 0, valid = False }
 
 
 accountForDropdown : Account -> Item
 accountForDropdown acc =
     let
-        id = String.fromInt acc.id
+        id =
+            String.fromInt acc.id
     in
-      { value = id, text = (id ++ " - " ++ acc.title), enabled = True }
-
+    { value = id, text = id ++ " - " ++ acc.title, enabled = True }
 
 
 resetOnSuccessfulPost : Model -> Model
