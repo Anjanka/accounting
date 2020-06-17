@@ -3,7 +3,8 @@ module Pages.AccountPage exposing (..)
 import Api.General.AccountUtil as AccountUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Browser
-import Html exposing (Html, Attribute, button, div, input, text)
+import Dropdown exposing (Item)
+import Html exposing (Attribute, Html, button, div, input, label, p, text)
 import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
@@ -30,10 +31,12 @@ main =
 type alias Model =
     { contentID : String
     , account : Account
+    , allAccounts : List Account
     , response : String
-    , feedback : String
     , error : String
+    , validationFeedback : String
     , buttonPressed : Bool
+    , selectedValue : Maybe String
     }
 
 
@@ -48,24 +51,39 @@ updateAccount model account =
 
 
 updateError : Model -> String -> Model
-updateError model error =
-    { model | error = error }
+updateError model validationFeedback =
+    { model | validationFeedback = validationFeedback }
 
 
 type alias Flags =
     ()
 
 
+dropdownOptions : List Account -> Dropdown.Options Msg
+dropdownOptions allAccounts =
+    let
+        defaultOptions =
+            Dropdown.defaultOptions DropdownChanged
+    in
+    { defaultOptions
+        | items =
+            (List.map (\acc -> accountForDropdown acc) allAccounts)
+        , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
+    }
+
+
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { contentID = ""
       , account = AccountUtil.empty
+      , allAccounts = []
       , response = ""
-      , feedback = ""
-      , error = "Account ID must be non-zero, positive 5-digit number."
+      , error = ""
+      , validationFeedback = "Account ID must be non-zero, positive 5-digit number."
       , buttonPressed = False
-     }
-    , Cmd.none
+      , selectedValue = Nothing
+      }
+    , getAccounts
     )
 
 
@@ -74,37 +92,42 @@ init _ =
 
 
 type Msg
-    = GetAccounts
-    | GotResponse (Result Error (List Account))
-    | GotResponse2 (Result Error Account)
+    = ShowAllAccounts
+    | GotResponseForAllAccounts (Result Error (List Account))
+    | GotResponseCreate (Result Error Account)
     | ChangeID String
     | ChangeName String
     | CreateAccount
-
-
+    | DropdownChanged (Maybe String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GetAccounts ->
+        ShowAllAccounts ->
             ( { model | buttonPressed = True }, getAccounts )
 
-        GotResponse result ->
+        GotResponseForAllAccounts result ->
             case result of
                 Ok value ->
                     ( { model
-                        | response = value |> List.map AccountUtil.show |> String.join ",\n"
-                        , feedback = ""
+                        | allAccounts = value
+                        , response = value |> List.map AccountUtil.show |> String.join ",\n"
+                        , error = ""
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | feedback = Debug.toString error }, Cmd.none )
+                    ( { model | error = Debug.toString error }, Cmd.none )
 
-        GotResponse2 result ->
-            ( resetOnSuccessfulPost, Cmd.none )
+        GotResponseCreate result ->
+            case result of
+                Ok value ->
+                    ( resetOnSuccessfulPost model, getAccounts )
+
+                Err error ->
+                    ( { model | error = Debug.toString error }, Cmd.none )
 
         ChangeID newContent ->
             let
@@ -115,7 +138,7 @@ update msg model =
                     model
                         |> (\md -> updateAccount md newAccountAndFeedback.account)
                         |> (\md -> updateContentID md newContent)
-                        |> (\md -> updateError md newAccountAndFeedback.error)
+                        |> (\md -> updateError md newAccountAndFeedback.validationFeedback)
             in
             ( { newModel | contentID = newContent }, Cmd.none )
 
@@ -130,6 +153,9 @@ update msg model =
 
         CreateAccount ->
             ( model, postAccount model.account )
+
+        DropdownChanged selectedValue ->
+            ( { model | selectedValue = selectedValue }, Cmd.none )
 
 
 
@@ -150,36 +176,40 @@ view model =
     let
         responseArea =
             if model.buttonPressed then
-                [ div [] [ text ("feedback : " ++ model.feedback) ]
+                [ div [] [ text "List of all accounts : " ]
                 , div [] [ text model.response ]
                 ]
 
             else
                 []
-
-
     in
     div []
         [ input [ placeholder "Account ID", value model.contentID, onInput ChangeID ] []
         , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
-        , viewValidation model.error
+        , viewValidation model.validationFeedback
         , viewValidatedInput model
-        , div [] ([ button [ onClick GetAccounts ] [ text "Get All Accounts" ] ] ++ responseArea)
-         ]
+        , div [] ([ button [ onClick ShowAllAccounts ] [ text "Get All Accounts" ] ] ++ responseArea)
+        , Html.form []
+            [ p []
+                [ label []
+                    [ Dropdown.dropdown
+                        (dropdownOptions model.allAccounts)
+                        []
+                        model.selectedValue
+                    ]
+                ]
+            ]
+        , div [] [ text model.error ]
+        ]
 
 
-
-
-
-
--- Communication with backend
 
 
 getAccounts : Cmd Msg
 getAccounts =
     Http.get
         { url = "http://localhost:9000/account/getAllAccounts"
-        , expect = Http.expectJson GotResponse (Decode.list decoderAccount)
+        , expect = Http.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
         }
 
 
@@ -187,7 +217,7 @@ postAccount : Account -> Cmd Msg
 postAccount account =
     Http.post
         { url = "http://localhost:9000/account/repsert"
-        , expect = Http.expectJson GotResponse2 decoderAccount
+        , expect = Http.expectJson GotResponseCreate decoderAccount
         , body = Http.jsonBody (encoderAccount account)
         }
 
@@ -203,37 +233,63 @@ viewValidation error =
 
 viewValidatedInput : Model -> Html Msg
 viewValidatedInput model =
-    if not (String.isEmpty model.error) || String.isEmpty model.account.title then
+    if not (String.isEmpty model.validationFeedback) || String.isEmpty model.account.title then
         button [ disabled True, onClick CreateAccount ] [ text "Create new Account" ]
 
     else
         button [ disabled False, onClick CreateAccount ] [ text "Create new Account" ]
 
 
-parseAccount : Account -> String -> { account : Account, error : String }
+parseAccount : Account -> String -> { account : Account, validationFeedback : String }
 parseAccount baseAccount newId =
     let
         errorMessage =
             "Account ID must be non-zero, positive 5-digit number."
+        id = (stringIsValidId newId)
     in
-    case String.toInt newId of
-        Just int ->
-            if int > 10000 && int <= 99999 then
-                { account = AccountUtil.updateId baseAccount int, error = "" }
+
+            if id.valid then
+                { account = AccountUtil.updateId baseAccount id.id, validationFeedback = "" }
 
             else
-                { account = baseAccount, error = errorMessage }
-
-        Nothing ->
-            { account = baseAccount, error = errorMessage }
+                { account = baseAccount, validationFeedback = errorMessage }
 
 
-resetOnSuccessfulPost : Model
-resetOnSuccessfulPost =
-    { contentID = ""
-    , account = AccountUtil.empty
-    , response = ""
-    , feedback = ""
-    , error = "Account ID must be non-zero, positive 5-digit number."
-    , buttonPressed = False
+
+
+type alias ValidID =
+    { id : Int
+    , valid : Bool
+    }
+
+
+stringIsValidId : String -> ValidID
+stringIsValidId id =
+        case String.toInt id of
+            Just int ->
+                if int > 10000 && int <= 99999 then
+                   {id = int, valid = True}
+                else {id = 0, valid = False}
+            Nothing -> {id = 0, valid = False}
+
+
+accountForDropdown : Account -> Item
+accountForDropdown acc =
+    let
+        id = String.fromInt acc.id
+    in
+      { value = id, text = (id ++ " - " ++ acc.title), enabled = True }
+
+
+
+resetOnSuccessfulPost : Model -> Model
+resetOnSuccessfulPost model =
+    { model
+        | contentID = ""
+        , account = AccountUtil.empty
+        , response = ""
+        , error = ""
+        , validationFeedback = "Account ID must be non-zero, positive 5-digit number."
+        , buttonPressed = False
+        , selectedValue = Nothing
     }
