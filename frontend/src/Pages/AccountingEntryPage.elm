@@ -39,9 +39,7 @@ type alias Model =
     , contentReceiptNumber : String
     , contentDescription : String
     , contentDebitID : String
-    , contentDebitName : String
     , contentCreditID : String
-    , contentCreditName : String
     , contentAmount : String
     , accountingEntry : AccountingEntry
     , allAccounts : List Account
@@ -83,8 +81,8 @@ dropdownOptionsTemplate allAccountingEntryTemplates =
     }
 
 
-dropdownOptionsCredit : List Account -> String -> Dropdown.Options Msg
-dropdownOptionsCredit allAccounts identifier =
+dropdownOptionsCredit : List Account -> Dropdown.Options Msg
+dropdownOptionsCredit allAccounts =
     let
         defaultOptions =
             Dropdown.defaultOptions DropdownCreditChanged
@@ -92,12 +90,12 @@ dropdownOptionsCredit allAccounts identifier =
     { defaultOptions
         | items =
             List.map (\acc -> accountForDropdown acc) allAccounts
-        , emptyItem = Just { value = "0", text = identifier, enabled = True }
+        , emptyItem = Just { value = "0", text = "no valid account selected", enabled = True }
     }
 
 
-dropdownOptionsDebit : List Account -> String -> Dropdown.Options Msg
-dropdownOptionsDebit allAccounts identifier =
+dropdownOptionsDebit : List Account -> Dropdown.Options Msg
+dropdownOptionsDebit allAccounts  =
     let
         defaultOptions =
             Dropdown.defaultOptions DropdownDebitChanged
@@ -105,7 +103,7 @@ dropdownOptionsDebit allAccounts identifier =
     { defaultOptions
         | items =
             List.map (\acc -> accountForDropdown acc) allAccounts
-        , emptyItem = Just { value = "0", text = identifier, enabled = True }
+        , emptyItem = Just { value = "0", text = "no valid account selected", enabled = True }
     }
 
 
@@ -116,9 +114,7 @@ init _ =
       , contentReceiptNumber = ""
       , contentDescription = ""
       , contentDebitID = ""
-      , contentDebitName = "no valid account selected"
       , contentCreditID = ""
-      , contentCreditName = "no valid account selected"
       , contentAmount = ""
       , accountingEntry = AccountingEntryUtil.empty
       , allAccounts = []
@@ -244,7 +240,7 @@ view model =
             [ label [] [ text "Debit Account: " ]
             , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
             , Dropdown.dropdown
-                (dropdownOptionsCredit model.allAccounts model.contentDebitName)
+                (dropdownOptionsDebit model.allAccounts)
                 []
                 model.selectedDebit
             ]
@@ -252,7 +248,7 @@ view model =
             [ label [] [ text "Credit Account: " ]
             , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
             , Dropdown.dropdown
-                (dropdownOptionsCredit model.allAccounts model.contentCreditName)
+                (dropdownOptionsCredit model.allAccounts)
                 []
                 model.selectedCredit
             ]
@@ -289,11 +285,11 @@ getAccounts =
 
 
 parseAndUpdateCredit =
-    parseWith (\m nc -> { m | contentCreditID = nc, selectedCredit = Nothing }) (\m nc acc -> { m | contentCreditID = nc, contentCreditName = acc.title, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry acc.id })
+    parseWith (\m nc -> { m | contentCreditID = nc, selectedCredit = Nothing }) (\m nc acc -> { m | contentCreditID = nc, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry acc.id, selectedCredit = (Just nc) })
 
 
 parseAndUpdateDebit =
-    parseWith (\m nc -> { m | contentDebitID = nc, selectedDebit = Nothing }) (\m nc acc -> { m | contentDebitID = nc, contentDebitName = acc.title, accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry acc.id })
+    parseWith (\m nc -> { m | contentDebitID = nc, selectedDebit = Nothing }) (\m nc acc -> { m | contentDebitID = nc,  accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry acc.id, selectedDebit = (Just nc)})
 
 
 parseWith : (Model -> String -> Model) -> (Model -> String -> Account -> Model) -> Model -> String -> Model
@@ -394,9 +390,7 @@ resetOnSuccessfulPost model =
     { model
         | contentDescription = ""
         , contentDebitID = ""
-        , contentDebitName = "no account with that ID could be found"
         , contentCreditID = ""
-        , contentCreditName = "no account with that ID could be found"
         , contentAmount = ""
         , accountingEntry = AccountingEntryUtil.empty
         , error = ""
