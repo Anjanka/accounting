@@ -1,12 +1,14 @@
-module Pages.AccountingEntryTemplatePage exposing (..)
+module Pages.AccountingEntryPage exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
+import Api.General.AccountingEntryUtil as AccountingEntryUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
+import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
-import Api.Types.IdString exposing (encoderIdString)
+import Api.Types.Date exposing (Date)
 import Browser
-import Dropdown
+import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, li, p, text, ul)
 import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
@@ -32,26 +34,31 @@ main =
 
 
 type alias Model =
-    { contentDescription : String
+    { accountingYear : Int
+    , contentBookingDate : String
+    , contentReceiptNumber : String
+    , contentDescription : String
     , contentDebitID : String
     , contentDebitName : String
     , contentCreditID : String
     , contentCreditName : String
     , contentAmount : String
-    , aet : AccountingEntryTemplate
+    , accountingEntry : AccountingEntry
     , allAccounts : List Account
     , allAccountingEntryTemplates : List AccountingEntryTemplate
     , response : String
     , feedback : String
     , error : String
     , buttonPressed : Bool
-    , selectedValue : Maybe String
+    , selectedTemplate : Maybe String
+    , selectedCredit : Maybe String
+    , selectedDebit : Maybe String
     }
 
 
-updateAccountingEntryTemplate : Model -> AccountingEntryTemplate -> Model
-updateAccountingEntryTemplate model aet =
-    { model | aet = aet }
+updateAccountingEntry : Model -> AccountingEntry -> Model
+updateAccountingEntry model accountingEntry =
+    { model | accountingEntry = accountingEntry }
 
 
 updateError : Model -> String -> Model
@@ -63,11 +70,11 @@ type alias Flags =
     ()
 
 
-dropdownOptions : List AccountingEntryTemplate -> Dropdown.Options Msg
-dropdownOptions allAccountingEntryTemplates =
+dropdownOptionsTemplate : List AccountingEntryTemplate -> Dropdown.Options Msg
+dropdownOptionsTemplate allAccountingEntryTemplates =
     let
         defaultOptions =
-            Dropdown.defaultOptions DropdownChanged
+            Dropdown.defaultOptions DropdownTemplateChanged
     in
     { defaultOptions
         | items =
@@ -76,22 +83,53 @@ dropdownOptions allAccountingEntryTemplates =
     }
 
 
+dropdownOptionsCredit : List Account -> String -> Dropdown.Options Msg
+dropdownOptionsCredit allAccounts identifier =
+    let
+        defaultOptions =
+            Dropdown.defaultOptions DropdownCreditChanged
+    in
+    { defaultOptions
+        | items =
+            List.map (\acc -> accountForDropdown acc) allAccounts
+        , emptyItem = Just { value = "0", text = identifier, enabled = True }
+    }
+
+
+dropdownOptionsDebit : List Account -> String -> Dropdown.Options Msg
+dropdownOptionsDebit allAccounts identifier =
+    let
+        defaultOptions =
+            Dropdown.defaultOptions DropdownDebitChanged
+    in
+    { defaultOptions
+        | items =
+            List.map (\acc -> accountForDropdown acc) allAccounts
+        , emptyItem = Just { value = "0", text = identifier, enabled = True }
+    }
+
+
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { contentDescription = ""
+    ( { accountingYear = 0
+      , contentBookingDate = ""
+      , contentReceiptNumber = ""
+      , contentDescription = ""
       , contentDebitID = ""
-      , contentDebitName = "no account with that ID could be found"
+      , contentDebitName = "no valid account selected"
       , contentCreditID = ""
-      , contentCreditName = "no account with that ID could be found"
+      , contentCreditName = "no valid account selected"
       , contentAmount = ""
-      , aet = AccountingEntryTemplateUtil.empty
+      , accountingEntry = AccountingEntryUtil.empty
       , allAccounts = []
       , allAccountingEntryTemplates = []
       , response = ""
       , feedback = ""
       , error = ""
       , buttonPressed = False
-      , selectedValue = Nothing
+      , selectedTemplate = Nothing
+      , selectedCredit = Nothing
+      , selectedDebit = Nothing
       }
     , getAccounts
     )
@@ -102,26 +140,22 @@ init _ =
 
 
 type Msg
-    = ShowAllAccountingEntryTemplates
+    = ChangeBookingDate String
+    | ChangeReceiptNumber String
     | ChangeDescription String
     | ChangeDebit String
     | ChangeCredit String
     | ChangeAmount String
     | GotResponseAllAccountingEntryTemplates (Result Error (List AccountingEntryTemplate))
-    | GotResponseCreate (Result Error AccountingEntryTemplate)
     | GotResponseAllAccounts (Result Error (List Account))
-    | GotResponseDelete (Result Error ())
-    | CreateAccountingEntryTemplate
-    | DeleteAccountingEntryTemplate
-    | DropdownChanged (Maybe String)
+    | DropdownTemplateChanged (Maybe String)
+    | DropdownCreditChanged (Maybe String)
+    | DropdownDebitChanged (Maybe String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ShowAllAccountingEntryTemplates ->
-            ( { model | buttonPressed = True }, Cmd.none )
-
         GotResponseAllAccountingEntryTemplates result ->
             case result of
                 Ok value ->
@@ -136,9 +170,6 @@ update msg model =
                 Err error ->
                     ( { model | error = Debug.toString error }, Cmd.none )
 
-        GotResponseCreate result ->
-            ( model, getAccountingEntryTemplates )
-
         GotResponseAllAccounts result ->
             case result of
                 Ok value ->
@@ -147,20 +178,18 @@ update msg model =
                 Err error ->
                     ( { model | allAccounts = [], error = Debug.toString error }, Cmd.none )
 
-        GotResponseDelete result ->
-            case result of
-                Ok value ->
-                    ( { model | selectedValue = Nothing }, getAccountingEntryTemplates )
+        ChangeBookingDate newContent ->
+            ( { model | contentBookingDate = newContent }, Cmd.none )
 
-                Err error ->
-                    ( { model | error = Debug.toString error, selectedValue = Nothing }, Cmd.none )
+        ChangeReceiptNumber newContent ->
+            ( { model | contentReceiptNumber = newContent, accountingEntry = AccountingEntryUtil.updateReceiptNumber model.accountingEntry newContent }, Cmd.none )
 
         ChangeDescription newContent ->
             let
                 newModel =
-                    model.aet
-                        |> (\aet -> AccountingEntryTemplateUtil.updateDescription aet newContent)
-                        |> updateAccountingEntryTemplate model
+                    model.accountingEntry
+                        |> (\ae -> AccountingEntryUtil.updateDescription ae newContent)
+                        |> updateAccountingEntry model
             in
             ( { newModel | contentDescription = newContent }, Cmd.none )
 
@@ -173,14 +202,14 @@ update msg model =
         ChangeAmount newContent ->
             ( parseAndUpdateAmount model newContent, Cmd.none )
 
-        CreateAccountingEntryTemplate ->
-            ( resetOnSuccessfulPost model, postAccountingEntryTemplate model.aet )
+        DropdownTemplateChanged selectedTemplate ->
+            ( { model | selectedTemplate = selectedTemplate }, Cmd.none )
 
-        DeleteAccountingEntryTemplate ->
-            ( model, deleteAccountingEntryTemplate model.selectedValue )
+        DropdownCreditChanged selectedCredit ->
+            ( { model | selectedCredit = selectedCredit }, Cmd.none )
 
-        DropdownChanged selectedValue ->
-            ( { model | selectedValue = selectedValue }, Cmd.none )
+        DropdownDebitChanged selectedDebit ->
+            ( { model | selectedDebit = selectedDebit }, Cmd.none )
 
 
 
@@ -209,24 +238,36 @@ view model =
                 []
     in
     div []
-        [ div [] [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] [] ]
-        , div [] [ input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] [], label [] [ text model.contentDebitName ] ]
-        , div [] [ input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] [], label [] [ text model.contentCreditName ] ]
+        [ div [] [ input [ placeholder "Booking Date", value model.contentBookingDate, onInput ChangeBookingDate ] [], label [] [ text (String.fromInt model.accountingYear) ], input [ placeholder "Receipt Number", value model.contentReceiptNumber, onInput ChangeReceiptNumber ] [] ]
+        , div [] [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] [] ]
+        , div []
+            [ label [] [ text "Debit Account: " ]
+            , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
+            , Dropdown.dropdown
+                (dropdownOptionsCredit model.allAccounts model.contentDebitName)
+                []
+                model.selectedDebit
+            ]
+        , div []
+            [ label [] [ text "Credit Account: " ]
+            , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
+            , Dropdown.dropdown
+                (dropdownOptionsCredit model.allAccounts model.contentCreditName)
+                []
+                model.selectedCredit
+            ]
         , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
-        , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
-        , viewValidatedInput model.aet
-        , div [] ([ button [ onClick ShowAllAccountingEntryTemplates ] [ text "Get All Accounting Entry Templates" ] ] ++ responseArea)
+        , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
         , Html.form []
             [ p []
                 [ label []
                     [ Dropdown.dropdown
-                        (dropdownOptions model.allAccountingEntryTemplates)
+                        (dropdownOptionsTemplate model.allAccountingEntryTemplates)
                         []
-                        model.selectedValue
+                        model.selectedTemplate
                     ]
                 ]
             ]
-        , deleteButton model.selectedValue
         , div [] [ text model.error ]
         ]
 
@@ -239,29 +280,6 @@ getAccountingEntryTemplates =
         }
 
 
-postAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
-postAccountingEntryTemplate aet =
-    Http.post
-        { url = "http://localhost:9000/accountingEntryTemplate/repsert "
-        , expect = Http.expectJson GotResponseCreate decoderAccountingEntryTemplate
-        , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
-        }
-
-
-deleteAccountingEntryTemplate : Maybe String -> Cmd Msg
-deleteAccountingEntryTemplate description =
-    case description of
-        Just string ->
-            Http.post
-                { url = "http://localhost:9000/accountingEntryTemplate/delete "
-                , expect = Http.expectWhatever GotResponseDelete
-                , body = Http.jsonBody (encoderIdString { id = string })
-                }
-
-        Nothing ->
-            Cmd.none
-
-
 getAccounts : Cmd Msg
 getAccounts =
     Http.get
@@ -271,11 +289,11 @@ getAccounts =
 
 
 parseAndUpdateCredit =
-    parseWith (\m nc -> { m | contentCreditID = nc }) (\m nc acc -> { m | contentCreditID = nc, contentCreditName = acc.title, aet = AccountingEntryTemplateUtil.updateCredit m.aet acc.id })
+    parseWith (\m nc -> { m | contentCreditID = nc, selectedCredit = Nothing }) (\m nc acc -> { m | contentCreditID = nc, contentCreditName = acc.title, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry acc.id })
 
 
 parseAndUpdateDebit =
-    parseWith (\m nc -> { m | contentDebitID = nc }) (\m nc acc -> { m | contentDebitID = nc, contentDebitName = acc.title, aet = AccountingEntryTemplateUtil.updateDebit m.aet acc.id })
+    parseWith (\m nc -> { m | contentDebitID = nc, selectedDebit = Nothing }) (\m nc acc -> { m | contentDebitID = nc, contentDebitName = acc.title, accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry acc.id })
 
 
 parseWith : (Model -> String -> Model) -> (Model -> String -> Account -> Model) -> Model -> String -> Model
@@ -306,6 +324,21 @@ findAccountName accounts id =
             AccountUtil.empty
 
 
+findEntry : Maybe String -> List AccountingEntryTemplate -> AccountingEntryTemplate
+findEntry selectedValue allAccountingEntryTemplates =
+    case selectedValue of
+        Just string ->
+            case List.head (List.filter (\aet -> aet.description == string) allAccountingEntryTemplates) of
+                Just value ->
+                    value
+
+                Nothing ->
+                    AccountingEntryTemplateUtil.empty
+
+        Nothing ->
+            AccountingEntryTemplateUtil.empty
+
+
 parseAndUpdateAmount : Model -> String -> Model
 parseAndUpdateAmount model a =
     let
@@ -323,22 +356,22 @@ parseAndUpdateAmount model a =
                                     case String.toInt (String.left 2 changeString) of
                                         Just change ->
                                             if change < 10 && String.length changeString == 1 then
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet (change * 10)) whole }
+                                                { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry (change * 10)) whole }
 
                                             else if change < 10 && String.length changeString >= 2 then
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",0", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet change) whole }
+                                                { model | contentAmount = String.concat [ String.fromInt whole, ",0", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole }
 
                                             else
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet change) whole }
+                                                { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole }
 
                                         Nothing ->
-                                            { model | contentAmount = String.concat [ String.fromInt whole, "," ], aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
+                                            { model | contentAmount = String.concat [ String.fromInt whole, "," ], accountingEntry = AccountingEntryUtil.updateAmountWhole model.accountingEntry whole }
 
                                 Nothing ->
-                                    { model | contentAmount = a, aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
+                                    { model | contentAmount = a, accountingEntry = AccountingEntryUtil.updateAmountWhole model.accountingEntry whole }
 
                         Nothing ->
-                            { model | contentAmount = a, aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
+                            { model | contentAmount = a, accountingEntry = AccountingEntryUtil.updateAmountWhole model.accountingEntry whole }
 
                 Nothing ->
                     model
@@ -347,23 +380,13 @@ parseAndUpdateAmount model a =
             model
 
 
-viewValidatedInput : AccountingEntryTemplate -> Html Msg
-viewValidatedInput aet =
-    if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 then
-        button [ disabled False, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
-
-    else
-        button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
-
-
-deleteButton : Maybe String -> Html Msg
-deleteButton selectedValue =
-    case selectedValue of
-        Just value ->
-            button [ disabled False, onClick DeleteAccountingEntryTemplate ] [ text "Delete" ]
-
-        Nothing ->
-            button [ disabled True, onClick DeleteAccountingEntryTemplate ] [ text "Delete" ]
+accountForDropdown : Account -> Item
+accountForDropdown acc =
+    let
+        id =
+            String.fromInt acc.id
+    in
+    { value = id, text = acc.title, enabled = True }
 
 
 resetOnSuccessfulPost : Model -> Model
@@ -375,7 +398,7 @@ resetOnSuccessfulPost model =
         , contentCreditID = ""
         , contentCreditName = "no account with that ID could be found"
         , contentAmount = ""
-        , aet = AccountingEntryTemplateUtil.empty
+        , accountingEntry = AccountingEntryUtil.empty
         , error = ""
         , buttonPressed = False
     }
