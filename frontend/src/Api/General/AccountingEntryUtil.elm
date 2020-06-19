@@ -1,6 +1,7 @@
 module Api.General.AccountingEntryUtil exposing (..)
 
 import Api.Types.AccountingEntry exposing (AccountingEntry)
+import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.Date exposing (Date)
 
 
@@ -43,6 +44,11 @@ updateAmountWhole accountingEntry whole = { accountingEntry | amountWhole = whol
 
 updateAmountChange : AccountingEntry -> Int -> AccountingEntry
 updateAmountChange accountingEntry change = { accountingEntry | amountChange = change }
+
+updateWithTemplate : AccountingEntry -> AccountingEntryTemplate -> AccountingEntry
+updateWithTemplate accountingEntry aet =
+    {accountingEntry | description = aet.description, credit = aet.credit, debit = aet.debit, amountWhole = aet.amountWhole, amountChange = aet.amountChange}
+
 
 show : AccountingEntry -> String
 show accountingEntry =

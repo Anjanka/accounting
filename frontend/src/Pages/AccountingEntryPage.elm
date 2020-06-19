@@ -42,6 +42,7 @@ type alias Model =
     , contentCreditID : String
     , contentAmount : String
     , accountingEntry : AccountingEntry
+    , allAccountingEntries : List AccountingEntry
     , allAccounts : List Account
     , allAccountingEntryTemplates : List AccountingEntryTemplate
     , response : String
@@ -77,7 +78,7 @@ dropdownOptionsTemplate allAccountingEntryTemplates =
     { defaultOptions
         | items =
             List.map (\description -> { value = description, text = description, enabled = True }) (List.map (\aet -> aet.description) allAccountingEntryTemplates)
-        , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
+        , emptyItem = Just { value = "0", text = "[Select Template]", enabled = True }
     }
 
 
@@ -117,6 +118,7 @@ init _ =
       , contentCreditID = ""
       , contentAmount = ""
       , accountingEntry = AccountingEntryUtil.empty
+      , allAccountingEntries = []
       , allAccounts = []
       , allAccountingEntryTemplates = []
       , response = ""
@@ -199,7 +201,7 @@ update msg model =
             ( parseAndUpdateAmount model newContent, Cmd.none )
 
         DropdownTemplateChanged selectedTemplate ->
-            ( { model | selectedTemplate = selectedTemplate }, Cmd.none )
+            ( insertTemplateData model selectedTemplate, Cmd.none )
 
         DropdownCreditChanged selectedCredit ->
             ( updateCredit model selectedCredit, Cmd.none )
@@ -235,7 +237,13 @@ view model =
     in
     div []
         [ div [] [ input [ placeholder "Booking Date", value model.contentBookingDate, onInput ChangeBookingDate ] [], label [] [ text (String.fromInt model.accountingYear) ], input [ placeholder "Receipt Number", value model.contentReceiptNumber, onInput ChangeReceiptNumber ] [] ]
-        , div [] [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] [] ]
+        , div []
+            [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] []
+            , Dropdown.dropdown
+                (dropdownOptionsTemplate model.allAccountingEntryTemplates)
+                []
+                model.selectedTemplate
+            ]
         , div []
             [ label [] [ text "Debit Account: " ]
             , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
@@ -254,16 +262,6 @@ view model =
             ]
         , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
         , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
-        , Html.form []
-            [ p []
-                [ label []
-                    [ Dropdown.dropdown
-                        (dropdownOptionsTemplate model.allAccountingEntryTemplates)
-                        []
-                        model.selectedTemplate
-                    ]
-                ]
-            ]
         , div [] [ text model.error ]
         ]
 
@@ -330,6 +328,42 @@ updateWith maybe just model newSelectedValue =
 
         Nothing ->
             maybe model newSelectedValue
+
+
+insertTemplateData : Model -> Maybe String -> Model
+insertTemplateData model newSelectedTemplate =
+    case newSelectedTemplate of
+        Just description ->
+            let
+                selectedTemplate =
+                    findEntry newSelectedTemplate model.allAccountingEntryTemplates
+            in
+            if selectedTemplate.amountWhole /= 0 && selectedTemplate.amountChange /= 0 then
+                { model
+                    | contentDescription = description
+                    , contentCreditID = String.fromInt selectedTemplate.credit
+                    , contentDebitID = String.fromInt selectedTemplate.debit
+                    , contentAmount = AccountingEntryTemplateUtil.showAmount selectedTemplate
+                    , accountingEntry = AccountingEntryUtil.updateWithTemplate model.accountingEntry selectedTemplate
+                    , selectedTemplate = newSelectedTemplate
+                    , selectedCredit = Just (String.fromInt selectedTemplate.credit)
+                    , selectedDebit = Just (String.fromInt selectedTemplate.debit)
+                }
+
+            else
+                { model
+                    | contentDescription = description
+                    , contentCreditID = String.fromInt selectedTemplate.credit
+                    , contentDebitID = String.fromInt selectedTemplate.debit
+                    , contentAmount = ""
+                    , accountingEntry = AccountingEntryUtil.updateWithTemplate model.accountingEntry selectedTemplate
+                    , selectedTemplate = newSelectedTemplate
+                    , selectedCredit = Just (String.fromInt selectedTemplate.credit)
+                    , selectedDebit = Just (String.fromInt selectedTemplate.debit)
+                }
+
+        Nothing ->
+            { model | selectedTemplate = newSelectedTemplate }
 
 
 findAccountName : List Account -> String -> Account

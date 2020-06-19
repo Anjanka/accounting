@@ -30,7 +30,11 @@ updateAmountChange aet change = { aet | amountChange = change }
 
 show : AccountingEntryTemplate -> String
 show aet =
-    String.concat [aet.description, ": ", String.fromInt aet.credit, " - ", String.fromInt aet.debit, ", ", String.fromInt aet.amountWhole, ",", giveDoubleDigitChange aet.amountChange  ]
+    String.concat [aet.description, ": ", String.fromInt aet.credit, " - ", String.fromInt aet.debit, ", ", showAmount aet]
+
+showAmount : AccountingEntryTemplate -> String
+showAmount aet =
+    String.fromInt aet.amountWhole ++ "," ++ giveDoubleDigitChange aet.amountChange
 
 giveDoubleDigitChange : Int -> String
 giveDoubleDigitChange change =
