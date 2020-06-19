@@ -95,7 +95,7 @@ dropdownOptionsCredit allAccounts =
 
 
 dropdownOptionsDebit : List Account -> Dropdown.Options Msg
-dropdownOptionsDebit allAccounts  =
+dropdownOptionsDebit allAccounts =
     let
         defaultOptions =
             Dropdown.defaultOptions DropdownDebitChanged
@@ -202,10 +202,10 @@ update msg model =
             ( { model | selectedTemplate = selectedTemplate }, Cmd.none )
 
         DropdownCreditChanged selectedCredit ->
-            ( { model | selectedCredit = selectedCredit }, Cmd.none )
+            ( updateCredit model selectedCredit, Cmd.none )
 
         DropdownDebitChanged selectedDebit ->
-            ( { model | selectedDebit = selectedDebit }, Cmd.none )
+            ( updateDebit model selectedDebit, Cmd.none )
 
 
 
@@ -285,11 +285,11 @@ getAccounts =
 
 
 parseAndUpdateCredit =
-    parseWith (\m nc -> { m | contentCreditID = nc, selectedCredit = Nothing }) (\m nc acc -> { m | contentCreditID = nc, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry acc.id, selectedCredit = (Just nc) })
+    parseWith (\m nc -> { m | contentCreditID = nc, selectedCredit = Nothing }) (\m nc acc -> { m | contentCreditID = nc, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry acc.id, selectedCredit = Just nc })
 
 
 parseAndUpdateDebit =
-    parseWith (\m nc -> { m | contentDebitID = nc, selectedDebit = Nothing }) (\m nc acc -> { m | contentDebitID = nc,  accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry acc.id, selectedDebit = (Just nc)})
+    parseWith (\m nc -> { m | contentDebitID = nc, selectedDebit = Nothing }) (\m nc acc -> { m | contentDebitID = nc, accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry acc.id, selectedDebit = Just nc })
 
 
 parseWith : (Model -> String -> Model) -> (Model -> String -> Account -> Model) -> Model -> String -> Model
@@ -303,6 +303,33 @@ parseWith empty nonEmpty model newContent =
 
     else
         nonEmpty model newContent account
+
+
+updateCredit =
+    updateWith (\m nsv -> { m | selectedCredit = nsv }) (\m nsv nss id -> { m | contentCreditID = nss, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry id, selectedCredit = nsv })
+
+
+updateDebit =
+    updateWith (\m nsv -> { m | selectedDebit = nsv }) (\m nsv nss id -> { m | contentDebitID = nss, accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry id, selectedDebit = nsv })
+
+
+updateWith : (Model -> Maybe String -> Model) -> (Model -> Maybe String -> String -> Int -> Model) -> Model -> Maybe String -> Model
+updateWith maybe just model newSelectedValue =
+    case newSelectedValue of
+        Just newSelectedString ->
+            let
+                id =
+                    String.toInt newSelectedString
+            in
+            case id of
+                Just int ->
+                    just model newSelectedValue newSelectedString int
+
+                Nothing ->
+                    maybe model newSelectedValue
+
+        Nothing ->
+            maybe model newSelectedValue
 
 
 findAccountName : List Account -> String -> Account

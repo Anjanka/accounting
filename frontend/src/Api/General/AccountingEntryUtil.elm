@@ -46,7 +46,7 @@ updateAmountChange accountingEntry change = { accountingEntry | amountChange = c
 
 show : AccountingEntry -> String
 show accountingEntry =
-    String.concat [stringFromDate accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", String.fromInt accountingEntry.amountWhole, ",", giveDoubleDigitChange accountingEntry.amountChange, " from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit]
+    String.concat [stringFromDate accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", String.fromInt accountingEntry.amountWhole, ",", giveDoubleDigitChange accountingEntry.amountChange, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit]
 
 
 stringFromDate : Date -> String
