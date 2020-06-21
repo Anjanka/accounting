@@ -62,4 +62,22 @@ object Tables {
 
   val dbAccountingEntryTemplateTable: TableQuery[AccountingEntryTemplateDB] = TableQuery[AccountingEntryTemplateDB]
 
+
+
+  class CompanyDB(tag: Tag) extends Table[Company](_tableTag = tag, _tableName = "company") {
+    def id: Rep[Int] = column[Int]("id", O.PrimaryKey)
+
+    def name: Rep[String] = column[String]("name")
+
+    def address: Rep[String] = column[String]("address")
+
+    def taxNumber: Rep[String] = column[String]("taxNumber")
+
+    def revenueOffice: Rep[String] = column[String]("revenueOffice")
+
+    override def * : ProvenShape[Company] = (id, name, address, taxNumber, revenueOffice) <> ((Company.apply _).tupled, Company.unapply)
+  }
+
+  val companyTable: TableQuery[CompanyDB] = TableQuery[CompanyDB]
 }
+
