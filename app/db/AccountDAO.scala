@@ -10,26 +10,26 @@ import scala.concurrent.{ExecutionContext, Future}
 class AccountDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
                           (implicit executionContext: ExecutionContext)
   extends HasDatabaseConfigProvider[PostgresProfile] {
-  def findAccount(accountID: Int): Future[Option[Account]] = db.run(AccountDAO.findAccountAction(accountID))
+  def findAccount(companyID: Int, accountID: Int): Future[Option[Account]] = db.run(AccountDAO.findAccountAction(companyID, accountID))
 
-  def deleteAccount(accountID: Int): Future[Unit] = db.run(AccountDAO.deleteAccountAction(accountID))
+  def deleteAccount(companyID: Int, accountID: Int): Future[Unit] = db.run(AccountDAO.deleteAccountAction(companyID, accountID))
 
   def repsertAccount(account: Account): Future[Account] = db.run(AccountDAO.repsertAccountAction(account))
 
-  def getAllAccounts: Future[Seq[Account]] = db.run(AccountDAO.getAllAccountsAction)
+  def getAllAccountsByCompany(companyID: Int): Future[Seq[Account]] = db.run(AccountDAO.getAllAccountsByCompanyAction(companyID))
 }
 
 object AccountDAO {
 
-  def findAccountAction(accountID: Int): DBIO[Option[Account]] = Tables.accountTable.filter(acc => acc.id === accountID).result.headOption
+  def findAccountAction(companyID: Int, accountID: Int): DBIO[Option[Account]] = Tables.accountTable.filter(acc => acc.id === accountID && acc.companyId === companyID).result.headOption
 
-  def deleteAccountAction(accountID: Int)(implicit ec: ExecutionContext): DBIO[Unit] = Tables.accountTable.filter(acc => acc.id === accountID).delete.map(_ => ())
+  def deleteAccountAction(companyID: Int, accountID: Int)(implicit ec: ExecutionContext): DBIO[Unit] = Tables.accountTable.filter(acc => acc.id === accountID && acc.companyId === companyID).delete.map(_ => ())
 
   def repsertAccountAction(account: Account)(implicit ec: ExecutionContext): DBIO[Account] = Tables.accountTable.returning(Tables.accountTable).insertOrUpdate(account).map {
     case Some(value) => value
     case None => account
   }
 
-  def getAllAccountsAction : DBIO[Seq[Account]] = Tables.accountTable.result
+  def getAllAccountsByCompanyAction(companyID: Int): DBIO[Seq[Account]] = Tables.accountTable.filter(acc => acc.companyId === companyID).result
 
 }
