@@ -8,4 +8,7 @@ object Id {
 
   @JsonCodec
   case class IdInt(id: Int)
+
+  @JsonCodec
+  case class AccountKey(companyID: Int, id: Int)
 }
