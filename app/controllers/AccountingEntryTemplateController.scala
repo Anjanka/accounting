@@ -17,8 +17,8 @@ class AccountingEntryTemplateController @Inject()(val controllerComponents: Cont
   extends BaseController with Circe {
 
 
-  def findAccountingEntryTemplate(description: String): Action[AnyContent] = Action.async {
-    accountingEntryTemplateDAO.findAccountingEntryTemplate(description).map {
+  def findAccountingEntryTemplate(companyID: Int, description: String): Action[AnyContent] = Action.async {
+    accountingEntryTemplateDAO.findAccountingEntryTemplate(Id.AccountingEntryTemplateKey(companyID = companyID, description = description)).map {
       x =>
         Ok(x.asJson)
     }
@@ -35,17 +35,17 @@ class AccountingEntryTemplateController @Inject()(val controllerComponents: Cont
   }
 
   def delete: Action[Json] = Action.async(circe.json) { request =>
-    val accountIdCandidate = request.body.as[Id.IdString]
+    val accountIdCandidate = request.body.as[Id.AccountingEntryTemplateKey]
     accountIdCandidate match {
       case Right(value) =>
-        accountingEntryTemplateDAO.deleteAccountingEntryTemplate(value.id).map(_ => Ok(s"Accounting entry template '${value.id}' was deleted successfully."))
+        accountingEntryTemplateDAO.deleteAccountingEntryTemplate(value).map(_ => Ok(s"Accounting entry template '${value.description}' was deleted successfully."))
       case Left(decodingFailure) =>
         Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry template Id: $decodingFailure."))
     }
   }
 
-  def getAllAccountingEntryTemplates: Action[AnyContent] = Action.async {
-    accountingEntryTemplateDAO.getAllAccountingEntryTemplates.map {
+  def getAllAccountingEntryTemplates(companyID: Int): Action[AnyContent] = Action.async {
+    accountingEntryTemplateDAO.getAllAccountingEntryTemplatesByCompany(companyID).map {
       x =>
         Ok(x.asJson)
     }
