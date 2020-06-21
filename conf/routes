@@ -3,8 +3,8 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET     /account/find/*id               controllers.AccountController.findAccount(id: Int)
-GET     /account/getAllAccounts         controllers.AccountController.getAllAccounts
+GET     /account/find/*companyID/*id               controllers.AccountController.findAccount(companyID: Int, id: Int)
+GET     /account/getAllAccounts/*companyID        controllers.AccountController.getAllAccounts(companyID: Int)
 POST    /account/repsert                controllers.AccountController.repsert
 POST    /account/delete                 controllers.AccountController.delete
 
