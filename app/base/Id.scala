@@ -6,7 +6,7 @@ import io.circe.generic.JsonCodec
 
 object Id {
   @JsonCodec
-  case class IdString(id: String)
+  case class AccountingEntryTemplateKey(companyID : Int, description: String)
 
   @JsonCodec
   case class AccountingEntryKey(companyID: Int, id: Int, accountingYear: Int)
