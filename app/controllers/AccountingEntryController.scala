@@ -1,8 +1,6 @@
 package controllers
 
-import java.time.Year
-
-import base.{Id, Id2}
+import base.Id
 import db.{AccountingEntry, AccountingEntryDAO}
 import io.circe.Json
 import io.circe.syntax._
