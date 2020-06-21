@@ -2,6 +2,7 @@ package db
 
 import java.time.Year
 
+import base.Id
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.PostgresProfile
@@ -13,32 +14,30 @@ import scala.language.higherKinds
 class AccountingEntryDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
                                   (implicit executionContext: ExecutionContext)
   extends HasDatabaseConfigProvider[PostgresProfile] {
-  def findAccountingEntry(companyID: Int, accountingEntryID: Int, accountingYear: Year): Future[Option[AccountingEntry]] =
-    db.run(AccountingEntryDAO.findAccountingEntryAction(companyID, accountingEntryID, accountingYear))
+  def findAccountingEntry(accountingEntryKey: Id.AccountingEntryKey): Future[Option[AccountingEntry]] =
+    db.run(AccountingEntryDAO.findAccountingEntryAction(accountingEntryKey))
 
-  def deleteAccountingEntry(companyID: Int, accountingEntryID: Int, accountingYear: Year): Future[Unit] =
-    db.run(AccountingEntryDAO.deleteAccountingEntryAction(companyID, accountingEntryID, accountingYear))
+  def deleteAccountingEntry(accountingEntryKey: Id.AccountingEntryKey): Future[Unit] =
+    db.run(AccountingEntryDAO.deleteAccountingEntryAction(accountingEntryKey))
 
   def repsertAccountingEntry(accountingEntry: AccountingEntry): Future[AccountingEntry] =
     db.run(AccountingEntryDAO.repsertAccountingEntryAction(accountingEntry))
 
-  def findAccountingEntriesByCompanyAndYear(companyID: Int, accountingYear: Year): Future[Seq[AccountingEntry]] =
+  def findAccountingEntriesByCompanyAndYear(companyID: Int, accountingYear: Int): Future[Seq[AccountingEntry]] =
     db.run(AccountingEntryDAO.findAccountingEntriesByCompanyAndYearAction(companyID, accountingYear))
 }
 
 object AccountingEntryDAO {
 
-  def findAccountingEntryAction(companyID: Int, accountingEntryID: Int, accountingYear: Year): DBIO[Option[AccountingEntry]] =
-    fetch(companyID, accountingEntryID, accountingYear).result.headOption
+  def findAccountingEntryAction(accountingEntryKey: Id.AccountingEntryKey): DBIO[Option[AccountingEntry]] =
+    fetch(accountingEntryKey).result.headOption
 
-  def findAccountingEntriesByCompanyAndYearAction(companyID: Int, accountingYear: Year): DBIO[Seq[AccountingEntry]] =
-    Tables.accountingEntryTable.filter(entry => entry.companyId === companyID && entry.accountingYear === accountingYear.getValue).result
+  def findAccountingEntriesByCompanyAndYearAction(companyID: Int, accountingYear: Int): DBIO[Seq[AccountingEntry]] =
+    Tables.accountingEntryTable.filter(entry => entry.companyId === companyID && entry.accountingYear === accountingYear).result
 
-  def deleteAccountingEntryAction(companyID: Int,
-                                  accountingEntryID: Int,
-                                  accountingYear: Year)
+  def deleteAccountingEntryAction(accountingEntryKey: Id.AccountingEntryKey)
                                  (implicit ec: ExecutionContext): DBIO[Unit] =
-    fetch(companyID, accountingEntryID, accountingYear).delete.map(_ => ())
+    fetch(accountingEntryKey).delete.map(_ => ())
 
   def repsertAccountingEntryAction(accountingEntry: AccountingEntry)(implicit ec: ExecutionContext): DBIO[AccountingEntry] = {
     Tables.accountingEntryTable.returning(Tables.accountingEntryTable).insertOrUpdate(accountingEntry).flatMap {
@@ -49,11 +48,9 @@ object AccountingEntryDAO {
     }
   }
 
-  private def fetch(companyID: Int,
-                    accountingEntryID: Int,
-                    accountingYear: Year): Query[Tables.AccountingEntryDB, AccountingEntry, Seq] =
+  private def fetch(accountingEntryKey: Id.AccountingEntryKey): Query[Tables.AccountingEntryDB, AccountingEntry, Seq] =
     Tables.accountingEntryTable.filter(entry =>
-      entry.companyId === companyID &&
-        entry.id === accountingEntryID &&
-        entry.accountingYear === accountingYear.getValue)
+      entry.companyId === accountingEntryKey.companyID &&
+        entry.id === accountingEntryKey.id &&
+        entry.accountingYear === accountingEntryKey.accountingYear)
 }
