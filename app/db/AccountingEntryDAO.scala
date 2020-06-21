@@ -13,34 +13,35 @@ import scala.language.higherKinds
 class AccountingEntryDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
                                   (implicit executionContext: ExecutionContext)
   extends HasDatabaseConfigProvider[PostgresProfile] {
-  def findAccountingEntry(accountingEntryID: Int, accountingYear: Year): Future[Option[AccountingEntry]] =
-    db.run(AccountingEntryDAO.findAccountingEntryAction(accountingEntryID, accountingYear))
+  def findAccountingEntry(companyID: Int, accountingEntryID: Int, accountingYear: Year): Future[Option[AccountingEntry]] =
+    db.run(AccountingEntryDAO.findAccountingEntryAction(companyID, accountingEntryID, accountingYear))
 
-  def deleteAccountingEntry(accountingEntryID: Int, accountingYear: Year): Future[Unit] =
-    db.run(AccountingEntryDAO.deleteAccountingEntryAction(accountingEntryID, accountingYear))
+  def deleteAccountingEntry(companyID: Int, accountingEntryID: Int, accountingYear: Year): Future[Unit] =
+    db.run(AccountingEntryDAO.deleteAccountingEntryAction(companyID, accountingEntryID, accountingYear))
 
   def repsertAccountingEntry(accountingEntry: AccountingEntry): Future[AccountingEntry] =
     db.run(AccountingEntryDAO.repsertAccountingEntryAction(accountingEntry))
 
-  def findAccountingEntriesByYear(accountingYear: Year): Future[Seq[AccountingEntry]] =
-    db.run(AccountingEntryDAO.findAccountingEntriesByYearAction(accountingYear))
+  def findAccountingEntriesByCompanyAndYear(companyID: Int, accountingYear: Year): Future[Seq[AccountingEntry]] =
+    db.run(AccountingEntryDAO.findAccountingEntriesByCompanyAndYearAction(companyID, accountingYear))
 }
 
 object AccountingEntryDAO {
 
-  def findAccountingEntryAction(accountingEntryID: Int, accountingYear: Year): DBIO[Option[AccountingEntry]] =
-    fetch(accountingEntryID, accountingYear).result.headOption
+  def findAccountingEntryAction(companyID: Int, accountingEntryID: Int, accountingYear: Year): DBIO[Option[AccountingEntry]] =
+    fetch(companyID, accountingEntryID, accountingYear).result.headOption
 
-  def findAccountingEntriesByYearAction(accountingYear: Year): DBIO[Seq[AccountingEntry]] =
-    Tables.dbAccountingEntryTable.filter(entry => entry.accountingYear === accountingYear.getValue).result
+  def findAccountingEntriesByCompanyAndYearAction(companyID: Int, accountingYear: Year): DBIO[Seq[AccountingEntry]] =
+    Tables.accountingEntryTable.filter(entry => entry.companyId === companyID && entry.accountingYear === accountingYear.getValue).result
 
-  def deleteAccountingEntryAction(accountingEntryID: Int,
+  def deleteAccountingEntryAction(companyID: Int,
+                                  accountingEntryID: Int,
                                   accountingYear: Year)
                                  (implicit ec: ExecutionContext): DBIO[Unit] =
-    fetch(accountingEntryID, accountingYear).delete.map(_ => ())
+    fetch(companyID, accountingEntryID, accountingYear).delete.map(_ => ())
 
   def repsertAccountingEntryAction(accountingEntry: AccountingEntry)(implicit ec: ExecutionContext): DBIO[AccountingEntry] = {
-    Tables.dbAccountingEntryTable.returning(Tables.dbAccountingEntryTable).insertOrUpdate(accountingEntry).flatMap {
+    Tables.accountingEntryTable.returning(Tables.accountingEntryTable).insertOrUpdate(accountingEntry).flatMap {
       case Some(dbEntry) if accountingEntry.credit == dbEntry.credit && accountingEntry.debit == dbEntry.debit =>
         DBIO.successful(accountingEntry)
       case Some(dbEntry) => DBIO.failed(new Throwable(s"Inserted entry $dbEntry doesn't match given entry $accountingEntry."))
@@ -48,7 +49,11 @@ object AccountingEntryDAO {
     }
   }
 
-  private def fetch(accountingEntryID: Int,
+  private def fetch(companyID: Int,
+                    accountingEntryID: Int,
                     accountingYear: Year): Query[Tables.AccountingEntryDB, AccountingEntry, Seq] =
-    Tables.dbAccountingEntryTable.filter(entry => entry.id === accountingEntryID && entry.accountingYear === accountingYear.getValue)
+    Tables.accountingEntryTable.filter(entry =>
+      entry.companyId === companyID &&
+        entry.id === accountingEntryID &&
+        entry.accountingYear === accountingYear.getValue)
 }
