@@ -10,7 +10,7 @@ import slick.lifted.{ProvenShape, Tag}
 object Tables {
 
   class AccountDB(tag: Tag) extends Table[Account](_tableTag = tag, _tableName = "account") {
-    def companyId: Rep[Int] = column[Int]("companyId", O.PrimaryKey)
+    def companyId: Rep[Int] = column[Int]("company_id", O.PrimaryKey)
 
     def id: Rep[Int] = column[Int]("id", O.PrimaryKey)
 
@@ -22,7 +22,7 @@ object Tables {
   val accountTable: TableQuery[AccountDB] = TableQuery[AccountDB]
 
   class AccountingEntryDB(tag: Tag) extends Table[AccountingEntry](_tableTag = tag, _tableName = "accounting_entry") {
-    def companyId: Rep[Int] = column[Int]("companyId", O.PrimaryKey)
+    def companyId: Rep[Int] = column[Int]("company_id", O.PrimaryKey)
 
     def id: Rep[Int] = column[Int]("id", O.PrimaryKey)
 
@@ -49,7 +49,7 @@ object Tables {
 
   class AccountingEntryTemplateDB(tag: Tag) extends Table[AccountingEntryTemplate](_tableTag = tag, _tableName = "accounting_entry_template") {
 
-    def companyId: Rep[Int] = column[Int]("companyId", O.PrimaryKey)
+    def companyId: Rep[Int] = column[Int]("company_id", O.PrimaryKey)
 
     def description: Rep[String] = column[String]("description", O.PrimaryKey)
 
