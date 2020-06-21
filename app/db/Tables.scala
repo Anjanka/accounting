@@ -10,13 +10,13 @@ import slick.lifted.{ProvenShape, Tag}
 object Tables {
 
   class AccountDB(tag: Tag) extends Table[Account](_tableTag = tag, _tableName = "account") {
+    def companyId: Rep[Int] = column[Int]("companyId", O.PrimaryKey)
+
     def id: Rep[Int] = column[Int]("id", O.PrimaryKey)
 
     def title: Rep[String] = column[String]("title")
 
-    override def * : ProvenShape[Account] = (id, title) <> ( {
-      case (i, t) => Account(i, t)
-    }, Account.unapply)
+    override def * : ProvenShape[Account] = (companyId, id, title) <> (( Account.apply _).tupled, Account.unapply)
   }
 
   val accountTable: TableQuery[AccountDB] = TableQuery[AccountDB]
