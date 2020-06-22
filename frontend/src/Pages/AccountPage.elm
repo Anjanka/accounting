@@ -71,7 +71,7 @@ dropdownOptions allAccounts =
     in
     { defaultOptions
         | items =
-            List.map (\acc -> accountForDropdown acc) allAccounts
+            List.sortBy .value (List.map accountForDropdown allAccounts)
         , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
     }
 
@@ -119,14 +119,14 @@ update msg model =
                 Ok value ->
                     ( { model
                         | allAccounts = value
-                        , response = value |> List.map AccountUtil.show |> String.join ",\n"
+                        , response = value |> List.sortBy .id |> List.map AccountUtil.show |> String.join ",\n"
                         , error = ""
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | error = Debug.toString error }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseCreate result ->
             case result of
@@ -134,7 +134,7 @@ update msg model =
                     ( resetOnSuccessfulPost model, getAccounts model.companyID)
 
                 Err error ->
-                    ( { model | error = Debug.toString error }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseDelete result ->
             case result of
@@ -142,7 +142,7 @@ update msg model =
                     ( { model | selectedValue = Nothing }, getAccounts model.companyID )
 
                 Err error ->
-                    ( { model | error = Debug.toString error, selectedValue = Nothing }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error, selectedValue = Nothing }, Cmd.none )
 
         ChangeID newContent ->
             let
