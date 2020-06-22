@@ -15,6 +15,7 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import List.Extra
 import Pages.HttpUtil as HttpUtil
 
 
@@ -311,10 +312,12 @@ getAccounts companyId=
         }
 
 
+parseAndUpdateCredit : Model -> String -> Model
 parseAndUpdateCredit =
     parseWith (\m nc -> { m | contentCreditID = nc, selectedCredit = Nothing }) (\m nc acc -> { m | contentCreditID = nc, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry acc.id, selectedCredit = Just nc })
 
 
+parseAndUpdateDebit : Model -> String -> Model
 parseAndUpdateDebit =
     parseWith (\m nc -> { m | contentDebitID = nc, selectedDebit = Nothing }) (\m nc acc -> { m | contentDebitID = nc, accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry acc.id, selectedDebit = Just nc })
 
@@ -332,6 +335,7 @@ parseWith empty nonEmpty model newContent =
         nonEmpty model newContent account
 
 
+updateCredit : Model -> Maybe String -> Model
 updateCredit =
     updateWith (\m nsv -> { m | selectedCredit = nsv }) (\m nsv nss id -> { m | contentCreditID = nss, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry id, selectedCredit = nsv })
 
@@ -341,7 +345,7 @@ updateDebit =
 
 
 updateWith : (Model -> Maybe String -> Model) -> (Model -> Maybe String -> String -> Int -> Model) -> Model -> Maybe String -> Model
-updateWith maybe just model newSelectedValue =
+updateWith nothing just model newSelectedValue =
     case newSelectedValue of
         Just newSelectedString ->
             let
@@ -353,10 +357,10 @@ updateWith maybe just model newSelectedValue =
                     just model newSelectedValue newSelectedString int
 
                 Nothing ->
-                    maybe model newSelectedValue
+                    nothing model newSelectedValue
 
         Nothing ->
-            maybe model newSelectedValue
+            nothing model newSelectedValue
 
 
 insertTemplateData : Model -> Maybe String -> Model
@@ -399,7 +403,7 @@ findAccountName : List Account -> String -> Account
 findAccountName accounts id =
     case String.toInt id of
         Just int ->
-            case List.head (List.filter (\acc -> acc.id == int) accounts) of
+            case List.Extra.find (\acc -> acc.id == int) accounts of
                 Just value ->
                     value
 
@@ -414,7 +418,7 @@ findEntry : Maybe String -> List AccountingEntryTemplate -> AccountingEntryTempl
 findEntry selectedValue allAccountingEntryTemplates =
     case selectedValue of
         Just string ->
-            case List.head (List.filter (\aet -> aet.description == string) allAccountingEntryTemplates) of
+            case List.Extra.find (\aet -> aet.description == string) allAccountingEntryTemplates of
                 Just value ->
                     value
 
