@@ -4,7 +4,7 @@ import Api.General.AccountUtil as AccountUtil
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
-import Api.Types.IdString exposing (encoderIdString)
+import Api.Types.AccountingEntryTemplateKey exposing (encoderAccountingEntryTemplateKey)
 import Browser
 import Dropdown
 import Html exposing (Html, button, div, input, label, li, p, text, ul)
@@ -32,7 +32,8 @@ main =
 
 
 type alias Model =
-    { contentDescription : String
+    { companyId : Int
+    , contentDescription : String
     , contentDebitID : String
     , contentDebitName : String
     , contentCreditID : String
@@ -78,13 +79,14 @@ dropdownOptions allAccountingEntryTemplates =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { contentDescription = ""
+    ( { companyId = 1
+      , contentDescription = ""
       , contentDebitID = ""
       , contentDebitName = "no account with that ID could be found"
       , contentCreditID = ""
       , contentCreditName = "no account with that ID could be found"
       , contentAmount = ""
-      , aet = AccountingEntryTemplateUtil.empty
+      , aet = AccountingEntryTemplateUtil.updateCompanyId AccountingEntryTemplateUtil.empty 1
       , allAccounts = []
       , allAccountingEntryTemplates = []
       , response = ""
@@ -93,7 +95,7 @@ init _ =
       , buttonPressed = False
       , selectedValue = Nothing
       }
-    , getAccounts
+    , getAccounts 1
     )
 
 
@@ -137,12 +139,12 @@ update msg model =
                     ( { model | error = Debug.toString error }, Cmd.none )
 
         GotResponseCreate result ->
-            ( model, getAccountingEntryTemplates )
+            ( model, getAccountingEntryTemplates model.companyId)
 
         GotResponseAllAccounts result ->
             case result of
                 Ok value ->
-                    ( { model | allAccounts = value }, getAccountingEntryTemplates )
+                    ( { model | allAccounts = value }, getAccountingEntryTemplates model.companyId )
 
                 Err error ->
                     ( { model | allAccounts = [], error = Debug.toString error }, Cmd.none )
@@ -150,7 +152,7 @@ update msg model =
         GotResponseDelete result ->
             case result of
                 Ok value ->
-                    ( { model | selectedValue = Nothing }, getAccountingEntryTemplates )
+                    ( { model | selectedValue = Nothing }, getAccountingEntryTemplates model.companyId)
 
                 Err error ->
                     ( { model | error = Debug.toString error, selectedValue = Nothing }, Cmd.none )
@@ -177,7 +179,7 @@ update msg model =
             ( resetOnSuccessfulPost model, postAccountingEntryTemplate model.aet )
 
         DeleteAccountingEntryTemplate ->
-            ( model, deleteAccountingEntryTemplate model.selectedValue )
+            ( model, deleteAccountingEntryTemplate model.selectedValue model.companyId )
 
         DropdownChanged selectedValue ->
             ( { model | selectedValue = selectedValue }, Cmd.none )
@@ -231,10 +233,10 @@ view model =
         ]
 
 
-getAccountingEntryTemplates : Cmd Msg
-getAccountingEntryTemplates =
+getAccountingEntryTemplates : Int -> Cmd Msg
+getAccountingEntryTemplates companyId =
     Http.get
-        { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates"
+        { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates/" ++ String.fromInt companyId
         , expect = Http.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
@@ -248,24 +250,24 @@ postAccountingEntryTemplate aet =
         }
 
 
-deleteAccountingEntryTemplate : Maybe String -> Cmd Msg
-deleteAccountingEntryTemplate description =
+deleteAccountingEntryTemplate : Maybe String -> Int -> Cmd Msg
+deleteAccountingEntryTemplate description companyId =
     case description of
         Just string ->
             Http.post
                 { url = "http://localhost:9000/accountingEntryTemplate/delete "
                 , expect = Http.expectWhatever GotResponseDelete
-                , body = Http.jsonBody (encoderIdString { id = string })
+                , body = Http.jsonBody (encoderAccountingEntryTemplateKey { companyID = companyId, description = string })
                 }
 
         Nothing ->
             Cmd.none
 
 
-getAccounts : Cmd Msg
-getAccounts =
+getAccounts : Int -> Cmd Msg
+getAccounts companyId=
     Http.get
-        { url = "http://localhost:9000/account/getAllAccounts"
+        { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
         , expect = Http.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 
