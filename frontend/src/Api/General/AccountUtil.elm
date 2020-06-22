@@ -5,9 +5,13 @@ import Api.Types.Account exposing (Account)
 
 empty : Account
 empty =
-    { id = 0
+    { companyId = 0
+    , id = 0
     , title = ""
     }
+
+updateCompanyID: Account -> Int -> Account
+updateCompanyID account companyId = { account | companyId = companyId }
 
 updateId : Account -> Int -> Account
 updateId account id = { account | id = id }

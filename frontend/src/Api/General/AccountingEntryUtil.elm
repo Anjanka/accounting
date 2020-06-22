@@ -6,7 +6,8 @@ import Api.Types.Date exposing (Date)
 
 
 empty : AccountingEntry
-empty = { id = 0
+empty = { companyId = 0
+        , id = 0
         , accountingYear = 0
         , bookingDate = {year = 0, month = 0, day = 0}
         , receiptNumber = ""
@@ -17,6 +18,9 @@ empty = { id = 0
         , amountChange =  0
         }
 
+
+updateCompanyId : AccountingEntry -> Int -> AccountingEntry
+updateCompanyId accountingEntry companyId = { accountingEntry | companyId = companyId }
 
 updateId : AccountingEntry -> Int -> AccountingEntry
 updateId accountingEntry id = { accountingEntry | id = id }

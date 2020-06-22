@@ -6,12 +6,16 @@ import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 
 empty : AccountingEntryTemplate
 empty =
-    { description = ""
+    { companyId = 0
+    , description = ""
     , credit = 0
     , debit = 0
     , amountWhole = 0
     , amountChange = 0
     }
+
+updateCompanyId : AccountingEntryTemplate -> Int -> AccountingEntryTemplate
+updateCompanyId aet companyId = { aet | companyId = companyId }
 
 updateDescription : AccountingEntryTemplate -> String -> AccountingEntryTemplate
 updateDescription aet description = { aet | description = description }
