@@ -4,9 +4,9 @@ import Api.General.AccountUtil as AccountUtil
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.AccountingEntryUtil as AccountingEntryUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
-import Api.Types.AccountingEntry exposing (AccountingEntry)
+import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
-import Api.Types.Date exposing (Date)
+import Api.Types.Date exposing (Date, encoderDate)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, li, p, text, ul)
@@ -14,6 +14,7 @@ import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 
@@ -34,7 +35,8 @@ main =
 
 
 type alias Model =
-    { accountingYear : Int
+    { companyId : Int
+    , accountingYear : Int
     , contentBookingDate : String
     , contentReceiptNumber : String
     , contentDescription : String
@@ -45,6 +47,7 @@ type alias Model =
     , allAccountingEntries : List AccountingEntry
     , allAccounts : List Account
     , allAccountingEntryTemplates : List AccountingEntryTemplate
+    , listOfEntries : String
     , response : String
     , feedback : String
     , error : String
@@ -110,17 +113,19 @@ dropdownOptionsDebit allAccounts =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { accountingYear = 0
+    ( { companyId = 1
+      , accountingYear = 2020
       , contentBookingDate = ""
       , contentReceiptNumber = ""
       , contentDescription = ""
       , contentDebitID = ""
       , contentCreditID = ""
       , contentAmount = ""
-      , accountingEntry = AccountingEntryUtil.empty
+      , accountingEntry = AccountingEntryUtil.updateCompanyId AccountingEntryUtil.empty 1
       , allAccountingEntries = []
       , allAccounts = []
       , allAccountingEntryTemplates = []
+      , listOfEntries = ""
       , response = ""
       , feedback = ""
       , error = ""
@@ -129,7 +134,7 @@ init _ =
       , selectedCredit = Nothing
       , selectedDebit = Nothing
       }
-    , getAccounts
+    , getAccounts 1
     )
 
 
@@ -144,6 +149,7 @@ type Msg
     | ChangeDebit String
     | ChangeCredit String
     | ChangeAmount String
+    | GotResponseAllAccountingEntries (Result Error (List AccountingEntry))
     | GotResponseAllAccountingEntryTemplates (Result Error (List AccountingEntryTemplate))
     | GotResponseAllAccounts (Result Error (List Account))
     | DropdownTemplateChanged (Maybe String)
@@ -154,15 +160,27 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        GotResponseAllAccountingEntries result ->
+            case result of
+                Ok value ->
+                    ( { model
+                        | allAccountingEntries = value
+                        , listOfEntries = value  |> List.sortBy .id |> List.map AccountingEntryUtil.show |> String.join ",\n"
+                      }
+                    , Cmd.none
+                    )
+                Err error ->
+                    ( { model | error = Debug.toString error }, Cmd.none )
+
         GotResponseAllAccountingEntryTemplates result ->
             case result of
                 Ok value ->
                     ( { model
                         | allAccountingEntryTemplates = value
-                        , response = value |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
+                        , response = value|> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
                         , feedback = ""
                       }
-                    , Cmd.none
+                    , getAccountingEntriesForCurrentYear  model.companyId model.accountingYear
                     )
 
                 Err error ->
@@ -171,7 +189,7 @@ update msg model =
         GotResponseAllAccounts result ->
             case result of
                 Ok value ->
-                    ( { model | allAccounts = value }, getAccountingEntryTemplates )
+                    ( { model | allAccounts = value }, getAccountingEntryTemplates model.companyId )
 
                 Err error ->
                     ( { model | allAccounts = [], error = Debug.toString error }, Cmd.none )
@@ -243,6 +261,7 @@ view model =
                 (dropdownOptionsTemplate model.allAccountingEntryTemplates)
                 []
                 model.selectedTemplate
+            , input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] []
             ]
         , div []
             [ label [] [ text "Debit Account: " ]
@@ -260,24 +279,33 @@ view model =
                 []
                 model.selectedCredit
             ]
-        , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
+
         , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
+        , div [] [ text model.listOfEntries]
         , div [] [ text model.error ]
-        ]
+                ]
 
 
-getAccountingEntryTemplates : Cmd Msg
-getAccountingEntryTemplates =
+getAccountingEntriesForCurrentYear : Int -> Int -> Cmd Msg
+getAccountingEntriesForCurrentYear  companyId year=
     Http.get
-        { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates"
+        { url = "http://localhost:9000/accountingEntry/findAccountingEntriesByYear/" ++ String.fromInt companyId ++ "/" ++ String.fromInt year
+        , expect = Http.expectJson GotResponseAllAccountingEntries (Decode.list decoderAccountingEntry)
+        }
+
+
+getAccountingEntryTemplates : Int -> Cmd Msg
+getAccountingEntryTemplates companyId =
+    Http.get
+        { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates/" ++ String.fromInt companyId
         , expect = Http.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
 
-getAccounts : Cmd Msg
-getAccounts =
+getAccounts : Int -> Cmd Msg
+getAccounts companyId=
     Http.get
-        { url = "http://localhost:9000/account/getAllAccounts"
+        { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
         , expect = Http.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 

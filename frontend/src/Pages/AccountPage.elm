@@ -2,7 +2,7 @@ module Pages.AccountPage exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
-import Api.Types.IdInt exposing (encoderIdInt)
+import Api.Types.AccountKey exposing (encoderAccountKey)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, text)
@@ -10,6 +10,7 @@ import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
+import Pages.HttpUtil as Util
 
 
 
@@ -30,7 +31,8 @@ main =
 
 
 type alias Model =
-    { contentID : String
+    { companyID : Int
+    , contentID : String
     , account : Account
     , allAccounts : List Account
     , response : String
@@ -75,8 +77,9 @@ dropdownOptions allAccounts =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { contentID = ""
-      , account = AccountUtil.empty
+    ( { companyID = 1
+      , contentID = ""
+      , account = AccountUtil.updateCompanyID AccountUtil.empty 1
       , allAccounts = []
       , response = ""
       , error = ""
@@ -84,7 +87,7 @@ init _ =
       , buttonPressed = False
       , selectedValue = Nothing
       }
-    , getAccounts
+    , getAccounts 1
     )
 
 
@@ -108,7 +111,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ShowAllAccounts ->
-            ( { model | buttonPressed = True }, getAccounts )
+            ( { model | buttonPressed = True }, getAccounts model.companyID )
 
         GotResponseForAllAccounts result ->
             case result of
@@ -127,7 +130,7 @@ update msg model =
         GotResponseCreate result ->
             case result of
                 Ok value ->
-                    ( resetOnSuccessfulPost model, getAccounts )
+                    ( resetOnSuccessfulPost model, getAccounts model.companyID)
 
                 Err error ->
                     ( { model | error = Debug.toString error }, Cmd.none )
@@ -135,7 +138,7 @@ update msg model =
         GotResponseDelete result ->
             case result of
                 Ok value ->
-                    ( { model | selectedValue = Nothing }, getAccounts )
+                    ( { model | selectedValue = Nothing }, getAccounts model.companyID )
 
                 Err error ->
                     ( { model | error = Debug.toString error, selectedValue = Nothing }, Cmd.none )
@@ -166,7 +169,7 @@ update msg model =
             ( model, postAccount model.account )
 
         DeleteAccount ->
-            ( model, deleteAccount model.selectedValue )
+            ( model, deleteAccount model.selectedValue model.companyID )
 
         DropdownChanged selectedValue ->
             ( { model | selectedValue = selectedValue }, Cmd.none )
@@ -180,7 +183,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
 
-
+errorToString : Http.Error -> String
+errorToString error = ""
 
 -- VIEW
 
@@ -218,10 +222,10 @@ view model =
         ]
 
 
-getAccounts : Cmd Msg
-getAccounts =
+getAccounts : Int -> Cmd Msg
+getAccounts companyId =
     Http.get
-        { url = "http://localhost:9000/account/getAllAccounts"
+        { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
         , expect = Http.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
         }
 
@@ -235,8 +239,8 @@ postAccount account =
         }
 
 
-deleteAccount : Maybe String -> Cmd Msg
-deleteAccount selectedValue =
+deleteAccount : Maybe String -> Int -> Cmd Msg
+deleteAccount selectedValue company_id =
     case selectedValue of
         Just value ->
             let
@@ -246,8 +250,8 @@ deleteAccount selectedValue =
             if id.valid then
                 Http.post
                     { url = "http://localhost:9000/account/delete "
-                    , expect = Http.expectWhatever GotResponseDelete
-                    , body = Http.jsonBody (encoderIdInt { id = id.id })
+                    , expect = Util.expectWhatever GotResponseDelete
+                    , body = Http.jsonBody (encoderAccountKey { id = id.id, companyID = company_id })
                     }
 
             else
