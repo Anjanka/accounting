@@ -1,5 +1,6 @@
 package controllers
 
+import base.Id
 import db.AccountDAO
 import io.circe.syntax._
 import javax.inject._
@@ -27,8 +28,8 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents,
     Ok(views.html.index())
   }
 
-  def getAccount(id: Int) = Action.async {
-    accountDAO.findAccount(id).map {
+  def getAccount(accountKey: Id.AccountKey) = Action.async {
+    accountDAO.findAccount(accountKey).map {
       x =>
         Ok(x.asJson.noSpaces)
     }
