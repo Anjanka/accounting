@@ -59,8 +59,9 @@ object Bridge {
     mkAndWrite[Account]()
     mkAndWrite[AccountingEntry]()
     mkAndWrite[AccountingEntryTemplate]()
-    mkAndWrite[Id.IdString]()
-    mkAndWrite[Id.IdInt]()
+    mkAndWrite[Id.AccountKey]()
+    mkAndWrite[Id.AccountingEntryKey]()
+    mkAndWrite[Id.AccountingEntryTemplateKey]()
   }
 
 }
