@@ -73,7 +73,7 @@ dropdownOptions allAccountingEntryTemplates =
     in
     { defaultOptions
         | items =
-            List.map (\description -> { value = description, text = description, enabled = True }) (List.map (\aet -> aet.description) allAccountingEntryTemplates)
+            List.sortBy .value (List.map (\aet -> { value = aet.description, text = aet.description, enabled = True }) allAccountingEntryTemplates)
         , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
     }
 
@@ -130,14 +130,14 @@ update msg model =
                 Ok value ->
                     ( { model
                         | allAccountingEntryTemplates = value
-                        , response = value |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
+                        , response = value |> List.sortBy .description |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
                         , feedback = ""
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | error = Debug.toString error }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseCreate result ->
             ( model, getAccountingEntryTemplates model.companyId)
@@ -148,7 +148,7 @@ update msg model =
                     ( { model | allAccounts = value }, getAccountingEntryTemplates model.companyId )
 
                 Err error ->
-                    ( { model | allAccounts = [], error = Debug.toString error }, Cmd.none )
+                    ( { model | allAccounts = [], error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseDelete result ->
             case result of
@@ -156,7 +156,7 @@ update msg model =
                     ( { model | selectedValue = Nothing }, getAccountingEntryTemplates model.companyId)
 
                 Err error ->
-                    ( { model | error = Debug.toString error, selectedValue = Nothing }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error, selectedValue = Nothing }, Cmd.none )
 
         ChangeDescription newContent ->
             let

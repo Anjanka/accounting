@@ -9,7 +9,7 @@ import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, deco
 import Api.Types.Date exposing (Date, encoderDate)
 import Browser
 import Dropdown exposing (Item)
-import Html exposing (Html, button, div, input, label, li, p, text, ul)
+import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
@@ -172,29 +172,29 @@ update msg model =
                     , Cmd.none
                     )
                 Err error ->
-                    ( { model | error = Debug.toString error }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseAllAccountingEntryTemplates result ->
             case result of
                 Ok value ->
                     ( { model
                         | allAccountingEntryTemplates = value
-                        , response = value|> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
+                        , response = value  |> List.sortBy .description |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
                         , feedback = ""
                       }
                     , getAccountingEntriesForCurrentYear  model.companyId model.accountingYear
                     )
 
                 Err error ->
-                    ( { model | error = Debug.toString error }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseAllAccounts result ->
             case result of
                 Ok value ->
-                    ( { model | allAccounts = value }, getAccountingEntryTemplates model.companyId )
+                    ( { model | allAccounts = List.sortBy .title value }, getAccountingEntryTemplates model.companyId )
 
                 Err error ->
-                    ( { model | allAccounts = [], error = Debug.toString error }, Cmd.none )
+                    ( { model | allAccounts = [], error = HttpUtil.errorToString error }, Cmd.none )
 
         ChangeBookingDate newContent ->
             ( { model | contentBookingDate = newContent }, Cmd.none )
