@@ -12,6 +12,7 @@ import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
+import Pages.HttpUtil as HttpUtil
 
 
 
@@ -237,7 +238,7 @@ getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
     Http.get
         { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates/" ++ String.fromInt companyId
-        , expect = Http.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
+        , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
 
@@ -245,7 +246,7 @@ postAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
 postAccountingEntryTemplate aet =
     Http.post
         { url = "http://localhost:9000/accountingEntryTemplate/repsert "
-        , expect = Http.expectJson GotResponseCreate decoderAccountingEntryTemplate
+        , expect = HttpUtil.expectJson GotResponseCreate decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
         }
 
@@ -256,7 +257,7 @@ deleteAccountingEntryTemplate description companyId =
         Just string ->
             Http.post
                 { url = "http://localhost:9000/accountingEntryTemplate/delete "
-                , expect = Http.expectWhatever GotResponseDelete
+                , expect = HttpUtil.expectWhatever GotResponseDelete
                 , body = Http.jsonBody (encoderAccountingEntryTemplateKey { companyID = companyId, description = string })
                 }
 
@@ -268,7 +269,7 @@ getAccounts : Int -> Cmd Msg
 getAccounts companyId=
     Http.get
         { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
-        , expect = Http.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
+        , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 
 
