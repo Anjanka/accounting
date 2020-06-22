@@ -10,7 +10,8 @@ import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
-import Pages.HttpUtil as Util
+import Pages.HttpUtil as HttpUtil
+
 
 
 
@@ -226,7 +227,7 @@ getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
         { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
-        , expect = Http.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
+        , expect = HttpUtil.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
         }
 
 
@@ -234,7 +235,7 @@ postAccount : Account -> Cmd Msg
 postAccount account =
     Http.post
         { url = "http://localhost:9000/account/repsert"
-        , expect = Http.expectJson GotResponseCreate decoderAccount
+        , expect = HttpUtil.expectJson GotResponseCreate decoderAccount
         , body = Http.jsonBody (encoderAccount account)
         }
 
@@ -250,7 +251,7 @@ deleteAccount selectedValue company_id =
             if id.valid then
                 Http.post
                     { url = "http://localhost:9000/account/delete "
-                    , expect = Util.expectWhatever GotResponseDelete
+                    , expect = HttpUtil.expectWhatever GotResponseDelete
                     , body = Http.jsonBody (encoderAccountKey { id = id.id, companyID = company_id })
                     }
 

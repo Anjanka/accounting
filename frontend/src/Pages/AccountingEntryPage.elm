@@ -15,6 +15,7 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Pages.HttpUtil as HttpUtil
 
 
 
@@ -290,7 +291,7 @@ getAccountingEntriesForCurrentYear : Int -> Int -> Cmd Msg
 getAccountingEntriesForCurrentYear  companyId year=
     Http.get
         { url = "http://localhost:9000/accountingEntry/findAccountingEntriesByYear/" ++ String.fromInt companyId ++ "/" ++ String.fromInt year
-        , expect = Http.expectJson GotResponseAllAccountingEntries (Decode.list decoderAccountingEntry)
+        , expect = HttpUtil.expectJson GotResponseAllAccountingEntries (Decode.list decoderAccountingEntry)
         }
 
 
@@ -298,7 +299,7 @@ getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
     Http.get
         { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates/" ++ String.fromInt companyId
-        , expect = Http.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
+        , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
 
@@ -306,7 +307,7 @@ getAccounts : Int -> Cmd Msg
 getAccounts companyId=
     Http.get
         { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
-        , expect = Http.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
+        , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 
 
