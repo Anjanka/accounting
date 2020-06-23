@@ -9,8 +9,8 @@ import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, deco
 import Api.Types.Date exposing (Date, encoderDate)
 import Browser
 import Dropdown exposing (Item)
-import Html exposing (Html, button, div, input, label, text)
-import Html.Attributes exposing (disabled, placeholder, style, value)
+import Html exposing (Html, button, div, input, label, table, td, text, th, tr)
+import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -283,8 +283,23 @@ view model =
             ]
 
         , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
-        , div [] [ text model.listOfEntries]
         , div [] [ text model.error ]
+        , div [ id "allAccountingEntries" ]
+                        [ table
+                            []
+                            (tr [ class "tableHeader" ]
+                                [ th [] [ label [ for "id" ] [ text "id" ] ]
+                                , th [] [ label [ for "receipt number" ] [ text "receipt number" ] ]
+                                , th [] [ label [ for "booking date" ] [ text "booking date" ] ]
+                                , th [] [ label [ for "description" ] [ text "description" ] ]
+                                , th [] [ label [ for "amount" ] [ text "amount" ] ]
+                                , th [] [ label [ for "credit account" ] [ text "credit account" ] ]
+                                , th [] [ label [ for "debit account" ] [ text "debit account" ] ]
+                                ]
+                                :: List.map mkTableLine model.allAccountingEntries
+
+                            )
+                        ]
                 ]
 
 
@@ -490,3 +505,16 @@ resetOnSuccessfulPost model =
         , error = ""
         , buttonPressed = False
     }
+
+
+mkTableLine : AccountingEntry -> Html Msg
+mkTableLine accountingEntry =
+    tr []
+        [  td [] [ text (String.fromInt accountingEntry.id) ]
+        ,  td [] [ text  accountingEntry.receiptNumber ]
+        ,  td [] [ text (AccountingEntryUtil.stringFromDate accountingEntry.bookingDate) ]
+        ,  td [] [ text accountingEntry.description ]
+        ,  td [] [ text (AccountingEntryUtil.showAmount accountingEntry)]
+        ,  td [] [ text (String.fromInt accountingEntry.credit) ]
+        ,  td [] [ text (String.fromInt accountingEntry.debit) ]
+        ]
