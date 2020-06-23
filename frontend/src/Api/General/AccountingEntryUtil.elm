@@ -56,13 +56,16 @@ updateWithTemplate accountingEntry aet =
 
 show : AccountingEntry -> String
 show accountingEntry =
-    String.concat [stringFromDate accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", String.fromInt accountingEntry.amountWhole, ",", giveDoubleDigitChange accountingEntry.amountChange, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit]
+    String.concat [stringFromDate accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", showAmount accountingEntry, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit]
 
 
 stringFromDate : Date -> String
 stringFromDate date =
     (String.fromInt date.day ++ "." ++ String.fromInt date.month ++ "." ++ String.fromInt date.year)
 
+
+showAmount : AccountingEntry -> String
+showAmount accountingEntry = String.fromInt accountingEntry.amountWhole ++ "," ++ giveDoubleDigitChange accountingEntry.amountChange
 
 giveDoubleDigitChange : Int -> String
 giveDoubleDigitChange change =
