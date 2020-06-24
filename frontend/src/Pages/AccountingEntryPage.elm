@@ -50,12 +50,11 @@ type alias Model =
     , allAccountingEntries : List AccountingEntry
     , allAccounts : List Account
     , allAccountingEntryTemplates : List AccountingEntryTemplate
-    , listOfEntries : String
     , dateValidation : String
     , response : String
     , feedback : String
     , error : String
-    , buttonPressed : Bool
+    , editActive : Bool
     , selectedTemplate : Maybe String
     , selectedCredit : Maybe String
     , selectedDebit : Maybe String
@@ -65,11 +64,6 @@ type alias Model =
 updateAccountingEntry : Model -> AccountingEntry -> Model
 updateAccountingEntry model accountingEntry =
     { model | accountingEntry = accountingEntry }
-
-
-updateError : Model -> String -> Model
-updateError model error =
-    { model | error = error }
 
 
 type alias Flags =
@@ -129,12 +123,11 @@ init _ =
       , allAccountingEntries = []
       , allAccounts = []
       , allAccountingEntryTemplates = []
-      , listOfEntries = ""
       , dateValidation = ""
       , response = ""
       , feedback = ""
       , error = ""
-      , buttonPressed = False
+      , editActive = False
       , selectedTemplate = Nothing
       , selectedCredit = Nothing
       , selectedDebit = Nothing
@@ -162,6 +155,8 @@ type Msg
     | DropdownTemplateChanged (Maybe String)
     | DropdownCreditChanged (Maybe String)
     | DropdownDebitChanged (Maybe String)
+    | EditAccountingEntry AccountingEntry
+    | LeaveEditView
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -172,7 +167,6 @@ update msg model =
                 Ok value ->
                     ( { model
                         | allAccountingEntries = value |> List.sortBy .id
-                        , listOfEntries = value |> List.sortBy .id |> List.map AccountingEntryUtil.show |> String.join ",\n"
                         , accountingEntry = AccountingEntryUtil.updateId (AccountingEntryUtil.updateAccountingYear (AccountingEntryUtil.updateCompanyId model.accountingEntry model.companyId) model.accountingYear) 5
                       }
                     , Cmd.none
@@ -204,7 +198,7 @@ update msg model =
                     ( { model | allAccounts = [], error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponsePost result ->
-            ( model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear)
+            ( model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
 
         ChangeBookingDate newContent ->
             ( parseDate model newContent, Cmd.none )
@@ -240,7 +234,13 @@ update msg model =
             ( updateDebit model selectedDebit, Cmd.none )
 
         PostAccountingEntry ->
-            (resetOnSuccessfulPost model, postAccountingEntry model.accountingEntry)
+            ( resetOnSuccessfulPost model, postAccountingEntry model.accountingEntry )
+
+        EditAccountingEntry accountingEntry ->
+            ( insertForEdit model accountingEntry, Cmd.none )
+
+        LeaveEditView ->
+            ( resetOnSuccessfulPost model, Cmd.none )
 
 
 
@@ -258,8 +258,8 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-     div []
-        [ div [] [label [] [ text "Booking Date: " ], input [ placeholder "dd.mm", value model.contentBookingDate, onInput ChangeBookingDate ] [], label [] [ text (String.fromInt model.accountingYear) ], input [ placeholder "Receipt Number", value model.contentReceiptNumber, onInput ChangeReceiptNumber ] [] ]
+    div []
+        [ div [] [ label [] [ text "Booking Date: " ], input [ placeholder "dd.mm", value model.contentBookingDate, onInput ChangeBookingDate ] [], label [] [ text (String.fromInt model.accountingYear) ], input [ placeholder "Receipt Number", value model.contentReceiptNumber, onInput ChangeReceiptNumber ] [] ]
         , div []
             [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] []
             , Dropdown.dropdown
@@ -286,7 +286,7 @@ view model =
             ]
         , div [] [ text model.dateValidation ]
         , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
-        , viewValidatedInput model.accountingEntry
+        , viewValidatedInput model.accountingEntry model.editActive
         , div [] [ text model.error ]
         , div [ id "allAccountingEntries" ]
             [ table
@@ -300,7 +300,7 @@ view model =
                     , th [] [ label [ for "credit account" ] [ text "credit account" ] ]
                     , th [] [ label [ for "debit account" ] [ text "debit account" ] ]
                     ]
-                    :: List.map mkTableLine model.allAccountingEntries
+                    :: List.map (mkTableLine model.editActive) model.allAccountingEntries
                 )
             ]
         ]
@@ -330,13 +330,14 @@ getAccounts companyId =
         }
 
 
-postAccountingEntry: AccountingEntry -> Cmd Msg
+postAccountingEntry : AccountingEntry -> Cmd Msg
 postAccountingEntry accountingEntry =
     Http.post
         { url = "http://localhost:9000/accountingEntry/repsert"
         , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
         , body = Http.jsonBody (encoderAccountingEntry accountingEntry)
         }
+
 
 parseAndUpdateCredit : Model -> String -> Model
 parseAndUpdateCredit =
@@ -425,6 +426,23 @@ insertTemplateData model newSelectedTemplate =
             { model | selectedTemplate = newSelectedTemplate }
 
 
+insertForEdit : Model -> AccountingEntry -> Model
+insertForEdit model accountingEntry =
+    { model
+        | contentBookingDate = DateUtil.showDayAndMonth accountingEntry.bookingDate
+        , contentReceiptNumber = accountingEntry.receiptNumber
+        , contentDescription = accountingEntry.description
+        , contentCreditID = String.fromInt accountingEntry.credit
+        , contentDebitID = String.fromInt accountingEntry.debit
+        , contentAmount = AccountingEntryUtil.showAmount accountingEntry
+        , accountingEntry = accountingEntry
+        , editActive = True
+        , selectedTemplate = Nothing
+        , selectedCredit = Just (String.fromInt accountingEntry.credit)
+        , selectedDebit = Just (String.fromInt accountingEntry.debit)
+    }
+
+
 findAccountName : List Account -> String -> Account
 findAccountName accounts id =
     case String.toInt id of
@@ -485,13 +503,13 @@ parseAndUpdateAmount model newContent =
                                                     { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole }
 
                                             Nothing ->
-                                                { model | contentAmount = String.concat [ String.fromInt whole, "," ], accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0}
+                                                { model | contentAmount = String.concat [ String.fromInt whole, "," ], accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
 
                                     Nothing ->
-                                        { model | contentAmount = newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0}
+                                        { model | contentAmount = newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
 
                             Nothing ->
-                                { model | contentAmount = newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0}
+                                { model | contentAmount = newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
 
                     Nothing ->
                         model
@@ -500,94 +518,116 @@ parseAndUpdateAmount model newContent =
                 model
 
 
-
 parseDate : Model -> String -> Model
 parseDate model newContent =
     if String.isEmpty newContent then
-       {model | contentBookingDate = ""}
+        { model | contentBookingDate = "" }
+
     else
-       let
-                    dayAndMonth =
-                         String.split "." newContent
-       in
-       case List.head dayAndMonth of
-           Just dayString ->
-               case toValidDay dayString of
-                   Just day ->
-                       if String.length dayString == 2 && day /= 0 then
-                          case List.tail dayAndMonth of
+        let
+            dayAndMonth =
+                String.split "." newContent
+        in
+        case List.head dayAndMonth of
+            Just dayString ->
+                case toValidDay dayString of
+                    Just day ->
+                        if String.length dayString == 2 && day /= 0 then
+                            case List.tail dayAndMonth of
                                 Just tailList ->
                                     case List.head tailList of
-                                         Just monthString ->
-                                              case toValidMonth monthString day model.accountingYear of
-                                                   Just month ->
-                                                       {model |
-                                                        contentBookingDate = DateUtil.showDay day ++ "." ++ DateUtil.showMonth month
-                                                        , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry {day = day, month = month, year = model.accountingYear}
-                                                        }
-                                                   Nothing ->
-                                                       {model
-                                                       | contentBookingDate = DateUtil.showDay day ++ "."
-                                                        , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry {day = day, month = 0, year = model.accountingYear}
-                                                        }
-                                         Nothing ->
-                                              {model
-                                               | contentBookingDate = DateUtil.showDay day ++ "."
-                                               , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry {day = day, month = 0, year = model.accountingYear}
-                                               }
-                                Nothing ->
-                                    {model
-                                     | contentBookingDate = DateUtil.showDay day
-                                     , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry {day = day, month = 0, year = model.accountingYear}
-                                    }
-                       else
-                        {model
-                         | contentBookingDate = DateUtil.showDay day
-                          , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry {day = day, month = 0, year = model.accountingYear}
-                           }
-                   Nothing ->
-                        model
-           Nothing ->
-               model
+                                        Just monthString ->
+                                            case toValidMonth monthString day model.accountingYear of
+                                                Just month ->
+                                                    { model
+                                                        | contentBookingDate = DateUtil.showDay day ++ "." ++ DateUtil.showMonth month
+                                                        , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry { day = day, month = month, year = model.accountingYear }
+                                                    }
 
+                                                Nothing ->
+                                                    { model
+                                                        | contentBookingDate = DateUtil.showDay day ++ "."
+                                                        , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry { day = day, month = 0, year = model.accountingYear }
+                                                    }
+
+                                        Nothing ->
+                                            { model
+                                                | contentBookingDate = DateUtil.showDay day ++ "."
+                                                , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry { day = day, month = 0, year = model.accountingYear }
+                                            }
+
+                                Nothing ->
+                                    { model
+                                        | contentBookingDate = DateUtil.showDay day
+                                        , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry { day = day, month = 0, year = model.accountingYear }
+                                    }
+
+                        else
+                            { model
+                                | contentBookingDate = DateUtil.showDay day
+                                , accountingEntry = AccountingEntryUtil.updateBookingDate model.accountingEntry { day = day, month = 0, year = model.accountingYear }
+                            }
+
+                    Nothing ->
+                        model
+
+            Nothing ->
+                model
 
 
 toValidDay : String -> Maybe Int
 toValidDay dayCandidateString =
     case String.toInt dayCandidateString of
         Just dayCandidateInt ->
-            if dayCandidateInt == 0 && String.length dayCandidateString <= 2 then (Just 0)
-            else if 1 <= dayCandidateInt && dayCandidateInt <= 31 then (Just dayCandidateInt)
-            else Nothing
+            if dayCandidateInt == 0 && String.length dayCandidateString <= 2 then
+                Just 0
+
+            else if 1 <= dayCandidateInt && dayCandidateInt <= 31 then
+                Just dayCandidateInt
+
+            else
+                Nothing
+
         Nothing ->
             Nothing
 
+
 toValidMonth : String -> Int -> Int -> Maybe Int
-toValidMonth monthCandidateString day year  =
-     case String.toInt monthCandidateString of
-         Just monthCandidateInt ->
-             if monthCandidateInt == 0 && String.length monthCandidateString <= 2 then (Just 0)
-             else if day == 29 && isLeap year && monthCandidateInt == 2 then
-                (Just monthCandidateInt)
-             else if day <= 28 && monthCandidateInt == 2 then
-                (Just monthCandidateInt)
-             else if day >= 29 && monthCandidateInt == 2 then
+toValidMonth monthCandidateString day year =
+    case String.toInt monthCandidateString of
+        Just monthCandidateInt ->
+            if monthCandidateInt == 0 && String.length monthCandidateString <= 2 then
+                Just 0
+
+            else if day == 29 && isLeap year && monthCandidateInt == 2 then
+                Just monthCandidateInt
+
+            else if day <= 28 && monthCandidateInt == 2 then
+                Just monthCandidateInt
+
+            else if day >= 29 && monthCandidateInt == 2 then
                 Nothing
-             else if day == 31 && List.member monthCandidateInt [1,3,5,7,8,10,12] then
-                (Just monthCandidateInt)
-             else if day <= 30 && monthCandidateInt <=12 then
-                (Just monthCandidateInt)
-             else Nothing
-         Nothing ->
-             Nothing
+
+            else if day == 31 && List.member monthCandidateInt [ 1, 3, 5, 7, 8, 10, 12 ] then
+                Just monthCandidateInt
+
+            else if day <= 30 && monthCandidateInt <= 12 then
+                Just monthCandidateInt
+
+            else
+                Nothing
+
+        Nothing ->
+            Nothing
 
 
 isLeap : Int -> Bool
 isLeap year =
-        if (modBy 4 year) == 0 then
+    if modBy 4 year == 0 then
         True
-        else False
 
+    else
+        False
 
 
 accountForDropdown : Account -> Item
@@ -598,9 +638,20 @@ accountForDropdown acc =
     in
     { value = id, text = acc.title, enabled = True }
 
-viewValidatedInput : AccountingEntry -> Html Msg
-viewValidatedInput accountingEntry =
-    if AccountingEntryUtil.isValid accountingEntry then
+
+viewValidatedInput : AccountingEntry -> Bool -> Html Msg
+viewValidatedInput accountingEntry editActive =
+    let
+        validEntry =
+            AccountingEntryUtil.isValid accountingEntry
+    in
+    if editActive && validEntry then
+        div [] [ button [ disabled False, onClick PostAccountingEntry ] [ text "Commit Edit" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
+
+    else if editActive then
+        div [] [ button [ disabled True, onClick PostAccountingEntry ] [ text "Commit Edit" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
+
+    else if validEntry then
         button [ disabled False, onClick PostAccountingEntry ] [ text "Commit New Entry" ]
 
     else
@@ -618,15 +669,15 @@ resetOnSuccessfulPost model =
         , contentAmount = ""
         , accountingEntry = AccountingEntryUtil.empty
         , error = ""
-        , buttonPressed = False
+        , editActive = False
         , selectedTemplate = Nothing
         , selectedCredit = Nothing
         , selectedDebit = Nothing
     }
 
 
-mkTableLine : AccountingEntry -> Html Msg
-mkTableLine accountingEntry =
+mkTableLine : Bool -> AccountingEntry ->  Html Msg
+mkTableLine editInactive accountingEntry  =
     tr []
         [ td [] [ text (String.fromInt accountingEntry.id) ]
         , td [] [ text accountingEntry.receiptNumber ]
@@ -635,4 +686,6 @@ mkTableLine accountingEntry =
         , td [] [ text (AccountingEntryUtil.showAmount accountingEntry) ]
         , td [] [ text (String.fromInt accountingEntry.credit) ]
         , td [] [ text (String.fromInt accountingEntry.debit) ]
+        , if editInactive then button [ disabled True, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
+          else button [ disabled False, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
         ]
