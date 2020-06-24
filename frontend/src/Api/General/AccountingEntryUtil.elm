@@ -49,6 +49,10 @@ updateAmountWhole accountingEntry whole = { accountingEntry | amountWhole = whol
 updateAmountChange : AccountingEntry -> Int -> AccountingEntry
 updateAmountChange accountingEntry change = { accountingEntry | amountChange = change }
 
+updateCompleteAmount : AccountingEntry -> Int -> Int -> AccountingEntry
+updateCompleteAmount accountingEntry whole change = { accountingEntry | amountWhole = whole, amountChange = change }
+
+
 updateWithTemplate : AccountingEntry -> AccountingEntryTemplate -> AccountingEntry
 updateWithTemplate accountingEntry aet =
     {accountingEntry | description = aet.description, credit = aet.credit, debit = aet.debit, amountWhole = aet.amountWhole, amountChange = aet.amountChange}

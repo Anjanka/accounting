@@ -32,6 +32,9 @@ updateAmountWhole aet whole = { aet | amountWhole = whole }
 updateAmountChange : AccountingEntryTemplate -> Int -> AccountingEntryTemplate
 updateAmountChange aet change = { aet | amountChange = change }
 
+updateCompleteAmount : AccountingEntryTemplate -> Int -> Int -> AccountingEntryTemplate
+updateCompleteAmount aet whole change = { aet | amountWhole = whole, amountChange = change }
+
 show : AccountingEntryTemplate -> String
 show aet =
     String.concat [aet.description, ": ", String.fromInt aet.credit, " - ", String.fromInt aet.debit, ", ", showAmount aet]
