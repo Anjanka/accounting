@@ -167,10 +167,11 @@ update msg model =
                 Ok value ->
                     ( { model
                         | allAccountingEntries = value
-                        , listOfEntries = value  |> List.sortBy .id |> List.map AccountingEntryUtil.show |> String.join ",\n"
+                        , listOfEntries = value |> List.sortBy .id |> List.map AccountingEntryUtil.show |> String.join ",\n"
                       }
                     , Cmd.none
                     )
+
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
@@ -179,10 +180,10 @@ update msg model =
                 Ok value ->
                     ( { model
                         | allAccountingEntryTemplates = value
-                        , response = value  |> List.sortBy .description |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
+                        , response = value |> List.sortBy .description |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
                         , feedback = ""
                       }
-                    , getAccountingEntriesForCurrentYear  model.companyId model.accountingYear
+                    , getAccountingEntriesForCurrentYear model.companyId model.accountingYear
                     )
 
                 Err error ->
@@ -281,30 +282,28 @@ view model =
                 []
                 model.selectedCredit
             ]
-
         , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
         , div [] [ text model.error ]
         , div [ id "allAccountingEntries" ]
-                        [ table
-                            []
-                            (tr [ class "tableHeader" ]
-                                [ th [] [ label [ for "id" ] [ text "id" ] ]
-                                , th [] [ label [ for "receipt number" ] [ text "receipt number" ] ]
-                                , th [] [ label [ for "booking date" ] [ text "booking date" ] ]
-                                , th [] [ label [ for "description" ] [ text "description" ] ]
-                                , th [] [ label [ for "amount" ] [ text "amount" ] ]
-                                , th [] [ label [ for "credit account" ] [ text "credit account" ] ]
-                                , th [] [ label [ for "debit account" ] [ text "debit account" ] ]
-                                ]
-                                :: List.map mkTableLine model.allAccountingEntries
-
-                            )
-                        ]
-                ]
+            [ table
+                []
+                (tr [ class "tableHeader" ]
+                    [ th [] [ label [ for "id" ] [ text "id" ] ]
+                    , th [] [ label [ for "receipt number" ] [ text "receipt number" ] ]
+                    , th [] [ label [ for "booking date" ] [ text "booking date" ] ]
+                    , th [] [ label [ for "description" ] [ text "description" ] ]
+                    , th [] [ label [ for "amount" ] [ text "amount" ] ]
+                    , th [] [ label [ for "credit account" ] [ text "credit account" ] ]
+                    , th [] [ label [ for "debit account" ] [ text "debit account" ] ]
+                    ]
+                    :: List.map mkTableLine model.allAccountingEntries
+                )
+            ]
+        ]
 
 
 getAccountingEntriesForCurrentYear : Int -> Int -> Cmd Msg
-getAccountingEntriesForCurrentYear  companyId year=
+getAccountingEntriesForCurrentYear companyId year =
     Http.get
         { url = "http://localhost:9000/accountingEntry/findAccountingEntriesByYear/" ++ String.fromInt companyId ++ "/" ++ String.fromInt year
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntries (Decode.list decoderAccountingEntry)
@@ -320,7 +319,7 @@ getAccountingEntryTemplates companyId =
 
 
 getAccounts : Int -> Cmd Msg
-getAccounts companyId=
+getAccounts companyId =
     Http.get
         { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
@@ -445,44 +444,50 @@ findEntry selectedValue allAccountingEntryTemplates =
 
 
 parseAndUpdateAmount : Model -> String -> Model
-parseAndUpdateAmount model a =
-    let
-        wholeAndChange =
-            String.split "," a
-    in
-    case List.head wholeAndChange of
-        Just wholeString ->
-            case String.toInt wholeString of
-                Just whole ->
-                    case List.tail wholeAndChange of
-                        Just tailList ->
-                            case List.head tailList of
-                                Just changeString ->
-                                    case String.toInt (String.left 2 changeString) of
-                                        Just change ->
-                                            if change < 10 && String.length changeString == 1 then
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry (change * 10)) whole }
+parseAndUpdateAmount model newContent =
+    if String.isEmpty newContent then
+        { model | contentAmount = "", accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry 0 0 }
 
-                                            else if change < 10 && String.length changeString >= 2 then
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",0", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole }
+    else
+        let
+            wholeAndChange =
+                String.split "," newContent
+        in
+        case List.head wholeAndChange of
+            Just wholeString ->
+                case String.toInt wholeString of
+                    Just whole ->
+                        case List.tail wholeAndChange of
+                            Just tailList ->
+                                case List.head tailList of
+                                    Just changeString ->
+                                        case String.toInt (String.left 2 changeString) of
+                                            Just change ->
+                                                if change < 10 && String.length changeString == 1 then
+                                                    { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry (change * 10)) whole }
 
-                                            else
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole }
+                                                else if change < 10 && String.length changeString >= 2 then
+                                                    { model | contentAmount = String.concat [ String.fromInt whole, ",0", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole }
 
-                                        Nothing ->
-                                            { model | contentAmount = String.concat [ String.fromInt whole, "," ], accountingEntry = AccountingEntryUtil.updateAmountWhole model.accountingEntry whole }
+                                                else
+                                                    { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole }
 
-                                Nothing ->
-                                    { model | contentAmount = a, accountingEntry = AccountingEntryUtil.updateAmountWhole model.accountingEntry whole }
+                                            Nothing ->
+                                                { model | contentAmount = String.concat [ String.fromInt whole, "," ], accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0}
 
-                        Nothing ->
-                            { model | contentAmount = a, accountingEntry = AccountingEntryUtil.updateAmountWhole model.accountingEntry whole }
+                                    Nothing ->
+                                        { model | contentAmount = newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0}
 
-                Nothing ->
-                    model
+                            Nothing ->
+                                { model | contentAmount = newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0}
 
-        Nothing ->
-            model
+                    Nothing ->
+                        model
+
+            Nothing ->
+                model
+
+
 
 
 accountForDropdown : Account -> Item
@@ -510,11 +515,11 @@ resetOnSuccessfulPost model =
 mkTableLine : AccountingEntry -> Html Msg
 mkTableLine accountingEntry =
     tr []
-        [  td [] [ text (String.fromInt accountingEntry.id) ]
-        ,  td [] [ text  accountingEntry.receiptNumber ]
-        ,  td [] [ text (AccountingEntryUtil.stringFromDate accountingEntry.bookingDate) ]
-        ,  td [] [ text accountingEntry.description ]
-        ,  td [] [ text (AccountingEntryUtil.showAmount accountingEntry)]
-        ,  td [] [ text (String.fromInt accountingEntry.credit) ]
-        ,  td [] [ text (String.fromInt accountingEntry.debit) ]
+        [ td [] [ text (String.fromInt accountingEntry.id) ]
+        , td [] [ text accountingEntry.receiptNumber ]
+        , td [] [ text (AccountingEntryUtil.stringFromDate accountingEntry.bookingDate) ]
+        , td [] [ text accountingEntry.description ]
+        , td [] [ text (AccountingEntryUtil.showAmount accountingEntry) ]
+        , td [] [ text (String.fromInt accountingEntry.credit) ]
+        , td [] [ text (String.fromInt accountingEntry.debit) ]
         ]
