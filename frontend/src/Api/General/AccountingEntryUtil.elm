@@ -1,5 +1,6 @@
 module Api.General.AccountingEntryUtil exposing (..)
 
+import Api.General.DateUtil as DateUtil
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.Date exposing (Date)
@@ -60,7 +61,7 @@ updateWithTemplate accountingEntry aet =
 
 show : AccountingEntry -> String
 show accountingEntry =
-    String.concat [stringFromDate accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", showAmount accountingEntry, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit]
+    String.concat [String.fromInt accountingEntry.companyId, " - ", stringFromDate accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", showAmount accountingEntry, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit]
 
 
 stringFromDate : Date -> String
@@ -76,3 +77,15 @@ giveDoubleDigitChange change =
     if change < 10 then
        String.concat ["0", String.fromInt change]
     else String.fromInt change
+
+isValid : AccountingEntry -> Bool
+isValid accountingEntry =
+         accountingEntry.companyId /= 0
+      && accountingEntry.id /= 0
+      && accountingEntry.accountingYear /= 0
+      && DateUtil.isNotEmpty accountingEntry.bookingDate
+      && not (String.isEmpty accountingEntry.receiptNumber)
+      && not (String.isEmpty accountingEntry.description)
+      && accountingEntry.credit /= 0
+      && accountingEntry.debit /= 0
+      && (accountingEntry.amountWhole /= 0 || accountingEntry.amountChange /=  0)
