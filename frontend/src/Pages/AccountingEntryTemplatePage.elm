@@ -310,44 +310,52 @@ findAccountName accounts id =
 
 
 parseAndUpdateAmount : Model -> String -> Model
-parseAndUpdateAmount model a =
-    let
-        wholeAndChange =
-            String.split "," a
-    in
-    case List.head wholeAndChange of
-        Just wholeString ->
-            case String.toInt wholeString of
-                Just whole ->
-                    case List.tail wholeAndChange of
-                        Just tailList ->
-                            case List.head tailList of
-                                Just changeString ->
-                                    case String.toInt (String.left 2 changeString) of
-                                        Just change ->
-                                            if change < 10 && String.length changeString == 1 then
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet (change * 10)) whole }
+parseAndUpdateAmount model newContent =
+     if String.isEmpty newContent then
+            { model | contentAmount = "", aet = AccountingEntryTemplateUtil.updateCompleteAmount model.aet 0 0 }
 
-                                            else if change < 10 && String.length changeString >= 2 then
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",0", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet change) whole }
+        else
 
-                                            else
-                                                { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet change) whole }
+            let
+                wholeAndChange =
+                    String.split "," newContent
+            in
+            case List.head wholeAndChange of
+                Just wholeString ->
+                    case String.toInt wholeString of
+                        Just whole ->
+                            case List.tail wholeAndChange of
+                                Just tailList ->
+                                    case List.head tailList of
+                                        Just changeString ->
+                                            case String.toInt (String.left 2 changeString) of
+                                                Just change ->
+                                                    if change < 10 && String.length changeString == 1 then
+                                                        { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet (change * 10)) whole }
+
+                                                    else if change < 10 && String.length changeString >= 2 then
+                                                        { model | contentAmount = String.concat [ String.fromInt whole, ",0", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet change) whole }
+
+                                                    else
+                                                        { model | contentAmount = String.concat [ String.fromInt whole, ",", String.fromInt change ], aet = AccountingEntryTemplateUtil.updateAmountWhole (AccountingEntryTemplateUtil.updateAmountChange model.aet change) whole }
+
+                                                Nothing ->
+                                                    { model | contentAmount = String.concat [ String.fromInt whole, "," ], aet = AccountingEntryTemplateUtil.updateCompleteAmount model.aet whole 0}
 
                                         Nothing ->
-                                            { model | contentAmount = String.concat [ String.fromInt whole, "," ], aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
+                                            { model | contentAmount = newContent, aet = AccountingEntryTemplateUtil.updateCompleteAmount model.aet whole 0}
 
                                 Nothing ->
-                                    { model | contentAmount = a, aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
+                                    { model | contentAmount = newContent, aet = AccountingEntryTemplateUtil.updateCompleteAmount model.aet whole 0}
 
                         Nothing ->
-                            { model | contentAmount = a, aet = AccountingEntryTemplateUtil.updateAmountWhole model.aet whole }
+                            model
 
                 Nothing ->
                     model
 
-        Nothing ->
-            model
+
+
 
 
 viewValidatedInput : AccountingEntryTemplate -> Html Msg
