@@ -41,4 +41,8 @@ showMonth month =
      else if List.member month [10,11,12] then String.fromInt month
      else "0"
 
+isNotEmpty : Date -> Bool
+isNotEmpty date =
+    date.day /= 0 && date.month /= 0 && date.year /= 0
+
 
