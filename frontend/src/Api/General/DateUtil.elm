@@ -27,5 +27,18 @@ updateYear date year =
 
 show: Date -> String
 show date =
-    String.join "." [String.fromInt date.day, String.fromInt date.month, String.fromInt date.year]
+    String.join "." [showDay date.day, showMonth date.month, String.fromInt date.year]
+
+showDay: Int -> String
+showDay day =
+    if 1 <= day && day <= 9 then "0"++String.fromInt day
+    else if 10 <= day && day <= 31 then String.fromInt day
+    else "0"
+
+showMonth: Int -> String
+showMonth month =
+     if 1 <= month && month <= 9 then "0"++String.fromInt month
+     else if List.member month [10,11,12] then String.fromInt month
+     else "0"
+
 
