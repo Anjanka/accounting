@@ -28,8 +28,16 @@ libraryDependencies ++= Seq(
   "org.flywaydb" %% "flyway-play" % "6.0.0",
   "com.typesafe.play" %% "play-slick" % "5.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
-  "com.dripower" %% "play-circe" % "2712.0"
+  "com.dripower" %% "play-circe" % "2712.0",
+  "com.davegurnell" %% "bridges" % "0.21.0",
+  "com.github.pathikrit" %% "better-files" % "3.9.1"
 )
+
+lazy val elmGenerate = Command.command("elmGenerate") { state =>
+  "runMain elm.Bridge" :: state
+}
+
+commands += elmGenerate
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "org.peabuddies.controllers._"

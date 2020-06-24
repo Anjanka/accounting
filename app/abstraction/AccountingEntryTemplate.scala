@@ -1,8 +1,7 @@
-package base
+package abstraction
 
-import io.circe.generic.JsonCodec
+import base.MonetaryValue
 
-@JsonCodec
 case class AccountingEntryTemplate(description: String,
                                    credit: Account, //SOLL
                                    debit: Account, //HABEN

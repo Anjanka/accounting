@@ -3,19 +3,19 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET     /account/find/*id               controllers.AccountController.findAccount(id: Int)
-GET     /account/getAllAccounts         controllers.AccountController.getAllAccounts
-POST    /account/repsert                controllers.AccountController.repsert
-POST    /account/delete                 controllers.AccountController.delete
+GET     /account/find/*companyID/*id              controllers.AccountController.findAccount(companyID: Int, id: Int)
+GET     /account/getAllAccounts/*companyID        controllers.AccountController.getAllAccounts(companyID: Int)
+POST    /account/repsert                          controllers.AccountController.repsert
+POST    /account/delete                           controllers.AccountController.delete
 
 
-GET    /accountingEntry/find/*id/*accountingYear                               controllers.AccountingEntryController.findAccountingEntry(id: Int, accountingYear: Int)
-GET    /accountingEntry/findAccountingEntriesByYear/*accountingYear            controllers.AccountingEntryController.findAccountingEntriesByYear(accountingYear: Int)
-POST   /accountingEntry/repsert                                                controllers.AccountingEntryController.repsert
-POST   /accountingEntry/delete                                                 controllers.AccountingEntryController.delete
+GET    /accountingEntry/find/*companyID/*id/*accountingYear                               controllers.AccountingEntryController.findAccountingEntry(companyID: Int, id: Int, accountingYear: Int)
+GET    /accountingEntry/findAccountingEntriesByYear/*companyID/*accountingYear            controllers.AccountingEntryController.findAccountingEntriesByYear(companyID: Int, accountingYear: Int)
+POST   /accountingEntry/repsert                                                           controllers.AccountingEntryController.repsert
+POST   /accountingEntry/delete                                                            controllers.AccountingEntryController.delete
 
 
-GET    /accountingEntryTemplate/find/*description                       controllers.AccountingEntryTemplateController.findAccountingEntryTemplate(description: String)
-GET    /accountingEntryTemplate/getAllAccountingEntryTemplates          controllers.AccountingEntryTemplateController.getAllAccountingEntryTemplates
-POST   /accountingEntryTemplate/repsert                                 controllers.AccountingEntryTemplateController.repsert
-POST   /accountingEntryTemplate/delete                                  controllers.AccountingEntryTemplateController.delete
+GET    /accountingEntryTemplate/find/*companyID/*description                       controllers.AccountingEntryTemplateController.findAccountingEntryTemplate(companyID: Int, description: String)
+GET    /accountingEntryTemplate/getAllAccountingEntryTemplates/*companyID          controllers.AccountingEntryTemplateController.getAllAccountingEntryTemplates(companyID: Int)
+POST   /accountingEntryTemplate/repsert                                            controllers.AccountingEntryTemplateController.repsert
+POST   /accountingEntryTemplate/delete                                             controllers.AccountingEntryTemplateController.delete

@@ -1,7 +1,7 @@
 package controllers
 
-import base.{Account, Id}
-import db.AccountDAO
+import base.Id
+import db.{AccountDAO, Account}
 import io.circe.Json
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
@@ -17,8 +17,8 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   extends BaseController with Circe {
 
 
-  def findAccount(id: Int): Action[AnyContent] = Action.async {
-    accountDAO.findAccount(id).map {
+  def findAccount(companyID: Int, id: Int): Action[AnyContent] = Action.async {
+    accountDAO.findAccount(Id.AccountKey(companyID = companyID, id = id)).map {
       x =>
         Ok(x.asJson)
     }
@@ -35,17 +35,18 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   }
 
   def delete: Action[Json] = Action.async(circe.json) { request =>
-    val accountIdCandidate = request.body.as[Id[Int]]
+    val accountIdCandidate = request.body.as[Id.AccountKey]
     accountIdCandidate match {
       case Right(value) =>
-        accountDAO.deleteAccount(value.id).map(_ => Ok(s"Account ${value.id} was deleted successfully."))
+        accountDAO.deleteAccount(value).map(_ => Ok(s"Account ${value.id} was deleted successfully."))
+          .recover { case ex => InternalServerError(ex.getMessage)}
       case Left(decodingFailure) =>
         Future(BadRequest(s"Could not parse ${request.body} as valid account Id: $decodingFailure."))
     }
   }
 
-  def getAllAccounts: Action[AnyContent] = Action.async {
-    accountDAO.getAllAccounts.map {
+  def getAllAccounts(companyID: Int): Action[AnyContent] = Action.async {
+    accountDAO.getAllAccountsByCompany(companyID).map {
       x =>
         Ok(x.asJson)
     }
