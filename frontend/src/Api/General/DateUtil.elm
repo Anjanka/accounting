@@ -29,6 +29,9 @@ show: Date -> String
 show date =
     String.join "." [showDay date.day, showMonth date.month, String.fromInt date.year]
 
+showDayAndMonth: Date -> String
+showDayAndMonth date = showDay date.day ++ "." ++ showMonth date.month
+
 showDay: Int -> String
 showDay day =
     if 1 <= day && day <= 9 then "0"++String.fromInt day
