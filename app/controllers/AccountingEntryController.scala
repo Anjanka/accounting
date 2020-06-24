@@ -1,9 +1,7 @@
 package controllers
 
-import java.time.Year
-
-import base.{AccountingEntry, Id2}
-import db.AccountingEntryDAO
+import base.Id
+import db.{AccountingEntry, AccountingEntryDAO}
 import io.circe.Json
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
@@ -18,15 +16,15 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
                                          (implicit ec: ExecutionContext)
   extends BaseController with Circe {
 
-  def findAccountingEntry(id: Int, accountingYear: Int): Action[AnyContent] = Action.async {
-    accountingEntryDAO.findAccountingEntry(id, Year.of(accountingYear)).map {
+  def findAccountingEntry(companyID: Int, id: Int, accountingYear: Int): Action[AnyContent] = Action.async {
+    accountingEntryDAO.findAccountingEntry(Id.AccountingEntryKey(companyID = companyID, id = id, accountingYear = accountingYear)).map {
       x =>
         Ok(x.asJson)
     }
   }
 
-  def findAccountingEntriesByYear(accountingYear: Int): Action[AnyContent] = Action.async {
-    accountingEntryDAO.findAccountingEntriesByYear(Year.of(accountingYear)).map {
+  def findAccountingEntriesByYear(companyID: Int, accountingYear: Int): Action[AnyContent] = Action.async {
+    accountingEntryDAO.findAccountingEntriesByCompanyAndYear(companyID, accountingYear).map {
       x =>
         Ok(x.asJson)
     }
@@ -43,10 +41,10 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
   }
 
   def delete: Action[Json] = Action.async(circe.json) { request =>
-    val accountIdCandidate = request.body.as[Id2[Int, Year]]
+    val accountIdCandidate = request.body.as[Id.AccountingEntryKey]
     accountIdCandidate match {
       case Right(value) =>
-        accountingEntryDAO.deleteAccountingEntry(value.id1, value.id2).map(_ => Ok(s"Accounting Entry ${value.id1} from Year ${value.id2} was deleted successfully."))
+        accountingEntryDAO.deleteAccountingEntry(value).map(_ => Ok(s"Accounting Entry ${value.id} from Year ${value.accountingYear} was deleted successfully."))
       case Left(decodingFailure) =>
         Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry Id: $decodingFailure."))
     }
