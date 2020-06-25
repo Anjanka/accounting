@@ -31,7 +31,8 @@ libraryDependencies ++= Seq(
   "com.dripower" %% "play-circe" % "2712.0",
   "com.davegurnell" %% "bridges" % "0.21.0",
   "com.github.pathikrit" %% "better-files" % "3.9.1",
-  "org.scalameta" %% "scalameta" % "4.3.13"
+  "org.scalameta" %% "scalameta" % "4.3.13",
+  "org.scalameta" %% "scalafmt-dynamic" % "2.6.1"
 )
 
 lazy val elmGenerate = Command.command("elmGenerate") { state =>
