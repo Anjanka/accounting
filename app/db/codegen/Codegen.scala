@@ -76,6 +76,7 @@ object Codegen {
         val newContent = List(
           s"package $modelsPackageName",
           "import io.circe.JsonCodec",
+          "import base.JsonCodecs.Implicits._",
           "@JsonCodec",
           caseClass
         ).mkString("\n")
