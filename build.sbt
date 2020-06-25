@@ -39,7 +39,7 @@ lazy val elmGenerate = Command.command("elmGenerate") { state =>
 }
 
 lazy val dbGenerate = Command.command("dbGenerate") { state =>
-  "runMain db.DbGenerator" :: state
+  "runMain db.codegen.DbGenerator" :: state
 }
 
 commands += elmGenerate
