@@ -6,7 +6,7 @@ import slick.model.Model
 class CustomCodeGenerator(model: Model) extends SourceCodeGenerator(model) {
   override def entityName: String => String = _.toCamelCase
 
-  override def tableName: String => String = name => s"${entityName(name).uncapitalize}Table"
+  override def tableName: String => String = name => s"${entityName(name)}Table"
 
   override def Table = new Table(_) {
     table =>
@@ -19,5 +19,9 @@ class CustomCodeGenerator(model: Model) extends SourceCodeGenerator(model) {
       override def doc: String = ""
     }
 
+    override def TableValue: TableValueDef = new TableValueDef {
+      override def rawName: String = super.rawName.uncapitalize
+    }
   }
+
 }
