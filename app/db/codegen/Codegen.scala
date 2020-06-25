@@ -70,7 +70,6 @@ object Codegen {
       if (caseClassFile.exists) {
         val originalContent = caseClassFile.contentAsString.parse[Source].get
         val withReplaced = replaceCode(originalContent, caseClassStat, caseClassName).toString()
-        println(s"overwriting ${caseClassFile.pathAsString}")
         caseClassFile.overwrite(withReplaced)
       }
       else {
@@ -89,7 +88,6 @@ object Codegen {
     originalFile.transform {
       //This is the complete case class pattern (with all possible options)
       case q"@$annot case class $tname (...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" if tname.value == caseClassName =>
-        println("replacing")
         caseClass.transform {
           //We assume that the given case class consists only of a name and parameters, and copy everything else from the original case class
           case q"case class $sameName (...$newParamss)" =>
