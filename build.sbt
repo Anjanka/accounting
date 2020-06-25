@@ -30,14 +30,20 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
   "com.dripower" %% "play-circe" % "2712.0",
   "com.davegurnell" %% "bridges" % "0.21.0",
-  "com.github.pathikrit" %% "better-files" % "3.9.1"
+  "com.github.pathikrit" %% "better-files" % "3.9.1",
+  "org.scalameta" %% "scalameta" % "4.3.13"
 )
 
 lazy val elmGenerate = Command.command("elmGenerate") { state =>
   "runMain elm.Bridge" :: state
 }
 
+lazy val dbGenerate = Command.command("dbGenerate") { state =>
+  "runMain db.DbGenerator" :: state
+}
+
 commands += elmGenerate
+commands += dbGenerate
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "org.peabuddies.controllers._"
