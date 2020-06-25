@@ -9,10 +9,10 @@ import Html.Events exposing (onInput)
 
 
 type alias Model =
-    { intFromInput : IntFromInput }
+    { intFromInput : FromInput Int}
 
 
-updateIntFromInput : Model -> IntFromInput -> Model
+updateIntFromInput : Model -> FromInput Int -> Model
 updateIntFromInput model intFromInput =
     { model | intFromInput = intFromInput }
 
@@ -36,9 +36,13 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { intFromInput = mkIntFromInput 0 }, Cmd.none )
+    ( { intFromInput = mkFromInput 0 0 intParser intPartial }, Cmd.none )
 
+intParser : String -> Result String Int
+intParser = String.toInt >> Maybe.map Ok >> Maybe.withDefault (Err "Not an integer")
 
+intPartial : String -> Bool
+intPartial text = text == "-"
 
 -- Define messages for your modal
 
@@ -79,58 +83,61 @@ view model =
                     )
                 ]
             ]
-        , div [] [ label [] [ text ("valid value = " ++ String.fromInt model.intFromInput.number) ] ]
+        , div [] [ label [] [ text ("valid value = " ++ String.fromInt model.intFromInput.value) ] ]
         ]
 
 
-type alias IntFromInput =
-    { number : Int
+type alias FromInput a =
+    { value : a
+    , defaultValue : a
     , text : String
+    , parser : String -> Result String a
+    , partial : String -> Bool
     }
 
 
-updateText : IntFromInput -> String -> IntFromInput
+updateText : FromInput a -> String -> FromInput a
 updateText intFromInput text =
-    { intFromInput | text = text, number = valueFrom text intFromInput.number }
+    { intFromInput | text = text }
 
 
-updateNumber : IntFromInput -> Int -> IntFromInput
-updateNumber intFromInput number =
-    { intFromInput | number = number }
+updateValue : FromInput a -> a -> FromInput a
+updateValue intFromInput value =
+    { intFromInput | value = value }
 
 
-mkIntFromInput : Int -> IntFromInput
-mkIntFromInput int =
-    { number = int, text = "" }
+mkFromInput : a -> a -> (String -> Result String a) -> (String -> Bool) -> FromInput a
+mkFromInput defaultValue value parser partial =
+    { value = value, defaultValue = defaultValue, text = "", parser = parser, partial = partial }
 
 
-isValid : IntFromInput -> Bool
-isValid intFromInput =
-    case String.toInt intFromInput.text of
-        Just number -> number == intFromInput.number
-        Nothing -> False
+isValid : FromInput a -> Bool
+isValid fromInput =
+    case fromInput.parser fromInput.text of
+        Ok value ->
+            value == fromInput.value
+
+        Err _ ->
+            False
 
 
-lift : (model -> IntFromInput -> model) -> IntFromInput -> String -> model -> model
-lift ui intFromInput text model =
+lift : (model -> FromInput a -> model) -> FromInput a -> String -> model -> model
+lift ui fromInput text model =
     let
-        possiblyZero =
-            if String.isEmpty text then
-                intFromInput
-                    |> (\ifi -> updateNumber ifi 0)
-
+        possiblyValid =
+            if String.isEmpty text || fromInput.partial text then
+                fromInput
+                    |> (\ifi -> updateValue ifi fromInput.defaultValue)
+                    |> (\ifi -> updateText ifi text)
             else
-                intFromInput
+                fromInput
     in
-    if String.all Char.isDigit text then
-        possiblyZero
-            |> (\ifi -> updateText ifi text)
-            |> ui model
+    case fromInput.parser text of
+        Ok value ->
+            possiblyValid
+                |> (\ifi -> updateText ifi text)
+                |> (\ifi -> updateValue ifi value)
+                |> ui model
 
-    else
-        model
-
-
-valueFrom : String -> Int -> Int
-valueFrom text dft =
-    Maybe.withDefault dft (String.toInt text)
+        Err _ ->
+            ui model possiblyValid
