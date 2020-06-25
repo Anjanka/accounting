@@ -70,7 +70,10 @@ object Codegen {
       val config = File(".scalafmt.conf")
       val file = File("CodeGen.scala")
 
-      val format: String => String = scalafmt.format(config.path, file.path, _)
+      val format: String => String =
+        scalafmt
+          .format(config.path, file.path, _)
+          .replace("@JsonCodec ", "@JsonCodec\n")
 
       if (caseClassFile.exists) {
         val originalContent = caseClassFile.contentAsString.parse[Source].get
