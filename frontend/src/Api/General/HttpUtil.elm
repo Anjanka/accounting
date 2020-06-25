@@ -1,4 +1,4 @@
-module Pages.HttpUtil exposing (..)
+module Api.General.HttpUtil exposing (..)
 
 import Http exposing (Error(..), Expect, expectStringResponse)
 import Json.Decode as D
