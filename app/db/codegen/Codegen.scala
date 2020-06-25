@@ -2,9 +2,8 @@ package db.codegen
 
 import better.files.File
 import com.typesafe.config.ConfigFactory
-import slick.codegen.SourceCodeGenerator
+import org.scalafmt.interfaces.Scalafmt
 import slick.jdbc.JdbcProfile
-import slick.model.Model
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -13,12 +12,14 @@ import scala.meta._
 
 object Codegen {
 
-  def runCodegen(configFile: File,
-                 schemaFolder: File,
-                 schemaPackageName: String,
-                 modelsFolder: File,
-                 modelsPackageName: String,
-                 profile: JdbcProfile): Unit = {
+  def runCodegen(
+      configFile: File,
+      schemaFolder: File,
+      schemaPackageName: String,
+      modelsFolder: File,
+      modelsPackageName: String,
+      profile: JdbcProfile
+  ): Unit = {
     val config = ConfigFactory.parseFile(configFile.toJava).resolve()
 
     //    val shortName = config.getString("slick.dbs")
@@ -57,22 +58,25 @@ object Codegen {
 
     File(fileName).overwrite(everythingElse.mkString("\n"))
 
-    val pathToSharedCaseClasses = modelsFolder
-
     caseClasses.foreach { caseClass =>
       val caseClassStat = caseClass.parse[Stat].get
       val caseClassName = caseClassStat.collect {
         case q"case class $tname (...$paramss)" => tname.value
       }.head
 
-      val caseClassFile = pathToSharedCaseClasses / s"$caseClassName.scala"
+      val caseClassFile = modelsFolder / s"$caseClassName.scala"
+
+      val scalafmt = Scalafmt.create(getClass.getClassLoader)
+      val config = File(".scalafmt.conf")
+      val file = File("CodeGen.scala")
+
+      val format: String => String = scalafmt.format(config.path, file.path, _)
 
       if (caseClassFile.exists) {
         val originalContent = caseClassFile.contentAsString.parse[Source].get
         val withReplaced = replaceCode(originalContent, caseClassStat, caseClassName).toString()
-        caseClassFile.overwrite(withReplaced)
-      }
-      else {
+        caseClassFile.overwrite(format(withReplaced))
+      } else {
         val newContent = List(
           s"package $modelsPackageName",
           "import io.circe.JsonCodec",
@@ -80,7 +84,7 @@ object Codegen {
           "@JsonCodec",
           caseClass
         ).mkString("\n")
-        caseClassFile.write(newContent)
+        caseClassFile.write(format(newContent))
       }
     }
   }
@@ -88,7 +92,8 @@ object Codegen {
   private def replaceCode(originalFile: Source, caseClass: Stat, caseClassName: String): Tree = {
     originalFile.transform {
       //This is the complete case class pattern (with all possible options)
-      case q"@$annot case class $tname (...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" if tname.value == caseClassName =>
+      case q"@$annot case class $tname (...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }"
+          if tname.value == caseClassName =>
         caseClass.transform {
           //We assume that the given case class consists only of a name and parameters, and copy everything else from the original case class
           case q"case class $sameName (...$newParamss)" =>
@@ -98,4 +103,3 @@ object Codegen {
   }
 
 }
-
