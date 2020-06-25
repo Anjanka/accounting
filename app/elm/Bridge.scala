@@ -62,6 +62,7 @@ object Bridge {
     mkAndWrite[Id.AccountKey]()
     mkAndWrite[Id.AccountingEntryKey]()
     mkAndWrite[Id.AccountingEntryTemplateKey]()
+    mkAndWrite[Id.CompanyKey]()
   }
 
 }
