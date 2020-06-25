@@ -2,6 +2,7 @@ module Pages.AccountingEntryTemplatePage exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
+import Api.General.HttpUtil as HttpUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
 import Api.Types.AccountingEntryTemplateKey exposing (encoderAccountingEntryTemplateKey)
@@ -12,7 +13,7 @@ import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
-import Pages.HttpUtil as HttpUtil
+
 
 
 
