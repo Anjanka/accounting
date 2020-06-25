@@ -5,12 +5,12 @@ import Json.Decode.Pipeline exposing (..)
 import Json.Encode as Encode
 
 
-type alias Company = { companyId: Int, name: String, address: String, taxNumber: String, revenueOffice: String)}
+type alias Company = { id: Int, name: String, address: String, taxNumber: String, revenueOffice: String}
 
 
 decoderAccount : Decode.Decoder Company
 decoderAccount = Decode.succeed Company
-                          |> required "companyId" Decode.int
+                          |> required "id" Decode.int
                           |> required "name" Decode.string
                           |> required "address" Decode.string
                           |> required "taxNumber" Decode.string
@@ -18,7 +18,7 @@ decoderAccount = Decode.succeed Company
 
 
 encoderAccount : Company -> Encode.Value
-encoderAccount obj = Encode.object [ ("companyId", Encode.int obj.companyId)
+encoderAccount obj = Encode.object [ ("id", Encode.int obj.id)
                                    , ("name", Encode.string obj.name)
                                    , ("address", Encode.string obj.address)
                                    , ("texNumber", Encode.string obj.taxNumber)
