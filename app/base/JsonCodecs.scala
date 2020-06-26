@@ -3,8 +3,8 @@ package base
 import java.sql.Date
 import java.time.LocalDate
 
-import elm.{Date => ElmDate}
-import io.circe.{Decoder, Encoder}
+import elm.{ Date => ElmDate }
+import io.circe.{ Decoder, Encoder }
 
 object JsonCodecs {
 
@@ -30,6 +30,7 @@ object JsonCodecs {
         )
       )
     }
+
   }
 
 }
