@@ -50,6 +50,6 @@ object AccountingEntryTemplateDAO {
     }
   }
 
-  private def fetch(accountingEntryTemplateKey: Id.AccountingEntryTemplateKey): Query[Tables.AccountingEntryTemplateDB, AccountingEntryTemplate, Seq] =
+  private def fetch(accountingEntryTemplateKey: Id.AccountingEntryTemplateKey): Query[Tables.AccountingEntryTemplateTable, AccountingEntryTemplate, Seq] =
     Tables.accountingEntryTemplateTable.filter(entryTemplate => entryTemplate.companyId === accountingEntryTemplateKey.companyID && entryTemplate.description === accountingEntryTemplateKey.description)
 }

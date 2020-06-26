@@ -48,7 +48,7 @@ object AccountingEntryDAO {
     }
   }
 
-  private def fetch(accountingEntryKey: Id.AccountingEntryKey): Query[Tables.AccountingEntryDB, AccountingEntry, Seq] =
+  private def fetch(accountingEntryKey: Id.AccountingEntryKey): Query[Tables.AccountingEntryTable, AccountingEntry, Seq] =
     Tables.accountingEntryTable.filter(entry =>
       entry.companyId === accountingEntryKey.companyID &&
         entry.id === accountingEntryKey.id &&
