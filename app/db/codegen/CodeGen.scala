@@ -10,9 +10,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.meta._
 
-object Codegen {
+object CodeGen {
 
-  def runCodegen(
+  def runCodeGen(
+      dbName: String,
       configFile: File,
       schemaFolder: File,
       schemaPackageName: String,
@@ -21,15 +22,14 @@ object Codegen {
       profile: JdbcProfile
   ): Unit = {
     val config = ConfigFactory.parseFile(configFile.toJava).resolve()
-
-    //    val shortName = config.getString("slick.dbs")
+    val fullDbPath = s"slick.dbs.$dbName"
     val tablesName = "Tables"
     val name = schemaFolder / tablesName
 
-    val url = "jdbc:postgresql:accounting" // config.getString(s"slick.dbs.$shortName.db.url")
-    val driver = "org.postgresql.Driver" // config.getString(s"slick.dbs.$shortName.db.driver")
-    val user = "accounting_user" // config.getString(s"slick.dbs.$shortName.db.user")
-    val password = "wQGHcL3z6U7#xb6AlM%vg&l3a!R44vdC" // config.getString(s"slick.dbs.$shortName.db.password")
+    val url = config.getString(s"$fullDbPath.db.url")
+    val driver = config.getString(s"$fullDbPath.db.driver")
+    val user = config.getString(s"$fullDbPath.db.user")
+    val password = config.getString(s"$fullDbPath.db.password")
 
     val db = profile.api.Database.forURL(url = url, driver = driver, user = user, password = password)
     val tables = slick.jdbc.meta.MTable.getTables(None, None, None, Some(Seq("TABLE")))
@@ -66,15 +66,6 @@ object Codegen {
 
       val caseClassFile = modelsFolder / s"$caseClassName.scala"
 
-      val scalafmt = Scalafmt.create(getClass.getClassLoader)
-      val config = File(".scalafmt.conf")
-      val file = File("CodeGen.scala")
-
-      val format: String => String =
-        scalafmt
-          .format(config.path, file.path, _)
-          .replace("@JsonCodec ", "@JsonCodec\n")
-
       if (caseClassFile.exists) {
         val originalContent = caseClassFile.contentAsString.parse[Source].get
         val withReplaced = replaceCode(originalContent, caseClassStat, caseClassName).toString()
@@ -90,6 +81,16 @@ object Codegen {
         caseClassFile.write(format(newContent))
       }
     }
+  }
+
+  private val format: String => String = {
+    val scalafmt = Scalafmt.create(getClass.getClassLoader)
+    val config = File(".scalafmt.conf")
+    val file = File("CodeGen.scala")
+
+    scalafmt
+      .format(config.path, file.path, _)
+      .replace("@JsonCodec ", "@JsonCodec\n")
   }
 
   private def replaceCode(originalFile: Source, caseClass: Stat, caseClassName: String): Tree = {
