@@ -5,7 +5,8 @@ import slick.jdbc.PostgresProfile
 
 object DbGenerator {
   def main(args: Array[String]): Unit = {
-    Codegen.runCodegen(
+    CodeGen.runCodeGen(
+      dbName = "default",
       configFile = File("conf/application.conf"),
       schemaFolder = File("app/db"),
       schemaPackageName = "db",
