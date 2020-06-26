@@ -21,7 +21,7 @@ class AccountDAO @Inject()(override protected val dbConfigProvider: DatabaseConf
   def repsertAccount(account: Account): Future[Account] = dao.repsert(account)
 
   def getAllAccountsByCompany(companyID: Int): Future[Seq[Account]] =
-    dao.findPartial[Int]((acc, cId) => acc.companyId === cId)(companyID)
+    dao.findPartial(companyID)((acc, cId) => acc.companyId === cId)
 }
 
 object AccountDAO {

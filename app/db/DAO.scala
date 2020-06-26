@@ -15,8 +15,8 @@ trait DAO[Table <: RelationalProfile#Table[_], Key] extends HasDatabaseConfigPro
 
   def find(key: Key): Future[Option[Table#TableElementType]] = db.run(daoCompanion.findAction(key))
 
-  def findPartial[Part](compare: (Table, Part) => Rep[Boolean])(part: Part): Future[Seq[Table#TableElementType]] =
-    db.run(daoCompanion.findPartialAction(compare)(part))
+  def findPartial[Part](part: Part)(compare: (Table, Part) => Rep[Boolean]): Future[Seq[Table#TableElementType]] =
+    db.run(daoCompanion.findPartialAction(part)(compare))
 
   def delete(key: Key): Future[Unit] = db.run(daoCompanion.deleteAction(key))
 

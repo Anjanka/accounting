@@ -16,8 +16,8 @@ trait DAOCompanion[Table <: RelationalProfile#Table[_], Key] {
     findQuery(key).result.headOption
 
   def findPartialAction[Part](
-      partCompare: (Table, Part) => Rep[Boolean]
-  )(part: Part): DBIO[Seq[Table#TableElementType]] =
+      part: Part
+  )(partCompare: (Table, Part) => Rep[Boolean]): DBIO[Seq[Table#TableElementType]] =
     findPartialQuery(partCompare)(part).result
 
   def findPartialQuery[Part](
