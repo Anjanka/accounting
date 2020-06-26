@@ -75,9 +75,9 @@ object Tables {
 
     def address: Rep[String] = column[String]("address")
 
-    def taxNumber: Rep[String] = column[String]("taxNumber")
+    def taxNumber: Rep[String] = column[String]("taxnumber")
 
-    def revenueOffice: Rep[String] = column[String]("revenueOffice")
+    def revenueOffice: Rep[String] = column[String]("revenueoffice")
 
     override def * : ProvenShape[Company] = (id, name, address, taxNumber, revenueOffice) <> ((Company.apply _).tupled, Company.unapply)
   }
