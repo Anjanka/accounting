@@ -8,8 +8,8 @@ import Json.Encode as Encode
 type alias Company = { id: Int, name: String, address: String, taxNumber: String, revenueOffice: String}
 
 
-decoderAccount : Decode.Decoder Company
-decoderAccount = Decode.succeed Company
+decoderCompany : Decode.Decoder Company
+decoderCompany = Decode.succeed Company
                           |> required "id" Decode.int
                           |> required "name" Decode.string
                           |> required "address" Decode.string
@@ -17,8 +17,8 @@ decoderAccount = Decode.succeed Company
                           |> required "revenueOffice" Decode.string
 
 
-encoderAccount : Company -> Encode.Value
-encoderAccount obj = Encode.object [ ("id", Encode.int obj.id)
+encoderCompany : Company -> Encode.Value
+encoderCompany obj = Encode.object [ ("id", Encode.int obj.id)
                                    , ("name", Encode.string obj.name)
                                    , ("address", Encode.string obj.address)
                                    , ("texNumber", Encode.string obj.taxNumber)

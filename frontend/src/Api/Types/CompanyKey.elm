@@ -13,4 +13,4 @@ decoderCompanyKey = Decode.succeed CompanyKey |> required "id" Decode.int
 
 
 encoderCompanyKey : CompanyKey -> Encode.Value
-encoderCompanyKey obj = Encode.object [ ("id", Encode.int obj.id)]
+encoderCompanyKey obj = Encode.object [ ("id", Encode.int obj.id) ]
