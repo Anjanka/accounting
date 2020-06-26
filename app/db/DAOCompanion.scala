@@ -31,8 +31,16 @@ trait DAOCompanion[Table <: RelationalProfile#Table[_], Key] {
   def deleteAction(key: Key)(implicit ec: ExecutionContext): DBIO[Unit] =
     findQuery(key).delete.map(_ => ())
 
-  def repsertAction(value: Table#TableElementType)(implicit ec: ExecutionContext): DBIO[Table#TableElementType] =
-    table.returning(table).insertOrUpdate(value).map(_.getOrElse(value))
+  def repsertAction(
+      value: Table#TableElementType,
+      validate: Table#TableElementType => Boolean = _ => true
+  )(implicit ec: ExecutionContext): DBIO[Table#TableElementType] =
+    table.returning(table).insertOrUpdate(value).flatMap {
+      case Some(element) if validate(element) => DBIO.successful(element)
+      case Some(element) =>
+        DBIO.failed(new Throwable(s"Inserted value $element doesn't match given value $value."))
+      case None => DBIO.successful(value)
+    }
 
   private def findQuery(key: Key): Query[Table, Table#TableElementType, Seq] =
     findPartialQuery(compare)(key)
