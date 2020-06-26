@@ -1,11 +1,11 @@
 package db
 
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.PostgresProfile
 import slick.lifted.Rep
 import slick.relational.RelationalProfile
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait DAO[Table <: RelationalProfile#Table[_], Key] extends HasDatabaseConfigProvider[PostgresProfile] {
 
@@ -22,7 +22,11 @@ trait DAO[Table <: RelationalProfile#Table[_], Key] extends HasDatabaseConfigPro
 
   def all: Future[Seq[Table#TableElementType]] = db.run(daoCompanion.allAction)
 
-  def repsert(value: Table#TableElementType): Future[Table#TableElementType] = db.run(daoCompanion.repsertAction(value))
+  def repsert(
+      value: Table#TableElementType,
+      validate: Table#TableElementType => Boolean
+  ): Future[Table#TableElementType] = db.run(daoCompanion.repsertAction(value, validate))
+
 }
 
 object DAO {
