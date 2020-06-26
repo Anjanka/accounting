@@ -1,5 +1,7 @@
 package controllers
 
+
+import base.Id.CompanyKey
 import db.{Company, CompanyDAO}
 import io.circe.Json
 import io.circe.syntax._
@@ -18,7 +20,7 @@ class CompanyController @Inject()(val controllerComponents: ControllerComponents
 
 
   def findCompany(id: Int): Action[AnyContent] = Action.async {
-    companyDAO.findCompany(id).map {
+    companyDAO.findCompany(CompanyKey(id = id)).map {
       x =>
         Ok(x.asJson)
     }
@@ -35,7 +37,7 @@ class CompanyController @Inject()(val controllerComponents: ControllerComponents
   }
 
   def delete: Action[Json] = Action.async(circe.json) { request =>
-    val companyIdCandidate = request.body.as[Int]
+    val companyIdCandidate = request.body.as[CompanyKey]
     companyIdCandidate match {
       case Right(value) =>
         companyDAO.deleteCompany(value).map(_ => Ok(s"Company ${value} was deleted successfully."))
