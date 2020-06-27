@@ -1,7 +1,8 @@
 package db
 
+import db.DAOCompanion.FindPredicate
 import slick.jdbc.PostgresProfile.api._
-import slick.lifted.{ Rep, TableQuery }
+import slick.lifted.{Rep, TableQuery}
 import slick.relational.RelationalProfile
 
 import scala.concurrent.ExecutionContext
@@ -10,18 +11,18 @@ trait DAOCompanion[Table <: RelationalProfile#Table[_], Key] {
 
   def table: TableQuery[Table]
 
-  def compare: (Table, Key) => Rep[Boolean]
+  def compare: FindPredicate[Table, Key]
 
   def findAction(key: Key): DBIO[Option[Table#TableElementType]] =
     findQuery(key).result.headOption
 
   def findPartialAction[Part](
       part: Part
-  )(partCompare: (Table, Part) => Rep[Boolean]): DBIO[Seq[Table#TableElementType]] =
+  )(partCompare: FindPredicate[Table, Part]): DBIO[Seq[Table#TableElementType]] =
     findPartialQuery(partCompare)(part).result
 
   def findPartialQuery[Part](
-      partCompare: (Table, Part) => Rep[Boolean]
+      partCompare: FindPredicate[Table, Part]
   )(part: Part): Query[Table, Table#TableElementType, Seq] =
     table.filter(partCompare(_, part))
 
@@ -48,6 +49,8 @@ trait DAOCompanion[Table <: RelationalProfile#Table[_], Key] {
 }
 
 object DAOCompanion {
+
+  type FindPredicate[Table, Part] = (Table, Part) => Rep[Boolean]
 
   def apply[Table <: RelationalProfile#Table[_], Key](
       _table: TableQuery[Table],
