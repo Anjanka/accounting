@@ -24,7 +24,7 @@ trait DAO[Table <: RelationalProfile#Table[_], Key] extends HasDatabaseConfigPro
 
   def repsert(
       value: Table#TableElementType,
-      validate: Table#TableElementType => Boolean
+      validate: Table#TableElementType => Boolean = _ => true
   ): Future[Table#TableElementType] = db.run(daoCompanion.repsertAction(value, validate))
 
 }
