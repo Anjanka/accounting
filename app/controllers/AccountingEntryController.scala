@@ -1,6 +1,7 @@
 package controllers
 
 import base.Id
+import db.AccountingEntryDAO.CompanyYearKey
 import db.{AccountingEntry, AccountingEntryDAO}
 import io.circe.Json
 import io.circe.syntax._
@@ -17,14 +18,14 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
   extends BaseController with Circe {
 
   def findAccountingEntry(companyID: Int, id: Int, accountingYear: Int): Action[AnyContent] = Action.async {
-    accountingEntryDAO.findAccountingEntry(Id.AccountingEntryKey(companyID = companyID, id = id, accountingYear = accountingYear)).map {
+    accountingEntryDAO.dao.find(Id.AccountingEntryKey(companyID = companyID, id = id, accountingYear = accountingYear)).map {
       x =>
         Ok(x.asJson)
     }
   }
 
   def findAccountingEntriesByYear(companyID: Int, accountingYear: Int): Action[AnyContent] = Action.async {
-    accountingEntryDAO.findAccountingEntriesByCompanyAndYear(companyID, accountingYear).map {
+    accountingEntryDAO.dao.findPartial(CompanyYearKey(companyID, accountingYear))(AccountingEntryDAO.compareCompanyYearKey).map {
       x =>
         Ok(x.asJson)
     }
@@ -34,7 +35,7 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
     val accountingEntryCandidate = request.body.as[AccountingEntry]
     accountingEntryCandidate match {
       case Right(value) =>
-        accountingEntryDAO.repsertAccountingEntry(value).map(entry => Ok(entry.asJson))
+        accountingEntryDAO.dao.repsert(value).map(entry => Ok(entry.asJson))
       case Left(decodingFailure) =>
         Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry: $decodingFailure"))
     }
@@ -44,7 +45,7 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
     val accountIdCandidate = request.body.as[Id.AccountingEntryKey]
     accountIdCandidate match {
       case Right(value) =>
-        accountingEntryDAO.deleteAccountingEntry(value).map(_ => Ok(s"Accounting Entry ${value.id} from Year ${value.accountingYear} was deleted successfully."))
+        accountingEntryDAO.dao.delete(value).map(_ => Ok(s"Accounting Entry ${value.id} from Year ${value.accountingYear} was deleted successfully."))
       case Left(decodingFailure) =>
         Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry Id: $decodingFailure."))
     }
