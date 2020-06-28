@@ -134,9 +134,9 @@ trait Tables {
   }
   /** Table description of table company. Objects of this class serve as prototypes for rows in queries. */
   class CompanyTable(_tableTag: Tag) extends profile.api.Table[Company](_tableTag, "company") {
-    def * = (id, name, address, taxnumber, revenueoffice) <> ((Company.apply _).tupled, Company.unapply)
+    def * = (id, name, address, taxNumber, revenueOffice) <> ((Company.apply _).tupled, Company.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = ((Rep.Some(id), Rep.Some(name), Rep.Some(address), Rep.Some(taxnumber), Rep.Some(revenueoffice))).shaped.<>({r=>import r._; _1.map(_=> (Company.apply _).tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = ((Rep.Some(id), Rep.Some(name), Rep.Some(address), Rep.Some(taxNumber), Rep.Some(revenueOffice))).shaped.<>({r=>import r._; _1.map(_=> (Company.apply _).tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column id SqlType(int4), PrimaryKey */
     val id: Rep[Int] = column[Int]("id", O.PrimaryKey)
@@ -144,10 +144,10 @@ trait Tables {
     val name: Rep[String] = column[String]("name")
     /** Database column address SqlType(text) */
     val address: Rep[String] = column[String]("address")
-    /** Database column taxnumber SqlType(text) */
-    val taxnumber: Rep[String] = column[String]("taxnumber")
-    /** Database column revenueoffice SqlType(text) */
-    val revenueoffice: Rep[String] = column[String]("revenueoffice")
+    /** Database column tax_number SqlType(text) */
+    val taxNumber: Rep[String] = column[String]("tax_number")
+    /** Database column revenue_office SqlType(text) */
+    val revenueOffice: Rep[String] = column[String]("revenue_office")
   }
   /** Collection-like TableQuery object for table companyTable */
   lazy val companyTable = new TableQuery(tag => new CompanyTable(tag))
