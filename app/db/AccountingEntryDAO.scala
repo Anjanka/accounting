@@ -2,6 +2,7 @@ package db
 
 import base.Id.AccountingEntryKey
 import db.DAOCompanion.FindPredicate
+import db.creation.AccountingEntryCreationParams
 import javax.inject.Inject
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.PostgresProfile
@@ -34,5 +35,15 @@ object AccountingEntryDAO {
         entry.id === key.id &&
         entry.accountingYear === key.accountingYear
   )
+
+  def nextId(accountingEntryCreationParams: AccountingEntryCreationParams)(implicit ec: ExecutionContext): DBIO[Int] =
+    daoCompanion
+      .findPartialAction(
+        CompanyYearKey(accountingEntryCreationParams.companyId, accountingEntryCreationParams.accountingYear)
+      )(compareCompanyYearKey)
+      .map { accountingEntries =>
+        if (accountingEntries.isEmpty) 1
+        else accountingEntries.maxBy(_.id).id + 1
+      }
 
 }

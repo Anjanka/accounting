@@ -11,7 +11,8 @@ POST    /account/delete                                                         
 
 GET    /accountingEntry/find/*companyID/*id/*accountingYear                        controllers.AccountingEntryController.find(companyID: Int, id: Int, accountingYear: Int)
 GET    /accountingEntry/findByYear/*companyID/*accountingYear                      controllers.AccountingEntryController.findByYear(companyID: Int, accountingYear: Int)
-POST   /accountingEntry/repsert                                                    controllers.AccountingEntryController.repsert
+POST   /accountingEntry/replace                                                    controllers.AccountingEntryController.replace
+POST   /accountingEntry/insert                                                     controllers.AccountingEntryController.insert
 POST   /accountingEntry/delete                                                     controllers.AccountingEntryController.delete
 
 
