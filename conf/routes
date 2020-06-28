@@ -21,7 +21,8 @@ POST   /accountingEntryTemplate/repsert                                         
 POST   /accountingEntryTemplate/delete                                             controllers.AccountingEntryTemplateController.delete
 
 
-GET     /company/find/*id              controllers.CompanyController.findCompany(id: Int)
-GET     /company/getAllCompanies       controllers.CompanyController.getAllCompanies
-POST    /company/repsert                          controllers.CompanyController.repsert
+GET     /company/find/*id                         controllers.CompanyController.findCompany(id: Int)
+GET     /company/getAll                           controllers.CompanyController.getAll
+POST    /company/replace                          controllers.CompanyController.replace
+POST    /company/insert                           controllers.CompanyController.insert
 POST    /company/delete                           controllers.CompanyController.delete
