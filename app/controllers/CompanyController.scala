@@ -17,7 +17,7 @@ class CompanyController @Inject() (val controllerComponents: ControllerComponent
 ) extends BaseController
     with Circe {
 
-  def findCompany(id: Int): Action[AnyContent] =
+  def find(id: Int): Action[AnyContent] =
     Action.async {
       companyDAO.dao.find(CompanyKey(id = id)).map { x =>
         Ok(x.asJson)
