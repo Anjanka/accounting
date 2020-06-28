@@ -17,7 +17,7 @@ class AccountingEntryTemplateController @Inject()(val controllerComponents: Cont
   extends BaseController with Circe {
 
 
-  def findAccountingEntryTemplate(companyID: Int, description: String): Action[AnyContent] = Action.async {
+  def find(companyID: Int, description: String): Action[AnyContent] = Action.async {
     accountingEntryTemplateDAO.findAccountingEntryTemplate(Id.AccountingEntryTemplateKey(companyID = companyID, description = description)).map {
       x =>
         Ok(x.asJson)
@@ -44,7 +44,7 @@ class AccountingEntryTemplateController @Inject()(val controllerComponents: Cont
     }
   }
 
-  def getAllAccountingEntryTemplates(companyID: Int): Action[AnyContent] = Action.async {
+  def getAll(companyID: Int): Action[AnyContent] = Action.async {
     accountingEntryTemplateDAO.getAllAccountingEntryTemplatesByCompany(companyID).map {
       x =>
         Ok(x.asJson)

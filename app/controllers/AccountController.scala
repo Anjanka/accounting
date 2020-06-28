@@ -17,7 +17,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   extends BaseController with Circe {
 
 
-  def findAccount(companyID: Int, id: Int): Action[AnyContent] = Action.async {
+  def find(companyID: Int, id: Int): Action[AnyContent] = Action.async {
     accountDAO.findAccount(Id.AccountKey(companyID = companyID, id = id)).map {
       x =>
         Ok(x.asJson)
@@ -45,7 +45,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
     }
   }
 
-  def getAllAccounts(companyID: Int): Action[AnyContent] = Action.async {
+  def getAll(companyID: Int): Action[AnyContent] = Action.async {
     accountDAO.getAllAccountsByCompany(companyID).map {
       x =>
         Ok(x.asJson)

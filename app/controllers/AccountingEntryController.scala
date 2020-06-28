@@ -17,14 +17,14 @@ class AccountingEntryController @Inject()(val controllerComponents: ControllerCo
                                          (implicit ec: ExecutionContext)
   extends BaseController with Circe {
 
-  def findAccountingEntry(companyID: Int, id: Int, accountingYear: Int): Action[AnyContent] = Action.async {
+  def find(companyID: Int, id: Int, accountingYear: Int): Action[AnyContent] = Action.async {
     accountingEntryDAO.dao.find(Id.AccountingEntryKey(companyID = companyID, id = id, accountingYear = accountingYear)).map {
       x =>
         Ok(x.asJson)
     }
   }
 
-  def findAccountingEntriesByYear(companyID: Int, accountingYear: Int): Action[AnyContent] = Action.async {
+  def findByYear(companyID: Int, accountingYear: Int): Action[AnyContent] = Action.async {
     accountingEntryDAO.dao.findPartial(CompanyYearKey(companyID, accountingYear))(AccountingEntryDAO.compareCompanyYearKey).map {
       x =>
         Ok(x.asJson)

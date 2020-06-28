@@ -3,26 +3,26 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET     /account/find/*companyID/*id              controllers.AccountController.findAccount(companyID: Int, id: Int)
-GET     /account/getAllAccounts/*companyID        controllers.AccountController.getAllAccounts(companyID: Int)
-POST    /account/repsert                          controllers.AccountController.repsert
-POST    /account/delete                           controllers.AccountController.delete
+GET     /account/find/*companyID/*id                                               controllers.AccountController.find(companyID: Int, id: Int)
+GET     /account/getAll/*companyID                                                 controllers.AccountController.getAll(companyID: Int)
+POST    /account/repsert                                                           controllers.AccountController.repsert
+POST    /account/delete                                                            controllers.AccountController.delete
 
 
-GET    /accountingEntry/find/*companyID/*id/*accountingYear                               controllers.AccountingEntryController.findAccountingEntry(companyID: Int, id: Int, accountingYear: Int)
-GET    /accountingEntry/findAccountingEntriesByYear/*companyID/*accountingYear            controllers.AccountingEntryController.findAccountingEntriesByYear(companyID: Int, accountingYear: Int)
-POST   /accountingEntry/repsert                                                           controllers.AccountingEntryController.repsert
-POST   /accountingEntry/delete                                                            controllers.AccountingEntryController.delete
+GET    /accountingEntry/find/*companyID/*id/*accountingYear                        controllers.AccountingEntryController.find(companyID: Int, id: Int, accountingYear: Int)
+GET    /accountingEntry/findByYear/*companyID/*accountingYear                      controllers.AccountingEntryController.findByYear(companyID: Int, accountingYear: Int)
+POST   /accountingEntry/repsert                                                    controllers.AccountingEntryController.repsert
+POST   /accountingEntry/delete                                                     controllers.AccountingEntryController.delete
 
 
-GET    /accountingEntryTemplate/find/*companyID/*description                       controllers.AccountingEntryTemplateController.findAccountingEntryTemplate(companyID: Int, description: String)
-GET    /accountingEntryTemplate/getAllAccountingEntryTemplates/*companyID          controllers.AccountingEntryTemplateController.getAllAccountingEntryTemplates(companyID: Int)
+GET    /accountingEntryTemplate/find/*companyID/*description                       controllers.AccountingEntryTemplateController.find(companyID: Int, description: String)
+GET    /accountingEntryTemplate/getAll/*companyID                                  controllers.AccountingEntryTemplateController.getAll(companyID: Int)
 POST   /accountingEntryTemplate/repsert                                            controllers.AccountingEntryTemplateController.repsert
 POST   /accountingEntryTemplate/delete                                             controllers.AccountingEntryTemplateController.delete
 
 
-GET     /company/find/*id                         controllers.CompanyController.findCompany(id: Int)
-GET     /company/getAll                           controllers.CompanyController.getAll
-POST    /company/replace                          controllers.CompanyController.replace
-POST    /company/insert                           controllers.CompanyController.insert
-POST    /company/delete                           controllers.CompanyController.delete
+GET     /company/find/*id                                                          controllers.CompanyController.find(id: Int)
+GET     /company/getAll                                                            controllers.CompanyController.getAll
+POST    /company/replace                                                           controllers.CompanyController.replace
+POST    /company/insert                                                            controllers.CompanyController.insert
+POST    /company/delete                                                            controllers.CompanyController.delete
