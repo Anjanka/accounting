@@ -2,6 +2,7 @@ package db.creation
 
 import db.AccountingEntry
 import io.circe.generic.JsonCodec
+import base.JsonCodecs.Implicits._
 
 @JsonCodec
 case class AccountingEntryCreationParams(
