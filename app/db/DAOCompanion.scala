@@ -2,48 +2,48 @@ package db
 
 import db.DAOCompanion.FindPredicate
 import slick.jdbc.PostgresProfile.api._
-import slick.lifted.{Rep, TableQuery}
+import slick.lifted.{ Rep, TableQuery }
 import slick.relational.RelationalProfile
 
 import scala.concurrent.ExecutionContext
 
-trait DAOCompanion[Table <: RelationalProfile#Table[_], Key] {
+trait DAOCompanion[Content, Table <: RelationalProfile#Table[Content], Key] {
 
   def table: TableQuery[Table]
 
   def compare: FindPredicate[Table, Key]
 
-  def findAction(key: Key): DBIO[Option[Table#TableElementType]] =
+  def findAction(key: Key): DBIO[Option[Content]] =
     findQuery(key).result.headOption
 
   def findPartialAction[Part](
       part: Part
-  )(partCompare: FindPredicate[Table, Part]): DBIO[Seq[Table#TableElementType]] =
+  )(partCompare: FindPredicate[Table, Part]): DBIO[Seq[Content]] =
     findPartialQuery(partCompare)(part).result
 
   def findPartialQuery[Part](
       partCompare: FindPredicate[Table, Part]
-  )(part: Part): Query[Table, Table#TableElementType, Seq] =
+  )(part: Part): Query[Table, Content, Seq] =
     table.filter(partCompare(_, part))
 
-  def allAction: DBIO[Seq[Table#TableElementType]] =
+  def allAction: DBIO[Seq[Content]] =
     table.result
 
   def deleteAction(key: Key)(implicit ec: ExecutionContext): DBIO[Unit] =
     findQuery(key).delete.map(_ => ())
 
   def repsertAction(
-      value: Table#TableElementType,
-      validate: Table#TableElementType => Boolean = _ => true
-  )(implicit ec: ExecutionContext): DBIO[Table#TableElementType] =
+      value: Content,
+      validate: Content => Boolean = _ => true
+  )(implicit ec: ExecutionContext): DBIO[Content] =
     table.returning(table).insertOrUpdate(value).flatMap {
-      case Some(element) if validate(element) => DBIO.successful(element)
+      case Some(element) if validate(element) => DBIO.successful(element: Content)
       case Some(element) =>
         DBIO.failed(new Throwable(s"Inserted value $element doesn't match given value $value."))
       case None => DBIO.successful(value)
     }
 
-  private def findQuery(key: Key): Query[Table, Table#TableElementType, Seq] =
+  private def findQuery(key: Key): Query[Table, Content, Seq] =
     findPartialQuery(compare)(key)
 
 }
@@ -52,11 +52,11 @@ object DAOCompanion {
 
   type FindPredicate[Table, Part] = (Table, Part) => Rep[Boolean]
 
-  def apply[Table <: RelationalProfile#Table[_], Key](
+  def apply[Content, Table <: RelationalProfile#Table[Content], Key](
       _table: TableQuery[Table],
       _compare: (Table, Key) => Rep[Boolean]
-  ): DAOCompanion[Table, Key] =
-    new DAOCompanion[Table, Key] { self =>
+  ): DAOCompanion[Content, Table, Key] =
+    new DAOCompanion[Content, Table, Key] { self =>
       override val table: TableQuery[Table] = _table
       override val compare: (Table, Key) => Rep[Boolean] = _compare
     }
