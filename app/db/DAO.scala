@@ -1,6 +1,7 @@
 package db
 
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile
 import slick.lifted.Rep
 import slick.relational.RelationalProfile
@@ -26,6 +27,13 @@ trait DAO[Content, Table <: RelationalProfile#Table[Content], Key] extends HasDa
       value: Content
   ): Future[Content] = db.run(daoCompanion.repsertAction(value))
 
+  def insert[CreationParams, MissingId](
+      creationParams: CreationParams,
+      nextMissingId: CreationParams => DBIO[MissingId],
+      constructor: (MissingId, CreationParams) => Content
+  ): Future[Content] = db.run(daoCompanion.insertAction(creationParams, nextMissingId, constructor))
+
+  def replace(value: Content): Future[Content] = db.run(daoCompanion.replaceAction(value))
 }
 
 object DAO {
