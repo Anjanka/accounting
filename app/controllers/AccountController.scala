@@ -18,7 +18,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
 
 
   def find(companyID: Int, id: Int): Action[AnyContent] = Action.async {
-    accountDAO.findAccount(Id.AccountKey(companyID = companyID, id = id)).map {
+    accountDAO.dao.find(Id.AccountKey(companyID = companyID, id = id)).map {
       x =>
         Ok(x.asJson)
     }
@@ -28,7 +28,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
     val accountCandidate = request.body.as[Account]
     accountCandidate match {
       case Right(value) =>
-        accountDAO.repsertAccount(value).map(acc => Ok(acc.asJson))
+        accountDAO.dao.repsert(value).map(acc => Ok(acc.asJson))
       case Left(decodingFailure) =>
         Future(BadRequest(s"Could not parse ${request.body} as valid account: $decodingFailure"))
     }
@@ -38,7 +38,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
     val accountIdCandidate = request.body.as[Id.AccountKey]
     accountIdCandidate match {
       case Right(value) =>
-        accountDAO.deleteAccount(value).map(_ => Ok(s"Account ${value.id} was deleted successfully."))
+        accountDAO.dao.delete(value).map(_ => Ok(s"Account ${value.id} was deleted successfully."))
           .recover { case ex => InternalServerError(ex.getMessage)}
       case Left(decodingFailure) =>
         Future(BadRequest(s"Could not parse ${request.body} as valid account Id: $decodingFailure."))
@@ -46,7 +46,7 @@ class AccountController @Inject()(val controllerComponents: ControllerComponents
   }
 
   def getAll(companyID: Int): Action[AnyContent] = Action.async {
-    accountDAO.getAllAccountsByCompany(companyID).map {
+    accountDAO.dao.findPartial(companyID)(AccountDAO.compareByCompany).map {
       x =>
         Ok(x.asJson)
     }
