@@ -1,55 +1,34 @@
 package db
 
-import base.Id
+import base.Id.AccountingEntryTemplateKey
+import db.DAOCompanion.FindPredicate
 import javax.inject.Inject
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.dbio.DBIO
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.api._
-import slick.lifted.Query
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.language.higherKinds
 
-class AccountingEntryTemplateDAO @Inject()(override protected val dbConfigProvider: DatabaseConfigProvider)
-                                          (implicit executionContext: ExecutionContext)
-  extends HasDatabaseConfigProvider[PostgresProfile] {
-  def findAccountingEntryTemplate(accountingEntryTemplateKey: Id.AccountingEntryTemplateKey): Future[Option[AccountingEntryTemplate]] =
-    db.run(AccountingEntryTemplateDAO.findAccountingEntryTemplateAction(accountingEntryTemplateKey))
+class AccountingEntryTemplateDAO @Inject() (override protected val dbConfigProvider: DatabaseConfigProvider)(implicit
+    executionContext: ExecutionContext
+) extends HasDatabaseConfigProvider[PostgresProfile] {
 
-  def deleteAccountingEntryTemplate(accountingEntryTemplateKey: Id.AccountingEntryTemplateKey): Future[Unit] =
-    db.run(AccountingEntryTemplateDAO.deleteAccountingEntryTemplateAction(accountingEntryTemplateKey))
-
-  def repsertAccount(accountingEntryTemplate: AccountingEntryTemplate): Future[AccountingEntryTemplate] =
-    db.run(AccountingEntryTemplateDAO.repsertAccountingEntryTemplateAction(accountingEntryTemplate))
-
-  def getAllAccountingEntryTemplatesByCompany(companyID: Int): Future[Seq[AccountingEntryTemplate]] =
-    db.run(AccountingEntryTemplateDAO.getAllAccountingEntryTemplatesByCompanyAction(companyID))
+  val dao: DAO[AccountingEntryTemplate, Tables.AccountingEntryTemplateTable, AccountingEntryTemplateKey] =
+    DAO(AccountingEntryTemplateDAO.daoCompanion, dbConfigProvider)
 
 }
 
 object AccountingEntryTemplateDAO {
 
-  def findAccountingEntryTemplateAction(accountingEntryTemplateKey: Id.AccountingEntryTemplateKey): DBIO[Option[AccountingEntryTemplate]] =
-    fetch(accountingEntryTemplateKey).result.headOption
+  val daoCompanion
+      : DAOCompanion[AccountingEntryTemplate, Tables.AccountingEntryTemplateTable, AccountingEntryTemplateKey] =
+    DAOCompanion(
+      Tables.accountingEntryTemplateTable,
+      (table, key) => table.companyId === key.companyID && table.description === key.description
+    )
 
-  def getAllAccountingEntryTemplatesByCompanyAction(companyID: Int): DBIO[Seq[AccountingEntryTemplate]] =
-    Tables.accountingEntryTemplateTable.filter(entryTemplate => entryTemplate.companyId === companyID).result
+  val compareByCompany: FindPredicate[Tables.AccountingEntryTemplateTable, Int] =
+    (table, companyId) => table.companyId === companyId
 
-  def deleteAccountingEntryTemplateAction(accountingEntryTemplateKey: Id.AccountingEntryTemplateKey)
-                                         (implicit ec: ExecutionContext): DBIO[Unit] =
-    fetch(accountingEntryTemplateKey).delete.map(_ => ())
-
-  def repsertAccountingEntryTemplateAction(accountingEntryTemplate: AccountingEntryTemplate)
-                                          (implicit ec: ExecutionContext): DBIO[AccountingEntryTemplate] = {
-    Tables.accountingEntryTemplateTable.returning(Tables.accountingEntryTemplateTable).insertOrUpdate(accountingEntryTemplate).flatMap {
-      case Some(dbEntryTemplate) if accountingEntryTemplate.credit == dbEntryTemplate.credit && accountingEntryTemplate.debit == dbEntryTemplate.debit =>
-        DBIO.successful(accountingEntryTemplate)
-      case Some(dbEntryTemplate) => DBIO.failed(new Throwable(s"Inserted entry template $dbEntryTemplate doesn't match given entry template $accountingEntryTemplate."))
-      case None => DBIO.successful(accountingEntryTemplate)
-    }
-  }
-
-  private def fetch(accountingEntryTemplateKey: Id.AccountingEntryTemplateKey): Query[Tables.AccountingEntryTemplateTable, AccountingEntryTemplate, Seq] =
-    Tables.accountingEntryTemplateTable.filter(entryTemplate => entryTemplate.companyId === accountingEntryTemplateKey.companyID && entryTemplate.description === accountingEntryTemplateKey.description)
 }
