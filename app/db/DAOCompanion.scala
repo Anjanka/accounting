@@ -44,10 +44,10 @@ trait DAOCompanion[Content, Table <: RelationalProfile#Table[Content], Key] {
     }
 
   def insertAction[CreationParams, MissingId](
-      creationParams: CreationParams,
-      nextMissingId: CreationParams => DBIO[MissingId],
       constructor: (MissingId, CreationParams) => Content
-  )(implicit ec: ExecutionContext): DBIO[Content] =
+  )(
+      nextMissingId: CreationParams => DBIO[MissingId]
+  )(creationParams: CreationParams)(implicit ec: ExecutionContext): DBIO[Content] =
     nextMissingId(creationParams).flatMap { missingId =>
       val content = constructor(missingId, creationParams)
       table.returning(table) += content
