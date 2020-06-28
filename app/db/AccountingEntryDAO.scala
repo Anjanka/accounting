@@ -3,7 +3,7 @@ package db
 import base.Id.AccountingEntryKey
 import db.DAOCompanion.FindPredicate
 import javax.inject.Inject
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.api._
 
@@ -14,7 +14,8 @@ class AccountingEntryDAO @Inject() (override protected val dbConfigProvider: Dat
     executionContext: ExecutionContext
 ) extends HasDatabaseConfigProvider[PostgresProfile] {
 
-  val dao: DAO[Tables.AccountingEntryTable, AccountingEntryKey] = DAO(AccountingEntryDAO.daoCompanion, dbConfigProvider)
+  val dao: DAO[AccountingEntry, Tables.AccountingEntryTable, AccountingEntryKey] =
+    DAO(AccountingEntryDAO.daoCompanion, dbConfigProvider)
 
 }
 
@@ -26,7 +27,7 @@ object AccountingEntryDAO {
     (entry, companyYearKey) =>
       entry.companyId === companyYearKey.companyId && entry.accountingYear === companyYearKey.accountingYear
 
-  val daoCompanion: DAOCompanion[Tables.AccountingEntryTable, AccountingEntryKey] = DAOCompanion(
+  val daoCompanion: DAOCompanion[AccountingEntry, Tables.AccountingEntryTable, AccountingEntryKey] = DAOCompanion(
     _table = Tables.accountingEntryTable,
     _compare = (entry, key) =>
       entry.companyId === key.companyID &&
