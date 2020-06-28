@@ -37,10 +37,26 @@ trait DAOCompanion[Content, Table <: RelationalProfile#Table[Content], Key] {
       validate: Content => Boolean = _ => true
   )(implicit ec: ExecutionContext): DBIO[Content] =
     table.returning(table).insertOrUpdate(value).flatMap {
-      case Some(element) if validate(element) => DBIO.successful(element: Content)
+      case Some(element) if validate(element) => DBIO.successful(element)
       case Some(element) =>
         DBIO.failed(new Throwable(s"Inserted value $element doesn't match given value $value."))
       case None => DBIO.successful(value)
+    }
+
+  def insertAction[CreationParams, MissingId](
+      creationParams: CreationParams,
+      nextMissingId: CreationParams => DBIO[MissingId],
+      constructor: (MissingId, CreationParams) => Content
+  )(implicit ec: ExecutionContext): DBIO[Content] =
+    nextMissingId(creationParams).flatMap { missingId =>
+      val content = constructor(missingId, creationParams)
+      table.returning(table) += content
+    }
+
+  def replaceAction(value: Content)(implicit ec: ExecutionContext): DBIO[Content] =
+    table.update(value).flatMap {
+      case 1 => DBIO.successful(value)
+      case n => DBIO.failed(new Throwable(s"Unexpected number of updates. Expected 1, but got $n"))
     }
 
   private def findQuery(key: Key): Query[Table, Content, Seq] =
@@ -56,7 +72,8 @@ object DAOCompanion {
       _table: TableQuery[Table],
       _compare: (Table, Key) => Rep[Boolean]
   ): DAOCompanion[Content, Table, Key] =
-    new DAOCompanion[Content, Table, Key] { self =>
+    new DAOCompanion[Content, Table, Key] {
+      self =>
       override val table: TableQuery[Table] = _table
       override val compare: (Table, Key) => Rep[Boolean] = _compare
     }
