@@ -28,10 +28,11 @@ trait DAO[Content, Table <: RelationalProfile#Table[Content], Key] extends HasDa
   ): Future[Content] = db.run(daoCompanion.repsertAction(value))
 
   def insert[CreationParams, MissingId](
-      creationParams: CreationParams,
-      nextMissingId: CreationParams => DBIO[MissingId],
       constructor: (MissingId, CreationParams) => Content
-  ): Future[Content] = db.run(daoCompanion.insertAction(creationParams, nextMissingId, constructor))
+  )(
+      nextMissingId: CreationParams => DBIO[MissingId]
+  )(creationParams: CreationParams): Future[Content] =
+    db.run(daoCompanion.insertAction(constructor)(nextMissingId)(creationParams))
 
   def replace(value: Content): Future[Content] = db.run(daoCompanion.replaceAction(value))
 }
