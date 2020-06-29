@@ -1,11 +1,13 @@
 module Pages.AccountingEntry.AccountingEntryPage exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
-import Api.General.AccountingEntryUtil as AccountingEntryUtil
+import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams)
 import Api.General.DateUtil as DateUtil
 import Api.General.HttpUtil as HttpUtil
 import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEntry, encoderAccountingEntry)
+import Api.Types.AccountingEntryCreationParams exposing (encoderAccountingEntryCreationParams)
+import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
 import Browser
 import Dropdown exposing (Item)
@@ -124,11 +126,14 @@ type Msg
     | ChangeDebit String
     | ChangeCredit String
     | ChangeAmount String
-    | PostAccountingEntry
+    | CreateAccountingEntry
+    | ReplaceAccountingEntry
+    | DeleteAccountingEntry
     | GotResponseAllAccountingEntries (Result Error (List AccountingEntry))
     | GotResponseAllAccountingEntryTemplates (Result Error (List AccountingEntryTemplate))
     | GotResponseAllAccounts (Result Error (List Account))
     | GotResponsePost (Result Error AccountingEntry)
+    | GotResponseDelete (Result Error ())
     | DropdownTemplateChanged (Maybe String)
     | DropdownCreditChanged (Maybe String)
     | DropdownDebitChanged (Maybe String)
@@ -144,7 +149,7 @@ update msg model =
                 Ok value ->
                     ( { model
                         | allAccountingEntries = value |> List.sortBy .id
-                        , accountingEntry = AccountingEntryUtil.updateId (AccountingEntryUtil.updateAccountingYear (AccountingEntryUtil.updateCompanyId model.accountingEntry model.companyId) model.accountingYear) 5
+                        , accountingEntry = AccountingEntryUtil.updateAccountingYear (AccountingEntryUtil.updateCompanyId model.accountingEntry model.companyId) model.accountingYear
                       }
                     , Cmd.none
                     )
@@ -175,7 +180,21 @@ update msg model =
                     ( { model | allAccounts = [], error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponsePost result ->
-            ( model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
+            case result of
+              Ok value ->
+                      ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear)
+
+              Err error ->
+                ( { model | error = HttpUtil.errorToString error }, Cmd.none )
+
+
+        GotResponseDelete result ->
+                     case result of
+                         Ok value ->
+                             ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
+
+                         Err error ->
+                             ( { model | error = HttpUtil.errorToString error}, Cmd.none )
 
         ChangeBookingDate newContent ->
             ( ParseAndUpdateUtil.parseDate model newContent, Cmd.none )
@@ -210,14 +229,20 @@ update msg model =
         DropdownDebitChanged selectedDebit ->
             ( ParseAndUpdateUtil.updateDebit model selectedDebit, Cmd.none )
 
-        PostAccountingEntry ->
-            ( resetOnSuccessfulPost model, postAccountingEntry model.accountingEntry )
+        CreateAccountingEntry ->
+            ( reset model, createAccountingEntry model.accountingEntry )
+
+        ReplaceAccountingEntry ->
+                    ( reset model, replaceAccountingEntry model.accountingEntry )
+
+        DeleteAccountingEntry ->
+                  ( reset model, deleteAccountingEntry model.accountingEntry )
 
         EditAccountingEntry accountingEntry ->
             ( insertForEdit model accountingEntry, Cmd.none )
 
         LeaveEditView ->
-            ( resetOnSuccessfulPost model, Cmd.none )
+            ( reset model, Cmd.none )
 
 
 
@@ -286,7 +311,7 @@ view model =
 getAccountingEntriesForCurrentYear : Int -> Int -> Cmd Msg
 getAccountingEntriesForCurrentYear companyId year =
     Http.get
-        { url = "http://localhost:9000/accountingEntry/findAccountingEntriesByYear/" ++ String.fromInt companyId ++ "/" ++ String.fromInt year
+        { url = "http://localhost:9000/accountingEntry/findByYear/" ++ String.fromInt companyId ++ "/" ++ String.fromInt year
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntries (Decode.list decoderAccountingEntry)
         }
 
@@ -294,7 +319,7 @@ getAccountingEntriesForCurrentYear companyId year =
 getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
     Http.get
-        { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/accountingEntryTemplate/getAll/" ++ String.fromInt companyId
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
@@ -302,18 +327,35 @@ getAccountingEntryTemplates companyId =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 
 
-postAccountingEntry : AccountingEntry -> Cmd Msg
-postAccountingEntry accountingEntry =
+createAccountingEntry : AccountingEntry -> Cmd Msg
+createAccountingEntry accountingEntry =
     Http.post
-        { url = "http://localhost:9000/accountingEntry/repsert"
+        { url = "http://localhost:9000/accountingEntry/insert"
         , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
-        , body = Http.jsonBody (encoderAccountingEntry accountingEntry)
+        , body = Http.jsonBody (encoderAccountingEntryCreationParams (getCreationParams accountingEntry))
         }
+
+
+replaceAccountingEntry : AccountingEntry -> Cmd Msg
+replaceAccountingEntry accountingEntry =
+    Http.post
+            { url = "http://localhost:9000/accountingEntry/replace"
+            , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
+            , body = Http.jsonBody (encoderAccountingEntry accountingEntry)
+            }
+
+deleteAccountingEntry : AccountingEntry -> Cmd Msg
+deleteAccountingEntry accountingEntry =
+    Http.post
+            { url = "http://localhost:9000/accountingEntry/delete"
+            , expect = HttpUtil.expectWhatever GotResponseDelete
+            , body = Http.jsonBody (encoderAccountingEntryKey {companyID = accountingEntry.companyId, id = accountingEntry.id, accountingYear = accountingEntry.accountingYear})
+            }
 
 
 
@@ -402,20 +444,20 @@ viewValidatedInput accountingEntry editActive =
             AccountingEntryUtil.isValid accountingEntry
     in
     if editActive && validEntry then
-        div [] [ button [ disabled False, onClick PostAccountingEntry ] [ text "Commit Edit" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
+        div [] [ button [ disabled False, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
 
     else if editActive then
-        div [] [ button [ disabled True, onClick PostAccountingEntry ] [ text "Commit Edit" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
+        div [] [ button [ disabled True, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
 
     else if validEntry then
-        button [ disabled False, onClick PostAccountingEntry ] [ text "Commit New Entry" ]
+        button [ disabled False, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
 
     else
-        button [ disabled True, onClick PostAccountingEntry ] [ text "Commit New Entry" ]
+        button [ disabled True, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
 
 
-resetOnSuccessfulPost : Model -> Model
-resetOnSuccessfulPost model =
+reset : Model -> Model
+reset model =
     { model
         | contentDescription = ""
         , contentBookingDate = ""
