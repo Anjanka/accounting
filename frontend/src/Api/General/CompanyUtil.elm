@@ -3,6 +3,7 @@ module Api.General.CompanyUtil exposing (..)
 
 
 import Api.Types.Company exposing (Company)
+import Api.Types.CompanyCreationParams exposing (CompanyCreationParams)
 
 
 empty : Company
@@ -35,10 +36,13 @@ show company =
 
 isValid : Company -> Bool
 isValid company =
-    if company.id /= 0
-       && not (String.isEmpty company.name)
+    if not (String.isEmpty company.name)
        && not (String.isEmpty company.address)
        && not (String.isEmpty company.taxNumber)
        && not (String.isEmpty company.revenueOffice)
        then True
     else False
+
+
+getCreationParams : Company -> CompanyCreationParams
+getCreationParams company = { name = company.name, address= company.address, taxNumber = company.taxNumber, revenueOffice = company.revenueOffice }
