@@ -22,7 +22,6 @@ import Pages.AccountingEntry.ParseAndUpdateUtil as ParseAndUpdateUtil
 
 
 
-
 -- MAIN
 
 
@@ -37,7 +36,6 @@ main =
 
 
 -- MODEL
-
 
 
 updateAccountingEntry : Model -> AccountingEntry -> Model
@@ -181,20 +179,19 @@ update msg model =
 
         GotResponsePost result ->
             case result of
-              Ok value ->
-                      ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear)
+                Ok value ->
+                    ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
 
-              Err error ->
-                ( { model | error = HttpUtil.errorToString error }, Cmd.none )
-
+                Err error ->
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseDelete result ->
-                     case result of
-                         Ok value ->
-                             ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
+            case result of
+                Ok value ->
+                    ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
 
-                         Err error ->
-                             ( { model | error = HttpUtil.errorToString error}, Cmd.none )
+                Err error ->
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         ChangeBookingDate newContent ->
             ( ParseAndUpdateUtil.parseDate model newContent, Cmd.none )
@@ -218,7 +215,7 @@ update msg model =
             ( ParseAndUpdateUtil.parseAndUpdateCredit model newContent, Cmd.none )
 
         ChangeAmount newContent ->
-            (ParseAndUpdateUtil.parseAndUpdateAmount model newContent, Cmd.none )
+            ( ParseAndUpdateUtil.parseAndUpdateAmount model newContent, Cmd.none )
 
         DropdownTemplateChanged selectedTemplate ->
             ( insertTemplateData model selectedTemplate, Cmd.none )
@@ -233,10 +230,10 @@ update msg model =
             ( reset model, createAccountingEntry model.accountingEntry )
 
         ReplaceAccountingEntry ->
-                    ( reset model, replaceAccountingEntry model.accountingEntry )
+            ( reset model, replaceAccountingEntry model.accountingEntry )
 
         DeleteAccountingEntry ->
-                  ( reset model, deleteAccountingEntry model.accountingEntry )
+            ( reset model, deleteAccountingEntry model.accountingEntry )
 
         EditAccountingEntry accountingEntry ->
             ( insertForEdit model accountingEntry, Cmd.none )
@@ -271,20 +268,22 @@ view model =
             , input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] []
             ]
         , div []
-            [ label [] [ text "Debit Account: " ]
-            , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
-            , Dropdown.dropdown
-                (dropdownOptionsDebit model.allAccounts)
-                []
-                model.selectedDebit
-            ]
-        , div []
             [ label [] [ text "Credit Account: " ]
             , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
             , Dropdown.dropdown
                 (dropdownOptionsCredit model.allAccounts)
                 []
                 model.selectedCredit
+            , label [] [ text (getBalance model.contentCreditID model.allAccountingEntries) ]
+            ]
+        , div []
+            [ label [] [ text "Debit Account: " ]
+            , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
+            , Dropdown.dropdown
+                (dropdownOptionsDebit model.allAccounts)
+                []
+                model.selectedDebit
+            , label [] [ text (getBalance model.contentDebitID model.allAccountingEntries) ]
             ]
         , div [] [ text model.dateValidation ]
         , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
@@ -344,19 +343,19 @@ createAccountingEntry accountingEntry =
 replaceAccountingEntry : AccountingEntry -> Cmd Msg
 replaceAccountingEntry accountingEntry =
     Http.post
-            { url = "http://localhost:9000/accountingEntry/replace"
-            , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
-            , body = Http.jsonBody (encoderAccountingEntry accountingEntry)
-            }
+        { url = "http://localhost:9000/accountingEntry/replace"
+        , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
+        , body = Http.jsonBody (encoderAccountingEntry accountingEntry)
+        }
+
 
 deleteAccountingEntry : AccountingEntry -> Cmd Msg
 deleteAccountingEntry accountingEntry =
     Http.post
-            { url = "http://localhost:9000/accountingEntry/delete"
-            , expect = HttpUtil.expectWhatever GotResponseDelete
-            , body = Http.jsonBody (encoderAccountingEntryKey {companyID = accountingEntry.companyId, id = accountingEntry.id, accountingYear = accountingEntry.accountingYear})
-            }
-
+        { url = "http://localhost:9000/accountingEntry/delete"
+        , expect = HttpUtil.expectWhatever GotResponseDelete
+        , body = Http.jsonBody (encoderAccountingEntryKey { companyID = accountingEntry.companyId, id = accountingEntry.id, accountingYear = accountingEntry.accountingYear })
+        }
 
 
 insertTemplateData : Model -> Maybe String -> Model
@@ -409,6 +408,7 @@ findEntry selectedValue allAccountingEntryTemplates =
         Nothing ->
             AccountingEntryTemplateUtil.empty
 
+
 insertForEdit : Model -> AccountingEntry -> Model
 insertForEdit model accountingEntry =
     { model
@@ -424,8 +424,6 @@ insertForEdit model accountingEntry =
         , selectedCredit = Just (String.fromInt accountingEntry.credit)
         , selectedDebit = Just (String.fromInt accountingEntry.debit)
     }
-
-
 
 
 accountForDropdown : Account -> Item
@@ -474,8 +472,8 @@ reset model =
     }
 
 
-mkTableLine : Bool -> AccountingEntry ->  Html Msg
-mkTableLine editInactive accountingEntry  =
+mkTableLine : Bool -> AccountingEntry -> Html Msg
+mkTableLine editInactive accountingEntry =
     tr []
         [ td [] [ text (String.fromInt accountingEntry.id) ]
         , td [] [ text accountingEntry.receiptNumber ]
@@ -484,6 +482,56 @@ mkTableLine editInactive accountingEntry  =
         , td [] [ text (AccountingEntryUtil.showAmount accountingEntry) ]
         , td [] [ text (String.fromInt accountingEntry.credit) ]
         , td [] [ text (String.fromInt accountingEntry.debit) ]
-        , if editInactive then button [ disabled True, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
-          else button [ disabled False, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
+        , if editInactive then
+            button [ disabled True, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
+
+          else
+            button [ disabled False, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
         ]
+
+
+getBalance : String -> List AccountingEntry -> String
+getBalance accountIdCandidate allEntries =
+    case String.toInt accountIdCandidate of
+        Just accountId ->
+            showBalance (getAmount accountId allEntries)
+
+        Nothing ->
+            ""
+
+
+getAmount : Int -> List AccountingEntry -> Int
+getAmount accountId allEntries =
+    let
+        allEntriesCredit =
+            List.filter (\entry -> entry.credit == accountId) allEntries
+
+        allEntriesDebit =
+            List.filter (\entry -> entry.debit == accountId) allEntries
+    in
+    List.foldr (+) 0 (List.map (\entry -> (entry.amountWhole * 100) + entry.amountChange) allEntriesCredit) - List.foldr (+) 0 (List.map (\entry -> (entry.amountWhole * 100) + entry.amountChange) allEntriesDebit)
+
+
+showBalance : Int -> String
+showBalance amount =
+    let
+        amountString =
+            String.fromInt amount
+    in
+    if amount >= 100 || amount <= -100 then
+        String.dropRight 2 amountString ++ "," ++ String.right 2 amountString
+
+    else if amount < 100 && amount > 9 then
+        "0," ++ amountString
+
+    else if amount > -100 && amount < -9 then
+        "-0," ++ amountString
+
+    else if amount < 10 && amount > 0 then
+        "0,0" ++ amountString
+
+    else if amount > -10 && amount < 0 then
+        "-0,0" ++ String.right 1 amountString
+
+    else
+        "0"
