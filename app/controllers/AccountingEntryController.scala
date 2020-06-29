@@ -43,7 +43,7 @@ class AccountingEntryController @Inject() (
       val accountingEntryCandidate = request.body.as[AccountingEntry]
       accountingEntryCandidate match {
         case Right(value) =>
-          accountingEntryDAO.dao.replace(value).map(entry => Ok(entry.asJson))
+          accountingEntryDAO.dao.replace(value)(AccountingEntry.keyOf).map(entry => Ok(entry.asJson))
         case Left(decodingFailure) =>
           Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry: $decodingFailure"))
       }

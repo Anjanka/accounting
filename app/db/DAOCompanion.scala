@@ -53,8 +53,8 @@ trait DAOCompanion[Content, Table <: RelationalProfile#Table[Content], Key] {
       table.returning(table) += content
     }
 
-  def replaceAction(value: Content)(implicit ec: ExecutionContext): DBIO[Content] =
-    table.update(value).flatMap {
+  def replaceAction(value: Content)(keyOf: Content => Key)(implicit ec: ExecutionContext): DBIO[Content] =
+    findQuery(keyOf(value)).update(value).flatMap {
       case 1 => DBIO.successful(value)
       case n => DBIO.failed(new Throwable(s"Unexpected number of updates. Expected 1, but got $n"))
     }

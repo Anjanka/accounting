@@ -42,7 +42,7 @@ class CompanyController @Inject() (val controllerComponents: ControllerComponent
       val companyCandidate = request.body.as[Company]
       companyCandidate match {
         case Right(value) =>
-          companyDAO.dao.replace(value).map(acc => Ok(acc.asJson))
+          companyDAO.dao.replace(value)(Company.keyOf).map(acc => Ok(acc.asJson))
         case Left(decodingFailure) =>
           Future(BadRequest(s"Could not parse ${request.body} as valid company: $decodingFailure"))
       }
