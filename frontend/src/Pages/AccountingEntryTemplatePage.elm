@@ -238,7 +238,7 @@ view model =
 getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
     Http.get
-        { url = "http://localhost:9000/accountingEntryTemplate/getAllAccountingEntryTemplates/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/accountingEntryTemplate/getAll/" ++ String.fromInt companyId
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
@@ -246,7 +246,7 @@ getAccountingEntryTemplates companyId =
 postAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
 postAccountingEntryTemplate aet =
     Http.post
-        { url = "http://localhost:9000/accountingEntryTemplate/repsert "
+        { url = "http://localhost:9000/accountingEntryTemplate/repsert"
         , expect = HttpUtil.expectJson GotResponseCreate decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
         }
@@ -257,7 +257,7 @@ deleteAccountingEntryTemplate description companyId =
     case description of
         Just string ->
             Http.post
-                { url = "http://localhost:9000/accountingEntryTemplate/delete "
+                { url = "http://localhost:9000/accountingEntryTemplate/delete"
                 , expect = HttpUtil.expectWhatever GotResponseDelete
                 , body = Http.jsonBody (encoderAccountingEntryTemplateKey { companyID = companyId, description = string })
                 }
@@ -269,7 +269,7 @@ deleteAccountingEntryTemplate description companyId =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId=
     Http.get
-        { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 
