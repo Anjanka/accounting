@@ -1,6 +1,8 @@
 package db
 
 import java.sql.Date
+
+import base.Id.AccountingEntryKey
 import io.circe.generic.JsonCodec
 import base.JsonCodecs.Implicits._
 
@@ -17,3 +19,12 @@ case class AccountingEntry(
     amountChange: Int,
     companyId: Int
 )
+
+object AccountingEntry {
+  def keyOf(accountingEntry: AccountingEntry): AccountingEntryKey =
+    AccountingEntryKey(
+      companyID = accountingEntry.companyId,
+      id = accountingEntry.id,
+      accountingYear = accountingEntry.accountingYear
+    )
+}

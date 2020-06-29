@@ -34,7 +34,7 @@ trait DAO[Content, Table <: RelationalProfile#Table[Content], Key] extends HasDa
   )(creationParams: CreationParams): Future[Content] =
     db.run(daoCompanion.insertAction(constructor)(nextMissingId)(creationParams))
 
-  def replace(value: Content): Future[Content] = db.run(daoCompanion.replaceAction(value))
+  def replace(value: Content)(keyOf: Content => Key): Future[Content] = db.run(daoCompanion.replaceAction(value)(keyOf))
 }
 
 object DAO {
