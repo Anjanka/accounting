@@ -64,14 +64,14 @@ class AccountingEntryController @Inject() (
 
   def delete: Action[Json] =
     Action.async(circe.json) { request =>
-      val accountIdCandidate = request.body.as[Id.AccountingEntryKey]
-      accountIdCandidate match {
+      val accountingEntryKeyCandidate = request.body.as[Id.AccountingEntryKey]
+      accountingEntryKeyCandidate match {
         case Right(value) =>
           accountingEntryDAO.dao
             .delete(value)
             .map(_ => Ok(s"Accounting Entry ${value.id} from Year ${value.accountingYear} was deleted successfully."))
         case Left(decodingFailure) =>
-          Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry Id: $decodingFailure."))
+          Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry Key: $decodingFailure."))
       }
     }
 
