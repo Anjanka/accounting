@@ -227,7 +227,7 @@ view model =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = "http://localhost:9000/account/getAllAccounts/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
         , expect = HttpUtil.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
         }
 
