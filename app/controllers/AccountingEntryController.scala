@@ -1,16 +1,16 @@
 package controllers
 
-import base.Id
+import base.Id.AccountingEntryKey
 import db.AccountingEntryDAO.CompanyYearKey
 import db.creation.AccountingEntryCreationParams
-import db.{ AccountingEntry, AccountingEntryDAO }
+import db.{AccountingEntry, AccountingEntryDAO, Tables}
 import io.circe.Json
 import io.circe.syntax._
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.libs.circe.Circe
-import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class AccountingEntryController @Inject() (
@@ -20,14 +20,24 @@ class AccountingEntryController @Inject() (
     extends BaseController
     with Circe {
 
-  def find(companyID: Int, id: Int, accountingYear: Int): Action[AnyContent] =
-    Action.async {
+  val controller: Controller[
+    AccountingEntry,
+    Tables.AccountingEntryTable,
+    AccountingEntryKey,
+    AccountingEntryCreationParams,
+    Int
+  ] =
+    Controller[AccountingEntry, Tables.AccountingEntryTable, AccountingEntryKey, AccountingEntryCreationParams, Int](
+      AccountingEntryDAO.nextId,
+      AccountingEntryCreationParams.create,
+      AccountingEntry.keyOf,
       accountingEntryDAO.dao
-        .find(Id.AccountingEntryKey(companyID = companyID, id = id, accountingYear = accountingYear))
-        .map { x =>
-          Ok(x.asJson)
-        }
-    }
+    )(
+      controllerComponents
+    )
+
+  def find(companyID: Int, id: Int, accountingYear: Int): Action[AnyContent] =
+    controller.find(AccountingEntryKey(companyID = companyID, id = id, accountingYear = accountingYear))
 
   def findByYear(companyID: Int, accountingYear: Int): Action[AnyContent] =
     Action.async {
@@ -39,40 +49,12 @@ class AccountingEntryController @Inject() (
     }
 
   def replace: Action[Json] =
-    Action.async(circe.json) { request =>
-      val accountingEntryCandidate = request.body.as[AccountingEntry]
-      accountingEntryCandidate match {
-        case Right(value) =>
-          accountingEntryDAO.dao.replace(value)(AccountingEntry.keyOf).map(entry => Ok(entry.asJson))
-        case Left(decodingFailure) =>
-          Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry: $decodingFailure"))
-      }
-    }
+    controller.replace
 
   def insert: Action[Json] =
-    Action.async(circe.json) { request =>
-      val accountingEntryCreationParamsCandidate = request.body.as[AccountingEntryCreationParams]
-      accountingEntryCreationParamsCandidate match {
-        case Right(accountingEntryCreationParams) =>
-          accountingEntryDAO.dao
-            .insert(AccountingEntryCreationParams.create)(AccountingEntryDAO.nextId)(accountingEntryCreationParams)
-            .map(entry => Ok(entry.asJson))
-        case Left(decodingFailure) =>
-          Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry: $decodingFailure"))
-      }
-    }
+    controller.insert
 
   def delete: Action[Json] =
-    Action.async(circe.json) { request =>
-      val accountingEntryKeyCandidate = request.body.as[Id.AccountingEntryKey]
-      accountingEntryKeyCandidate match {
-        case Right(value) =>
-          accountingEntryDAO.dao
-            .delete(value)
-            .map(_ => Ok(s"Accounting Entry ${value.id} from Year ${value.accountingYear} was deleted successfully."))
-        case Left(decodingFailure) =>
-          Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry Key: $decodingFailure."))
-      }
-    }
+    controller.delete
 
 }
