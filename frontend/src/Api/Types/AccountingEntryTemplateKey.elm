@@ -5,12 +5,12 @@ import Json.Decode.Pipeline exposing (..)
 import Json.Encode as Encode
 
 
-type alias AccountingEntryTemplateKey = { companyID: Int, description: String }
+type alias AccountingEntryTemplateKey = { id: Int }
 
 
 decoderAccountingEntryTemplateKey : Decode.Decoder AccountingEntryTemplateKey
-decoderAccountingEntryTemplateKey = Decode.succeed AccountingEntryTemplateKey |> required "companyID" Decode.int |> required "description" Decode.string
+decoderAccountingEntryTemplateKey = Decode.succeed AccountingEntryTemplateKey |> required "id" Decode.int
 
 
 encoderAccountingEntryTemplateKey : AccountingEntryTemplateKey -> Encode.Value
-encoderAccountingEntryTemplateKey obj = Encode.object [ ("companyID", Encode.int obj.companyID), ("description", Encode.string obj.description) ]
+encoderAccountingEntryTemplateKey obj = Encode.object [ ("id", Encode.int obj.id) ]
