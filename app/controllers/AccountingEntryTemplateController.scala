@@ -9,6 +9,7 @@ import play.api.libs.circe.Circe
 import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
 
 import scala.concurrent.{ ExecutionContext, Future }
+import slick.dbio.DBIO
 
 @Singleton
 class AccountingEntryTemplateController @Inject() (
@@ -27,12 +28,26 @@ class AccountingEntryTemplateController @Inject() (
         }
     }
 
-  def repsert: Action[Json] =
+  def insert: Action[Json] =
+    processAccountingEntryTemplateWith(
+      accountingEntryTemplateDAO.dao.insert[AccountingEntryTemplate, Unit]((_, template) => template)(_ =>
+        DBIO.successful(())
+      )
+    )
+
+  def replace: Action[Json] =
+    processAccountingEntryTemplateWith(
+      accountingEntryTemplateDAO.dao.replace(_)(AccountingEntryTemplate.keyOf)
+    )
+
+  private def processAccountingEntryTemplateWith(
+      f: AccountingEntryTemplate => Future[AccountingEntryTemplate]
+  ): Action[Json] =
     Action.async(circe.json) { request =>
       val accountingEntryTemplateCandidate = request.body.as[AccountingEntryTemplate]
       accountingEntryTemplateCandidate match {
         case Right(value) =>
-          accountingEntryTemplateDAO.dao.repsert(value).map(acc => Ok(acc.asJson))
+          f(value).map(acc => Ok(acc.asJson))
         case Left(decodingFailure) =>
           Future(BadRequest(s"Could not parse ${request.body} as valid accounting entry template: $decodingFailure"))
       }
