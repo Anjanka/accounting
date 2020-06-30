@@ -5,7 +5,8 @@
 
 GET     /account/find/*companyID/*id                                               controllers.AccountController.find(companyID: Int, id: Int)
 GET     /account/getAll/*companyID                                                 controllers.AccountController.getAll(companyID: Int)
-POST    /account/repsert                                                           controllers.AccountController.repsert
+POST    /account/replace                                                           controllers.AccountController.replace
+POST    /account/insert                                                            controllers.AccountController.insert
 POST    /account/delete                                                            controllers.AccountController.delete
 
 
