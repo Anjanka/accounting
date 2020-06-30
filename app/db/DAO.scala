@@ -23,10 +23,6 @@ trait DAO[Content, Table <: RelationalProfile#Table[Content], Key] extends HasDa
 
   def all: Future[Seq[Content]] = db.run(daoCompanion.allAction)
 
-  def repsert(
-      value: Content
-  ): Future[Content] = db.run(daoCompanion.repsertAction(value))
-
   def insert[CreationParams, MissingId](
       constructor: (MissingId, CreationParams) => Content
   )(
