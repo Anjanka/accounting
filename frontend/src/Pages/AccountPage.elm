@@ -6,13 +6,12 @@ import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountKey exposing (encoderAccountKey)
 import Browser
 import Dropdown exposing (Item)
-import Html exposing (Attribute, Html, button, div, input, label, p, text)
-import Html.Attributes exposing (disabled, placeholder, style, value)
+import Html exposing (Attribute, Html, button, div, input, label, p, table, td, text, th, tr)
+import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
-
-
+import List.Extra
 
 
 
@@ -37,11 +36,10 @@ type alias Model =
     , contentID : String
     , account : Account
     , allAccounts : List Account
-    , response : String
     , error : String
     , validationFeedback : String
     , buttonPressed : Bool
-    , selectedValue : Maybe String
+    , editViewActive : Bool
     }
 
 
@@ -64,17 +62,6 @@ type alias Flags =
     ()
 
 
-dropdownOptions : List Account -> Dropdown.Options Msg
-dropdownOptions allAccounts =
-    let
-        defaultOptions =
-            Dropdown.defaultOptions DropdownChanged
-    in
-    { defaultOptions
-        | items =
-            List.sortBy .value (List.map accountForDropdown allAccounts)
-        , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
-    }
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -83,11 +70,10 @@ init _ =
       , contentID = ""
       , account = AccountUtil.updateCompanyID AccountUtil.empty 1
       , allAccounts = []
-      , response = ""
       , error = ""
       , validationFeedback = "Account ID must be non-zero, positive 5-digit number."
       , buttonPressed = False
-      , selectedValue = Nothing
+      , editViewActive = False
       }
     , getAccounts 1
     )
@@ -99,6 +85,7 @@ init _ =
 
 type Msg
     = ShowAllAccounts
+    | HideAllAccounts
     | GotResponseForAllAccounts (Result Error (List Account))
     | GotResponseCreate (Result Error Account)
     | GotResponseDelete (Result Error ())
@@ -106,7 +93,8 @@ type Msg
     | ChangeName String
     | CreateAccount
     | DeleteAccount
-    | DropdownChanged (Maybe String)
+    | ActivateEditView Account
+    | DeactivateEditView
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -115,12 +103,14 @@ update msg model =
         ShowAllAccounts ->
             ( { model | buttonPressed = True }, getAccounts model.companyID )
 
+        HideAllAccounts ->
+            ( { model | buttonPressed = False }, Cmd.none )
+
         GotResponseForAllAccounts result ->
             case result of
                 Ok value ->
                     ( { model
-                        | allAccounts = value
-                        , response = value |> List.sortBy .id |> List.map AccountUtil.show |> String.join ",\n"
+                        | allAccounts = List.sortBy .id value
                         , error = ""
                       }
                     , Cmd.none
@@ -132,7 +122,7 @@ update msg model =
         GotResponseCreate result ->
             case result of
                 Ok value ->
-                    ( resetOnSuccessfulPost model, getAccounts model.companyID)
+                    ( reset model, getAccounts model.companyID )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -140,15 +130,15 @@ update msg model =
         GotResponseDelete result ->
             case result of
                 Ok value ->
-                    ( { model | selectedValue = Nothing }, getAccounts model.companyID )
+                    ( reset model, getAccounts model.companyID )
 
                 Err error ->
-                    ( { model | error = HttpUtil.errorToString error, selectedValue = Nothing }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error}, Cmd.none )
 
         ChangeID newContent ->
             let
                 newAccountAndFeedback =
-                    parseAccount model.account newContent
+                    parseAccount model.account newContent model.allAccounts
 
                 newModel =
                     model
@@ -171,10 +161,13 @@ update msg model =
             ( model, postAccount model.account )
 
         DeleteAccount ->
-            ( model, deleteAccount model.selectedValue model.companyID )
+            ( model, deleteAccount model.account )
 
-        DropdownChanged selectedValue ->
-            ( { model | selectedValue = selectedValue }, Cmd.none )
+        ActivateEditView  account->
+            ( {model | contentID = String.fromInt account.id, account = account, editViewActive = True}, Cmd.none )
+
+        DeactivateEditView ->
+            ( reset model, Cmd.none )
 
 
 
@@ -185,41 +178,19 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
 
-errorToString : Http.Error -> String
-errorToString error = ""
+
 
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
-    let
-        responseArea =
-            if model.buttonPressed then
-                [ div [] [ text "List of all accounts : " ]
-                , div [] [ text model.response ]
-                ]
-
-            else
-                []
-    in
     div []
-        [ input [ placeholder "Account ID", value model.contentID, onInput ChangeID ] []
-        , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
-        , viewValidation model.validationFeedback
-        , viewValidatedInput model
-        , div [] ([ button [ onClick ShowAllAccounts ] [ text "Get All Accounts" ] ] ++ responseArea)
-        , Html.form []
-            [ p []
-                [ label []
-                    [ Dropdown.dropdown
-                        (dropdownOptions model.allAccounts)
-                        []
-                        model.selectedValue
-                    ]
-                ]
-            ]
-        , deleteButton model.selectedValue
+        [ viewEditOrCreate model
+        , label [] [ text ((String.fromInt model.account.companyId) ++ " - " ++ (String.fromInt model.account.id) ++ " - " ++ model.account.title) ]
+        , p [] []
+        , viewAccountList model
+        , p [] []
         , div [] [ text model.error ]
         ]
 
@@ -241,26 +212,36 @@ postAccount account =
         }
 
 
-deleteAccount : Maybe String -> Int -> Cmd Msg
-deleteAccount selectedValue company_id =
-    case selectedValue of
-        Just value ->
-            let
-                id =
-                    stringIsValidId value
-            in
-            if id.valid then
+deleteAccount : Account -> Cmd Msg
+deleteAccount account =
                 Http.post
                     { url = "http://localhost:9000/account/delete "
                     , expect = HttpUtil.expectWhatever GotResponseDelete
-                    , body = Http.jsonBody (encoderAccountKey { id = id.id, companyID = company_id })
+                    , body = Http.jsonBody (encoderAccountKey { id = account.id, companyID = account.companyId })
                     }
 
-            else
-                Cmd.none
 
-        Nothing ->
-            Cmd.none
+
+viewEditOrCreate : Model -> Html Msg
+viewEditOrCreate model =
+    if model.editViewActive then
+        div []
+            [ label [] [ text model.contentID ]
+            , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
+            , div []
+                [ button [ onClick CreateAccount ] [ text "Save Changes" ]
+                , button [ onClick DeleteAccount ] [ text "Delete" ]
+                , button [ onClick DeactivateEditView ] [ text "Cancel" ]
+                ]
+            ]
+
+    else
+        div []
+            [ input [ placeholder "Account ID", value model.contentID, onInput ChangeID ] []
+            , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
+            , viewCreateButton model
+            , viewValidation model.validationFeedback
+            ]
 
 
 viewValidation : String -> Html Msg
@@ -272,8 +253,8 @@ viewValidation error =
         div [ style "color" "red" ] [ text error ]
 
 
-viewValidatedInput : Model -> Html Msg
-viewValidatedInput model =
+viewCreateButton : Model -> Html Msg
+viewCreateButton model =
     if not (String.isEmpty model.validationFeedback) || String.isEmpty model.account.title then
         button [ disabled True, onClick CreateAccount ] [ text "Create new Account" ]
 
@@ -281,30 +262,58 @@ viewValidatedInput model =
         button [ disabled False, onClick CreateAccount ] [ text "Create new Account" ]
 
 
-deleteButton : Maybe String -> Html Msg
-deleteButton selectedValue =
-    case selectedValue of
-        Just value ->
-            button [ disabled False, onClick DeleteAccount ] [ text "Delete" ]
+viewAccountList : Model -> Html Msg
+viewAccountList model =
+    if model.buttonPressed then
+        div []
+            [ div [] [ button [ onClick HideAllAccounts ] [ text "Hide Accounts" ] ]
+            , div [ id "allAccounts" ]
+                [ table
+                    []
+                    (tr [ class "tableHeader" ]
+                        [ th [] [ label [ for "id" ] [ text "id" ] ]
+                        , th [] [ label [ for "name" ] [ text "name" ] ]
+                        ]
+                        :: List.map mkTableLine model.allAccounts
+                    )
+                ]
+            ]
 
-        Nothing ->
-            button [ disabled True, onClick DeleteAccount ] [ text "Delete" ]
+    else
+        div [] [ button [ onClick ShowAllAccounts ] [ text "Manage Accounts" ] ]
 
 
-parseAccount : Account -> String -> { account : Account, validationFeedback : String }
-parseAccount baseAccount newId =
+mkTableLine : Account -> Html Msg
+mkTableLine account =
+    tr []
+        [ td [] [ text (String.fromInt account.id) ]
+        , td [] [ text account.title ]
+        , button [ onClick (ActivateEditView account) ] [ text "Edit" ]
+        ]
+
+
+
+parseAccount : Account -> String -> List Account -> { account : Account, validationFeedback : String }
+parseAccount baseAccount newId allAccounts =
     let
-        errorMessage =
-            "Account ID must be non-zero, positive 5-digit number."
+        idNotValid =
+            "Account ID must be positive number with 3 to 5 digits."
+        existingAccount =
+            "An account with this Id already exists. Use edit to make changes to existing accounts."
 
         id =
             stringIsValidId newId
+
+        accountExists = not (AccountUtil.isEmpty (findAccount id.id allAccounts))
+
     in
-    if id.valid then
+    if id.valid && accountExists then
+         { account = baseAccount, validationFeedback = existingAccount }
+    else if id.valid then
         { account = AccountUtil.updateId baseAccount id.id, validationFeedback = "" }
 
     else
-        { account = baseAccount, validationFeedback = errorMessage }
+        { account = baseAccount, validationFeedback = idNotValid }
 
 
 type alias ValidID =
@@ -317,7 +326,7 @@ stringIsValidId : String -> ValidID
 stringIsValidId id =
     case String.toInt id of
         Just int ->
-            if int > 10000 && int <= 99999 then
+            if int >= 100 && int <= 99999 then
                 { id = int, valid = True }
 
             else
@@ -327,23 +336,24 @@ stringIsValidId id =
             { id = 0, valid = False }
 
 
-accountForDropdown : Account -> Item
-accountForDropdown acc =
-    let
-        id =
-            String.fromInt acc.id
-    in
-    { value = id, text = id ++ " - " ++ acc.title, enabled = True }
+
+findAccount : Int -> List Account -> Account
+findAccount id allAccounts =
+    case List.Extra.find (\account -> account.id == id) allAccounts of
+        Just value ->
+            value
+
+        Nothing ->
+            AccountUtil.empty
 
 
-resetOnSuccessfulPost : Model -> Model
-resetOnSuccessfulPost model =
+reset : Model -> Model
+reset model =
     { model
         | contentID = ""
-        , account = AccountUtil.empty
-        , response = ""
+        , account = AccountUtil.updateCompanyID AccountUtil.empty model.companyID
         , error = ""
-        , validationFeedback = "Account ID must be non-zero, positive 5-digit number."
+        , validationFeedback = "Account ID must be positive number with 3 to 5 digits."
         , buttonPressed = False
-        , selectedValue = Nothing
-    }
+        , editViewActive = False
+        }
