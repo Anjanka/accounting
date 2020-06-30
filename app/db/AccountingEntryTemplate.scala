@@ -18,8 +18,7 @@ object AccountingEntryTemplate {
 
   def keyOf(accountingEntryTemplate: AccountingEntryTemplate): AccountingEntryTemplateKey =
     AccountingEntryTemplateKey(
-      companyID = accountingEntryTemplate.companyId,
-      description = accountingEntryTemplate.description
+      id = accountingEntryTemplate.id
     )
 
 }
