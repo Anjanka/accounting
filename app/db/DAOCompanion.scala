@@ -32,17 +32,6 @@ trait DAOCompanion[Content, Table <: RelationalProfile#Table[Content], Key] {
   def deleteAction(key: Key)(implicit ec: ExecutionContext): DBIO[Unit] =
     findQuery(key).delete.map(_ => ())
 
-  def repsertAction(
-      value: Content,
-      validate: Content => Boolean = _ => true
-  )(implicit ec: ExecutionContext): DBIO[Content] =
-    table.returning(table).insertOrUpdate(value).flatMap {
-      case Some(element) if validate(element) => DBIO.successful(element)
-      case Some(element) =>
-        DBIO.failed(new Throwable(s"Inserted value $element doesn't match given value $value."))
-      case None => DBIO.successful(value)
-    }
-
   def insertAction[CreationParams, MissingId](
       constructor: (MissingId, CreationParams) => Content
   )(
