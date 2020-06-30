@@ -2,6 +2,7 @@ package controllers
 
 import controllers.syntax._
 import db.DAO
+import geny.Writable
 import io.circe.syntax._
 import io.circe.{ Decoder, DecodingFailure, Encoder, Json }
 import play.api.libs.circe.Circe
@@ -33,50 +34,34 @@ trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, Creati
     }
 
   def insert: Action[Json] =
-    Action.async(circe.json) { request =>
-      val creationParamsCandidate = request.body.as[CreationParams]
-      val result = creationParamsCandidate match {
-        case Right(creationParams) =>
-          dao
-            .insert(constructor)(nextId)(creationParams)
-            .map(acc => Ok(acc.asJson))
-        case Left(decodingFailure) =>
-          Future(BadRequest(Controller.mkError(request.body, "creation params", decodingFailure)))
-      }
-      result.recoverServerError
-    }
+    parseAndProcess("creation params", dao.insert(constructor)(nextId))((_, c) => Ok(c.asJson))
 
   def replace: Action[Json] =
-    Action.async(circe.json) { request =>
-      val contentCandidate = request.body.as[Content]
-      val result = contentCandidate match {
-        case Right(value) =>
-          dao.replace(value)(keyOf).map(acc => Ok(acc.asJson))
-        case Left(decodingFailure) =>
-          Future(BadRequest(Controller.mkError(request.body, "value", decodingFailure)))
-      }
-      result.recoverServerError
-    }
+    parseAndProcess("value", dao.replace(_: Content)(keyOf))((_, c) => Ok(c.asJson))
 
   def delete: Action[Json] =
-    Action.async(circe.json) { request =>
-      val keyCandidate = request.body.as[Key]
-      val result = keyCandidate match {
-        case Right(key) =>
-          dao
-            .delete(key)
-            .map(_ => Ok(s"Value with $key was deleted successfully."))
-        case Left(decodingFailure) =>
-          Future(BadRequest(Controller.mkError(request.body, "id", decodingFailure)))
-      }
-      result.recoverServerError
-    }
+    parseAndProcess("id", dao.delete)((key, _) => Ok(s"Value with $key was deleted successfully."))
 
   def getAll: Action[AnyContent] =
     Action.async {
       dao.all.map { values =>
         Ok(values.asJson)
       }.recoverServerError
+    }
+
+  private def parseAndProcess[A: Decoder, B](suffix: String, process: A => Future[B])(
+      respond: (A, B) => Result
+  ): Action[Json] =
+    Action.async(circe.json) { request =>
+      val aCandidate = request.body.as[A]
+      val result = aCandidate match {
+        case Right(a) =>
+          process(a)
+            .map(respond(a, _))
+        case Left(decodingFailure) =>
+          Future(BadRequest(Controller.mkError(request.body, suffix, decodingFailure)))
+      }
+      result.recoverServerError
     }
 
 }
