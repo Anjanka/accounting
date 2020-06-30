@@ -2,11 +2,10 @@ package controllers
 
 import controllers.syntax._
 import db.DAO
-import geny.Writable
 import io.circe.syntax._
 import io.circe.{ Decoder, DecodingFailure, Encoder, Json }
 import play.api.libs.circe.Circe
-import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents, Result }
+import play.api.mvc._
 import slick.dbio.DBIO
 import slick.relational.RelationalProfile
 
@@ -42,7 +41,7 @@ trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, Creati
   def delete: Action[Json] =
     parseAndProcess("id", dao.delete)((key, _) => Ok(s"Value with $key was deleted successfully."))
 
-  def getAll: Action[AnyContent] =
+  def findAll: Action[AnyContent] =
     Action.async {
       dao.all.map { values =>
         Ok(values.asJson)
