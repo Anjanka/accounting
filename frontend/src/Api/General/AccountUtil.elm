@@ -22,3 +22,7 @@ updateTitle account title = { account | title = title }
 show: Account -> String
 show account =
     String.join ": " [String.fromInt account.id, account.title]
+
+isEmpty: Account -> Bool
+isEmpty account =
+    account.id == 0 && account.title == "" && account.companyId == 0
