@@ -6,7 +6,7 @@ import bridges.core.Type.Ref
 import bridges.core._
 import bridges.core.syntax._
 import bridges.elm._
-import db.creation.{AccountingEntryCreationParams, CompanyCreationParams}
+import db.creation.{AccountingEntryCreationParams, AccountingEntryTemplateCreationParams, CompanyCreationParams}
 import db.{Account, AccountingEntry, AccountingEntryTemplate, Company}
 import shapeless.Lazy
 
@@ -66,6 +66,7 @@ object Bridge {
     mkAndWrite[Id.AccountingEntryTemplateKey]()
     mkAndWrite[Id.CompanyKey]()
     mkAndWrite[AccountingEntryCreationParams]()
+    mkAndWrite[AccountingEntryTemplateCreationParams]()
     mkAndWrite[CompanyCreationParams]()
   }
 

@@ -25,10 +25,16 @@ object AccountingEntryTemplateDAO {
       : DAOCompanion[AccountingEntryTemplate, Tables.AccountingEntryTemplateTable, AccountingEntryTemplateKey] =
     DAOCompanion(
       Tables.accountingEntryTemplateTable,
-      (table, key) => table.companyId === key.companyID && table.description === key.description
+      (table, key) => table.id === key.id
     )
 
   val compareByCompany: FindPredicate[Tables.AccountingEntryTemplateTable, Int] =
     (table, companyId) => table.companyId === companyId
+
+  def nextId(implicit ec: ExecutionContext): DBIO[Int] =
+    daoCompanion.allAction.map { accountingEntryTemplates =>
+      if (accountingEntryTemplates.isEmpty) 1
+      else accountingEntryTemplates.maxBy(_.id).id + 1
+    }
 
 }

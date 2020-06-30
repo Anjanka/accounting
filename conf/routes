@@ -17,7 +17,7 @@ POST   /accountingEntry/insert                                                  
 POST   /accountingEntry/delete                                                     controllers.AccountingEntryController.delete
 
 
-GET    /accountingEntryTemplate/find/*companyID/*description                       controllers.AccountingEntryTemplateController.find(companyID: Int, description: String)
+GET    /accountingEntryTemplate/find/*id                                           controllers.AccountingEntryTemplateController.find(id: Int)
 GET    /accountingEntryTemplate/getAll/*companyID                                  controllers.AccountingEntryTemplateController.getAll(companyID: Int)
 POST   /accountingEntryTemplate/replace                                            controllers.AccountingEntryTemplateController.replace
 POST   /accountingEntryTemplate/insert                                             controllers.AccountingEntryTemplateController.insert
