@@ -2,12 +2,10 @@ package controllers
 
 import base.Id.AccountingEntryTemplateKey
 import db.creation.AccountingEntryTemplateCreationParams
-import db.{AccountingEntryTemplate, AccountingEntryTemplateDAO, Tables}
+import db.{ AccountingEntryTemplate, AccountingEntryTemplateDAO, Tables }
 import io.circe.Json
-import io.circe.syntax._
-import javax.inject.{Inject, Singleton}
-import play.api.libs.circe.Circe
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import javax.inject.{ Inject, Singleton }
+import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
 
 import scala.concurrent.ExecutionContext
 
@@ -16,11 +14,22 @@ class AccountingEntryTemplateController @Inject() (
     val controllerComponents: ControllerComponents,
     val accountingEntryTemplateDAO: AccountingEntryTemplateDAO
 )(implicit ec: ExecutionContext)
-    extends BaseController
-    with Circe {
+    extends BaseController {
 
-  val controller: Controller[AccountingEntryTemplate, Tables.AccountingEntryTemplateTable, AccountingEntryTemplateKey, AccountingEntryTemplateCreationParams, Int] =
-    Controller[AccountingEntryTemplate, Tables.AccountingEntryTemplateTable, AccountingEntryTemplateKey, AccountingEntryTemplateCreationParams, Int](
+  val controller: Controller[
+    AccountingEntryTemplate,
+    Tables.AccountingEntryTemplateTable,
+    AccountingEntryTemplateKey,
+    AccountingEntryTemplateCreationParams,
+    Int
+  ] =
+    Controller[
+      AccountingEntryTemplate,
+      Tables.AccountingEntryTemplateTable,
+      AccountingEntryTemplateKey,
+      AccountingEntryTemplateCreationParams,
+      Int
+    ](
       _ => AccountingEntryTemplateDAO.nextId,
       AccountingEntryTemplateCreationParams.create,
       AccountingEntryTemplate.keyOf,
@@ -41,11 +50,7 @@ class AccountingEntryTemplateController @Inject() (
   def delete: Action[Json] =
     controller.delete
 
-  def getAll(companyID: Int): Action[AnyContent] =
-    Action.async {
-      accountingEntryTemplateDAO.dao.findPartial(companyID)(AccountingEntryTemplateDAO.compareByCompany).map { x =>
-        Ok(x.asJson)
-      }
-    }
+  def findAll(companyID: Int): Action[AnyContent] =
+    controller.findPartial(companyID)(AccountingEntryTemplateDAO.compareByCompany)
 
 }

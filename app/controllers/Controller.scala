@@ -3,13 +3,14 @@ package controllers
 import controllers.syntax._
 import db.DAO
 import io.circe.syntax._
-import io.circe.{ Decoder, DecodingFailure, Encoder, Json }
+import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 import play.api.libs.circe.Circe
 import play.api.mvc._
 import slick.dbio.DBIO
+import slick.lifted.Rep
 import slick.relational.RelationalProfile
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, CreationParams, Id]
     extends BaseController
@@ -46,6 +47,11 @@ trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, Creati
       dao.all.map { values =>
         Ok(values.asJson)
       }.recoverServerError
+    }
+
+  def findPartial[Part](part: Part)(compare: (Table, Part) => Rep[Boolean]): Action[AnyContent] =
+    Action.async {
+      dao.findPartial(part)(compare).map(result => Ok(result.asJson)).recoverServerError
     }
 
   private def parseAndProcess[A: Decoder, B](suffix: String, process: A => Future[B])(
