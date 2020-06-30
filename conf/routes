@@ -25,7 +25,7 @@ POST   /accountingEntryTemplate/delete                                          
 
 
 GET     /company/find/*id                                                          controllers.CompanyController.find(id: Int)
-GET     /company/getAll                                                            controllers.CompanyController.getAll
+GET     /company/getAll                                                            controllers.CompanyController.findAll
 POST    /company/replace                                                           controllers.CompanyController.replace
 POST    /company/insert                                                            controllers.CompanyController.insert
 POST    /company/delete                                                            controllers.CompanyController.delete

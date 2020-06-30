@@ -38,7 +38,7 @@ class CompanyController @Inject() (val controllerComponents: ControllerComponent
   def delete: Action[Json] =
     controller.delete
 
-  def getAll: Action[AnyContent] =
+  def findAll: Action[AnyContent] =
     controller.findAll
 
 }
