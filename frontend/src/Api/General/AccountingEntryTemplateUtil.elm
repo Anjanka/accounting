@@ -2,6 +2,7 @@ module Api.General.AccountingEntryTemplateUtil exposing (..)
 
 
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
+import Api.Types.AccountingEntryTemplateKey exposing (AccountingEntryTemplateKey)
 
 
 empty : AccountingEntryTemplate
@@ -13,6 +14,11 @@ empty =
     , amountWhole = 0
     , amountChange = 0
     }
+
+emptyKey : AccountingEntryTemplateKey
+emptyKey =
+    { companyID = 0
+    , description = ""}
 
 updateCompanyId : AccountingEntryTemplate -> Int -> AccountingEntryTemplate
 updateCompanyId aet companyId = { aet | companyId = companyId }
