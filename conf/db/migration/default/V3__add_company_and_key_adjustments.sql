@@ -73,4 +73,4 @@ alter table accounting_entry_template
 alter table accounting_entry_template
     drop constraint accounting_entry_template_pkey;
 
-alter table accounting_entry_template add primary key (company_id, description)
+alter table accounting_entry_template add primary key (company_id, description);
