@@ -40,6 +40,7 @@ updateCredit =
     updateWith (\m nsv -> { m | selectedCredit = nsv }) (\m nsv nss id -> { m | contentCreditID = nss, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry id, selectedCredit = nsv })
 
 
+updateDebit : Model -> Maybe String -> Model
 updateDebit =
     updateWith (\m nsv -> { m | selectedDebit = nsv }) (\m nsv nss id -> { m | contentDebitID = nss, accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry id, selectedDebit = nsv })
 
