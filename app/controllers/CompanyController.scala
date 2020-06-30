@@ -2,11 +2,11 @@ package controllers
 
 import base.Id.CompanyKey
 import db.creation.CompanyCreationParams
-import db.{ Company, CompanyDAO, Tables }
+import db.{Company, CompanyDAO, Tables}
 import io.circe.Json
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.libs.circe.Circe
-import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 
 import scala.concurrent.ExecutionContext
 
@@ -39,6 +39,6 @@ class CompanyController @Inject() (val controllerComponents: ControllerComponent
     controller.delete
 
   def getAll: Action[AnyContent] =
-    controller.getAll
+    controller.findAll
 
 }
