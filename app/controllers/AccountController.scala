@@ -1,15 +1,15 @@
 package controllers
 
-import base.Id
-import db.{ AccountDAO, Account }
+import base.Id.AccountKey
+import db.{Account, AccountDAO, Tables}
 import io.circe.Json
 import io.circe.syntax._
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.libs.circe.Circe
-import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
-
-import scala.concurrent.{ ExecutionContext, Future }
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import slick.dbio.DBIO
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class AccountController @Inject() (val controllerComponents: ControllerComponents, val accountDAO: AccountDAO)(implicit
@@ -17,49 +17,27 @@ class AccountController @Inject() (val controllerComponents: ControllerComponent
 ) extends BaseController
     with Circe {
 
+  val controller: Controller[Account, Tables.AccountTable, AccountKey, Account, Unit] =
+    Controller[Account, Tables.AccountTable, AccountKey, Account, Unit](
+      _ => DBIO.successful(()),
+      (_, ps) => ps,
+      Account.keyOf,
+      accountDAO.dao
+    )(
+      controllerComponents
+    )
+
   def find(companyID: Int, id: Int): Action[AnyContent] =
-    Action.async {
-      accountDAO.dao.find(Id.AccountKey(companyID = companyID, id = id)).map { x =>
-        Ok(x.asJson)
-      }
-    }
+    controller.find(AccountKey(companyID = companyID, id = id))
 
   def insert: Action[Json] =
-    processAccountWith(
-      accountDAO.dao.insert[Account, Unit]((_, template) => template)(_ => DBIO.successful(()))
-    )
+    controller.insert
 
   def replace: Action[Json] =
-    processAccountWith(
-      accountDAO.dao.replace(_)(Account.keyOf)
-    )
-
-  private def processAccountWith(
-      f: Account => Future[Account]
-  ): Action[Json] =
-    Action.async(circe.json) { request =>
-      val accountCandidate = request.body.as[Account]
-      accountCandidate match {
-        case Right(value) =>
-          f(value).map(acc => Ok(acc.asJson))
-        case Left(decodingFailure) =>
-          Future(BadRequest(s"Could not parse ${request.body} as valid account: $decodingFailure"))
-      }
-    }
+    controller.replace
 
   def delete: Action[Json] =
-    Action.async(circe.json) { request =>
-      val accountIdCandidate = request.body.as[Id.AccountKey]
-      accountIdCandidate match {
-        case Right(value) =>
-          accountDAO.dao
-            .delete(value)
-            .map(_ => Ok(s"Account ${value.id} was deleted successfully."))
-            .recover { case ex => InternalServerError(ex.getMessage) }
-        case Left(decodingFailure) =>
-          Future(BadRequest(s"Could not parse ${request.body} as valid account Id: $decodingFailure."))
-      }
-    }
+    controller.delete
 
   def getAll(companyID: Int): Action[AnyContent] =
     Action.async {
