@@ -66,13 +66,13 @@ trait Tables {
   /** GetResult implicit for fetching AccountingEntryTemplate objects using plain SQL queries */
   implicit def GetResultAccountingEntryTemplate(implicit e0: GR[String], e1: GR[Int]): GR[AccountingEntryTemplate] = GR{
     prs => import prs._
-    (AccountingEntryTemplate.apply _).tupled((<<[String], <<[Int], <<[Int], <<[Int], <<[Int], <<[Int]))
+    (AccountingEntryTemplate.apply _).tupled((<<[String], <<[Int], <<[Int], <<[Int], <<[Int], <<[Int], <<[Int]))
   }
   /** Table description of table accounting_entry_template. Objects of this class serve as prototypes for rows in queries. */
   class AccountingEntryTemplateTable(_tableTag: Tag) extends profile.api.Table[AccountingEntryTemplate](_tableTag, "accounting_entry_template") {
-    def * = (description, credit, debit, amountWhole, amountChange, companyId) <> ((AccountingEntryTemplate.apply _).tupled, AccountingEntryTemplate.unapply)
+    def * = (description, credit, debit, amountWhole, amountChange, companyId, id) <> ((AccountingEntryTemplate.apply _).tupled, AccountingEntryTemplate.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = ((Rep.Some(description), Rep.Some(credit), Rep.Some(debit), Rep.Some(amountWhole), Rep.Some(amountChange), Rep.Some(companyId))).shaped.<>({r=>import r._; _1.map(_=> (AccountingEntryTemplate.apply _).tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = ((Rep.Some(description), Rep.Some(credit), Rep.Some(debit), Rep.Some(amountWhole), Rep.Some(amountChange), Rep.Some(companyId), Rep.Some(id))).shaped.<>({r=>import r._; _1.map(_=> (AccountingEntryTemplate.apply _).tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column description SqlType(text) */
     val description: Rep[String] = column[String]("description")
@@ -86,9 +86,8 @@ trait Tables {
     val amountChange: Rep[Int] = column[Int]("amount_change")
     /** Database column company_id SqlType(int4) */
     val companyId: Rep[Int] = column[Int]("company_id")
-
-    /** Primary key of accountingEntryTemplateTable (database name accounting_entry_template_pkey) */
-    val pk = primaryKey("accounting_entry_template_pkey", (companyId, description))
+    /** Database column id SqlType(serial), AutoInc, PrimaryKey */
+    val id: Rep[Int] = column[Int]("id", O.AutoInc, O.PrimaryKey)
 
     /** Foreign key referencing accountTable (database name accounting_entry_template_credit_fkey) */
     lazy val accountTableFk1 = foreignKey("accounting_entry_template_credit_fkey", (credit, companyId), accountTable)(r => (r.id, r.companyId), onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.NoAction)

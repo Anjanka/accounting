@@ -10,15 +10,15 @@ case class AccountingEntryTemplate(
     debit: Int,
     amountWhole: Int,
     amountChange: Int,
-    companyId: Int
+    companyId: Int,
+    id: Int
 )
 
 object AccountingEntryTemplate {
 
   def keyOf(accountingEntryTemplate: AccountingEntryTemplate): AccountingEntryTemplateKey =
     AccountingEntryTemplateKey(
-      companyID = accountingEntryTemplate.companyId,
-      description = accountingEntryTemplate.description
+      id = accountingEntryTemplate.id
     )
 
 }
