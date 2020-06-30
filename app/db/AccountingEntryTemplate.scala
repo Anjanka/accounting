@@ -10,7 +10,8 @@ case class AccountingEntryTemplate(
     debit: Int,
     amountWhole: Int,
     amountChange: Int,
-    companyId: Int
+    companyId: Int,
+    id: Int
 )
 
 object AccountingEntryTemplate {
