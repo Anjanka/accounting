@@ -12,7 +12,7 @@ import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, deco
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, table, td, text, th, tr)
-import Html.Attributes exposing (class, disabled, for, id, placeholder, value)
+import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -271,7 +271,7 @@ view model =
             [ label [] [ text "Credit Account: " ]
             , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
             , Dropdown.dropdown
-                (dropdownOptionsCredit model.allAccounts)
+                (dropdownOptionsCredit (accountListForDropdown model.allAccounts model.selectedDebit))
                 []
                 model.selectedCredit
             , label [] [ text (getBalance model.contentCreditID model.allAccountingEntries) ]
@@ -280,14 +280,14 @@ view model =
             [ label [] [ text "Debit Account: " ]
             , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
             , Dropdown.dropdown
-                (dropdownOptionsDebit model.allAccounts)
+                (dropdownOptionsDebit (accountListForDropdown model.allAccounts model.selectedCredit))
                 []
                 model.selectedDebit
             , label [] [ text (getBalance model.contentDebitID model.allAccountingEntries) ]
             ]
         , div [] [ text model.dateValidation ]
         , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
-        , viewValidatedInput model.accountingEntry model.editActive
+        , viewValidatedInput model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
         , div [] [ text model.error ]
         , div [ id "allAccountingEntries" ]
             [ table
@@ -426,6 +426,20 @@ insertForEdit model accountingEntry =
     }
 
 
+accountListForDropdown : List Account -> Maybe String -> List Account
+accountListForDropdown allAccounts selectedValueCandidate =
+    case selectedValueCandidate of
+        Just selectedValue ->
+            case String.toInt selectedValue of
+                Just selectedId ->
+                    List.filter (\acc -> acc.id /= selectedId) allAccounts
+
+                Nothing ->
+                    allAccounts
+
+        Nothing ->
+            allAccounts
+
 accountForDropdown : Account -> Item
 accountForDropdown acc =
     let
@@ -435,17 +449,24 @@ accountForDropdown acc =
     { value = id, text = acc.title, enabled = True }
 
 
-viewValidatedInput : AccountingEntry -> Bool -> Html Msg
-viewValidatedInput accountingEntry editActive =
+viewValidatedInput : AccountingEntry -> Bool -> Bool -> Html Msg
+viewValidatedInput accountingEntry editActive validSelection =
     let
         validEntry =
             AccountingEntryUtil.isValid accountingEntry
     in
-    if editActive && validEntry then
+    if editActive && not validSelection && validEntry then
+        div [] [ button [ disabled True, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ]
+                , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
+    else if editActive && validEntry then
         div [] [ button [ disabled False, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
 
     else if editActive then
         div [] [ button [ disabled True, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
+
+    else if not validSelection && validEntry then
+         div [] [button [ disabled True, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
+                , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
 
     else if validEntry then
         button [ disabled False, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
