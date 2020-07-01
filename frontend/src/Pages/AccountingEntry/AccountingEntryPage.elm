@@ -11,7 +11,7 @@ import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
 import Browser
 import Dropdown exposing (Item)
-import Html exposing (Html, button, div, input, label, table, td, text, th, tr)
+import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
 import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
@@ -137,6 +137,8 @@ type Msg
     | DropdownDebitChanged (Maybe String)
     | EditAccountingEntry AccountingEntry
     | LeaveEditView
+    | GoToAccountPage
+    | GoToAccountingTemplatePage
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -241,6 +243,12 @@ update msg model =
         LeaveEditView ->
             ( reset model, Cmd.none )
 
+        GoToAccountPage ->
+            ( model, Cmd.none )
+
+        GoToAccountingTemplatePage ->
+            ( model, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -258,7 +266,9 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] [ label [] [ text "Booking Date: " ], input [ placeholder "dd.mm", value model.contentBookingDate, onInput ChangeBookingDate ] [], label [] [ text (String.fromInt model.accountingYear) ], input [ placeholder "Receipt Number", value model.contentReceiptNumber, onInput ChangeReceiptNumber ] [] ]
+        [ div [] [ button [ onClick GoToAccountPage ] [ text "Manage Accounts" ], button [ onClick GoToAccountingTemplatePage ] [ text "Manage Templates" ] ]
+        , p [] []
+        , div [] [ label [] [ text "Booking Date: " ], input [ placeholder "dd.mm", value model.contentBookingDate, onInput ChangeBookingDate ] [], label [] [ text (String.fromInt model.accountingYear) ], input [ placeholder "Receipt Number", value model.contentReceiptNumber, onInput ChangeReceiptNumber ] [] ]
         , div []
             [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] []
             , Dropdown.dropdown
@@ -286,9 +296,11 @@ view model =
             , label [] [ text (getBalance model.contentDebitID model.allAccountingEntries) ]
             ]
         , div [] [ text model.dateValidation ]
-        , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
+
+        --   , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
         , viewValidatedInput model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
         , div [] [ text model.error ]
+        , p [] []
         , div [ id "allAccountingEntries" ]
             [ table
                 []
@@ -440,6 +452,7 @@ accountListForDropdown allAccounts selectedValueCandidate =
         Nothing ->
             allAccounts
 
+
 accountForDropdown : Account -> Item
 accountForDropdown acc =
     let
@@ -456,8 +469,13 @@ viewValidatedInput accountingEntry editActive validSelection =
             AccountingEntryUtil.isValid accountingEntry
     in
     if editActive && not validSelection && validEntry then
-        div [] [ button [ disabled True, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ]
-                , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
+        div []
+            [ button [ disabled True, onClick ReplaceAccountingEntry ] [ text "Save Changes" ]
+            , button [ onClick DeleteAccountingEntry ] [ text "Delete" ]
+            , button [ onClick LeaveEditView ] [ text "Cancel" ]
+            , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
+            ]
+
     else if editActive && validEntry then
         div [] [ button [ disabled False, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
 
@@ -465,8 +483,10 @@ viewValidatedInput accountingEntry editActive validSelection =
         div [] [ button [ disabled True, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
 
     else if not validSelection && validEntry then
-         div [] [button [ disabled True, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
-                , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
+        div []
+            [ button [ disabled True, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
+            , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
+            ]
 
     else if validEntry then
         button [ disabled False, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]

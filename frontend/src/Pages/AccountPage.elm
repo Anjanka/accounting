@@ -94,6 +94,7 @@ type Msg
     | DeleteAccount
     | ActivateEditView Account
     | DeactivateEditView
+    | BackToAccountingEntryPage
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -171,6 +172,10 @@ update msg model =
         DeactivateEditView ->
             ( reset model, Cmd.none )
 
+        BackToAccountingEntryPage ->
+            (model, Cmd.none)
+
+
 
 
 -- SUBSCRIPTIONS
@@ -188,8 +193,10 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ viewEditOrCreate model
-        , label [] [ text (String.fromInt model.account.companyId ++ " - " ++ String.fromInt model.account.id ++ " - " ++ model.account.title) ]
+        [ div [][button [ onClick BackToAccountingEntryPage ] [ text "Back" ] ]
+        , p[][]
+        , viewEditOrCreate model
+  --      , label [] [ text (AccountUtil.show model.account) ]
         , p [] []
         , viewAccountList model
         , p [] []

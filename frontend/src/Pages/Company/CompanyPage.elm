@@ -89,6 +89,7 @@ type Msg
     | DropdownChanged (Maybe String)
     | ActivateEditView
     | DeactivateEditView
+    | BackToStartPage
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -165,6 +166,9 @@ update msg model =
         DeactivateEditView ->
             ( reset model, Cmd.none )
 
+        BackToStartPage ->
+            ( model, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -181,68 +185,76 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    if model.editViewActivated then
-        viewEdit model
+    div []
+        [ div []
+            [ button [ onClick BackToStartPage ] [ text "Back" ]
+            , p [] []
+            ]
+        , div []
+            [ if model.editViewActivated then
+                viewEdit model
 
-    else viewCreation model
-
-
+              else
+                viewCreation model
+            ]
+        ]
 
 
 viewCreation : Model -> Html Msg
 viewCreation model =
     div []
-                [ div []
-                    [ input [ placeholder "Company Name", value model.company.name, onInput ChangeName ] []
-                    ]
-                , div [] [ input [ placeholder "Street", value model.contentStreet, onInput ChangeStreet ] [] ]
-                , div []
-                    [ input [ placeholder "Postal Code", value model.contentPostalCode, onInput ChangePostalCode ] []
-                    , input [ placeholder "City", value model.contentCity, onInput ChangeCity ] []
-                    ]
-                , div [] [ input [ placeholder "Country", value model.contentCountry, onInput ChangeCountry ] [] ]
-                , div [] [ input [ placeholder "Tax Number", value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
-                , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
-                , div []
-                    [ div [] [ text (CompanyUtil.show model.company) ]
-                    , div [ style "color" "red" ] [ text model.validationFeedback ]
-                    , viewValidatedInput model
-                    , Html.form []
-                        [ p []
-                            [ label []
-                                [ Dropdown.dropdown
-                                    (dropdownOptions model.allCompanies)
-                                    []
-                                    model.selectedValue
-                                ]
-                            ]
+        [ div []
+            [ input [ placeholder "Company Name", value model.company.name, onInput ChangeName ] []
+            ]
+        , div [] [ input [ placeholder "Street", value model.contentStreet, onInput ChangeStreet ] [] ]
+        , div []
+            [ input [ placeholder "Postal Code", value model.contentPostalCode, onInput ChangePostalCode ] []
+            , input [ placeholder "City", value model.contentCity, onInput ChangeCity ] []
+            ]
+        , div [] [ input [ placeholder "Country", value model.contentCountry, onInput ChangeCountry ] [] ]
+        , div [] [ input [ placeholder "Tax Number", value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
+        , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
+        , div []
+            [ div [] [ text (CompanyUtil.show model.company) ]
+            , div [ style "color" "red" ] [ text model.validationFeedback ]
+            , viewValidatedInput model
+            , Html.form []
+                [ p []
+                    [ label []
+                        [ Dropdown.dropdown
+                            (dropdownOptions model.allCompanies)
+                            []
+                            model.selectedValue
                         ]
-                    , viewEditButton model.selectedValue
-                    , div [] [ text model.error ]
                     ]
                 ]
+            , viewEditButton model.selectedValue
+            , div [] [ text model.error ]
+            ]
+        ]
 
 
-viewEdit: Model -> Html Msg
+viewEdit : Model -> Html Msg
 viewEdit model =
-            div []
-                [ div [] [ input [ placeholder "Company Name", value model.company.name, onInput ChangeName ] [] ]
-                , div [] [ input [ placeholder "Address", value model.company.address, onInput ChangeAddress ] [] ]
-                , div [] [ input [ placeholder "Tax Number", value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
-                , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
-                , div [] [ text (CompanyUtil.show model.company) ]
-                , div []
-                    [ button [ onClick UpdateCompany ] [ text "Save Changes" ]
-                    , button [ onClick DeleteCompany ] [ text "Delete Company" ]
-                    , button [ onClick DeactivateEditView ] [ text "Cancel" ]
-                    ]
-                , div [] [ text model.error ]
-                ]
+    div []
+        [ div [] [ input [ placeholder "Company Name", value model.company.name, onInput ChangeName ] [] ]
+        , div [] [ input [ placeholder "Address", value model.company.address, onInput ChangeAddress ] [] ]
+        , div [] [ input [ placeholder "Tax Number", value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
+        , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
+        , div [] [ text (CompanyUtil.show model.company) ]
+        , div []
+            [ button [ onClick UpdateCompany ] [ text "Save Changes" ]
+            , button [ onClick DeleteCompany ] [ text "Delete Company" ]
+            , button [ onClick DeactivateEditView ] [ text "Cancel" ]
+            ]
+        , div [] [ text model.error ]
+        ]
+
 
 viewValidatedInput : Model -> Html Msg
 viewValidatedInput model =
     if CompanyUtil.isValid model.company then
-           button [ disabled False, onClick CreateCompany ] [ text "Create new Company" ]
+        button [ disabled False, onClick CreateCompany ] [ text "Create new Company" ]
 
     else
         button [ disabled True, onClick CreateCompany ] [ text "Create new Company" ]
@@ -258,8 +270,6 @@ viewEditButton selectedValue =
             button [ disabled True, onClick ActivateEditView ] [ text "Edit" ]
 
 
-
-
 companyForDropdown : Company -> Item
 companyForDropdown company =
     let
@@ -269,7 +279,9 @@ companyForDropdown company =
     { value = id, text = id ++ " - " ++ company.name, enabled = True }
 
 
+
 --COMMUNICATION
+
 
 getCompanies : Cmd Msg
 getCompanies =

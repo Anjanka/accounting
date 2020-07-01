@@ -106,6 +106,7 @@ type Msg
     | DropdownDebitChanged (Maybe String)
     | ActivateEditView AccountingEntryTemplate
     | DeactivateEditView
+    |BackToAccountingEntryPage
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -188,6 +189,9 @@ update msg model =
         DeactivateEditView ->
             ( { model | editViewActive = False }, Cmd.none )
 
+        BackToAccountingEntryPage ->
+            (model, Cmd.none)
+
 
 
 -- SUBSCRIPTIONS
@@ -205,7 +209,9 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ viewEditOrCreate model
+        [ div [][button [ onClick BackToAccountingEntryPage ] [ text "Back" ] ]
+        , p[][]
+        , viewEditOrCreate model
         , p [] []
         , viewAccountingEntryTemplateList model
         , p [] []
