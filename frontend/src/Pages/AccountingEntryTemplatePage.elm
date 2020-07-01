@@ -5,6 +5,7 @@ import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.HttpUtil as HttpUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
+import Api.Types.AccountingEntryTemplateCreationParams exposing (encoderAccountingEntryTemplateCreationParams)
 import Api.Types.AccountingEntryTemplateKey exposing (AccountingEntryTemplateKey, encoderAccountingEntryTemplateKey)
 import Browser
 import Dropdown exposing (Item)
@@ -40,7 +41,6 @@ type alias Model =
     , contentCreditID : String
     , contentAmount : String
     , aet : AccountingEntryTemplate
-    , aetKey : AccountingEntryTemplateKey
     , allAccounts : List Account
     , allAccountingEntryTemplates : List AccountingEntryTemplate
     , response : String
@@ -70,7 +70,6 @@ init _ =
       , contentCreditID = ""
       , contentAmount = ""
       , aet = AccountingEntryTemplateUtil.updateCompanyId AccountingEntryTemplateUtil.empty 1
-      , aetKey = AccountingEntryTemplateUtil.emptyKey
       , allAccounts = []
       , allAccountingEntryTemplates = []
       , response = ""
@@ -97,10 +96,11 @@ type Msg
     | ChangeCredit String
     | ChangeAmount String
     | GotResponseAllAccountingEntryTemplates (Result Error (List AccountingEntryTemplate))
-    | GotResponseCreate (Result Error AccountingEntryTemplate)
+    | GotResponseCreateOrReplace (Result Error AccountingEntryTemplate)
     | GotResponseAllAccounts (Result Error (List Account))
     | GotResponseDelete (Result Error ())
     | CreateAccountingEntryTemplate
+    | ReplaceAccountingEntryTemplate
     | DeleteAccountingEntryTemplate
     | DropdownCreditChanged (Maybe String)
     | DropdownDebitChanged (Maybe String)
@@ -125,8 +125,12 @@ update msg model =
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
-        GotResponseCreate result ->
-            ( model, getAccountingEntryTemplates model.companyId )
+        GotResponseCreateOrReplace result ->
+            case result of
+                Ok value ->
+                     ( reset model, getAccountingEntryTemplates model.companyId )
+                Err error ->
+                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseAllAccounts result ->
             case result of
@@ -163,7 +167,10 @@ update msg model =
             ( parseAndUpdateAmount model newContent, Cmd.none )
 
         CreateAccountingEntryTemplate ->
-            ( reset model, postAccountingEntryTemplate model.aet )
+            (  model, createAccountingEntryTemplate model.aet )
+
+        ReplaceAccountingEntryTemplate ->
+            (  model, replaceAccountingEntryTemplate model.aet )
 
         DeleteAccountingEntryTemplate ->
             ( model, deleteAccountingEntryTemplate model.aet )
@@ -213,11 +220,19 @@ getAccountingEntryTemplates companyId =
         }
 
 
-postAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
-postAccountingEntryTemplate aet =
+createAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
+createAccountingEntryTemplate aet =
     Http.post
-        { url = "http://localhost:9000/accountingEntryTemplate/repsert"
-        , expect = HttpUtil.expectJson GotResponseCreate decoderAccountingEntryTemplate
+        { url = "http://localhost:9000/accountingEntryTemplate/insert"
+        , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccountingEntryTemplate
+        , body = Http.jsonBody (encoderAccountingEntryTemplateCreationParams (AccountingEntryTemplateUtil.getAccountingEntryTemplateCreationParams aet))
+        }
+
+replaceAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
+replaceAccountingEntryTemplate aet =
+    Http.post
+        { url = "http://localhost:9000/accountingEntryTemplate/replace"
+        , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
         }
 
@@ -227,7 +242,7 @@ deleteAccountingEntryTemplate aet =
     Http.post
         { url = "http://localhost:9000/accountingEntryTemplate/delete"
         , expect = HttpUtil.expectWhatever GotResponseDelete
-        , body = Http.jsonBody (encoderAccountingEntryTemplateKey { companyID = aet.companyId, description = aet.description })
+        , body = Http.jsonBody (encoderAccountingEntryTemplateKey { id = aet.id })
         }
 
 
@@ -446,10 +461,10 @@ viewCreateButton aet =
 viewUpdateButton : AccountingEntryTemplate -> Html Msg
 viewUpdateButton aet =
     if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 then
-        button [ disabled False, onClick CreateAccountingEntryTemplate ] [ text "Save Changes" ]
+        button [ disabled False, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
 
     else
-        button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Save Changes" ]
+        button [ disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
 
 
 insertData : Model -> AccountingEntryTemplate -> Model
@@ -460,7 +475,6 @@ insertData model aet =
         , contentCreditID = String.fromInt aet.credit
         , contentAmount = AccountingEntryTemplateUtil.showAmount aet
         , aet = aet
-        , aetKey = { companyID = aet.companyId, description = aet.description }
         , error = ""
         , selectedCredit = Just (String.fromInt aet.credit)
         , selectedDebit = Just (String.fromInt aet.debit)
@@ -476,7 +490,6 @@ reset model =
         , contentCreditID = ""
         , contentAmount = ""
         , aet = AccountingEntryTemplateUtil.updateCompanyId AccountingEntryTemplateUtil.empty model.companyId
-        , aetKey = AccountingEntryTemplateUtil.emptyKey
         , error = ""
         , buttonPressed = False
         , editViewActive = False
