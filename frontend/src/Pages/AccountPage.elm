@@ -62,8 +62,6 @@ type alias Flags =
     ()
 
 
-
-
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { companyID = 1
@@ -87,10 +85,11 @@ type Msg
     = ShowAllAccounts
     | HideAllAccounts
     | GotResponseForAllAccounts (Result Error (List Account))
-    | GotResponseCreate (Result Error Account)
+    | GotResponseCreateOrReplace (Result Error Account)
     | GotResponseDelete (Result Error ())
     | ChangeID String
     | ChangeName String
+    | ReplaceAccount
     | CreateAccount
     | DeleteAccount
     | ActivateEditView Account
@@ -119,7 +118,7 @@ update msg model =
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
-        GotResponseCreate result ->
+        GotResponseCreateOrReplace result ->
             case result of
                 Ok value ->
                     ( reset model, getAccounts model.companyID )
@@ -133,7 +132,7 @@ update msg model =
                     ( reset model, getAccounts model.companyID )
 
                 Err error ->
-                    ( { model | error = HttpUtil.errorToString error}, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         ChangeID newContent ->
             let
@@ -157,14 +156,17 @@ update msg model =
             in
             ( newModel, Cmd.none )
 
+        ReplaceAccount ->
+            ( model, replaceAccount model.account )
+
         CreateAccount ->
-            ( model, postAccount model.account )
+            ( model, createAccount model.account )
 
         DeleteAccount ->
             ( model, deleteAccount model.account )
 
-        ActivateEditView  account->
-            ( {model | contentID = String.fromInt account.id, account = account, editViewActive = True}, Cmd.none )
+        ActivateEditView account ->
+            ( { model | contentID = String.fromInt account.id, account = account, editViewActive = True }, Cmd.none )
 
         DeactivateEditView ->
             ( reset model, Cmd.none )
@@ -187,7 +189,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ viewEditOrCreate model
-        , label [] [ text ((String.fromInt model.account.companyId) ++ " - " ++ (String.fromInt model.account.id) ++ " - " ++ model.account.title) ]
+        , label [] [ text (String.fromInt model.account.companyId ++ " - " ++ String.fromInt model.account.id ++ " - " ++ model.account.title) ]
         , p [] []
         , viewAccountList model
         , p [] []
@@ -203,23 +205,31 @@ getAccounts companyId =
         }
 
 
-postAccount : Account -> Cmd Msg
-postAccount account =
+replaceAccount : Account -> Cmd Msg
+replaceAccount account =
     Http.post
-        { url = "http://localhost:9000/account/repsert"
-        , expect = HttpUtil.expectJson GotResponseCreate decoderAccount
+        { url = "http://localhost:9000/account/replace"
+        , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
+        , body = Http.jsonBody (encoderAccount account)
+        }
+
+
+createAccount : Account -> Cmd Msg
+createAccount account =
+    Http.post
+        { url = "http://localhost:9000/account/insert"
+        , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
         , body = Http.jsonBody (encoderAccount account)
         }
 
 
 deleteAccount : Account -> Cmd Msg
 deleteAccount account =
-                Http.post
-                    { url = "http://localhost:9000/account/delete "
-                    , expect = HttpUtil.expectWhatever GotResponseDelete
-                    , body = Http.jsonBody (encoderAccountKey { id = account.id, companyID = account.companyId })
-                    }
-
+    Http.post
+        { url = "http://localhost:9000/account/delete "
+        , expect = HttpUtil.expectWhatever GotResponseDelete
+        , body = Http.jsonBody (encoderAccountKey { id = account.id, companyID = account.companyId })
+        }
 
 
 viewEditOrCreate : Model -> Html Msg
@@ -229,7 +239,10 @@ viewEditOrCreate model =
             [ label [] [ text model.contentID ]
             , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
             , div []
-                [ button [ onClick CreateAccount ] [ text "Save Changes" ]
+                [ button
+                    [ onClick ReplaceAccount
+                    ]
+                    [ text "Save Changes" ]
                 , button [ onClick DeleteAccount ] [ text "Delete" ]
                 , button [ onClick DeactivateEditView ] [ text "Cancel" ]
                 ]
@@ -292,23 +305,24 @@ mkTableLine account =
         ]
 
 
-
 parseAccount : Account -> String -> List Account -> { account : Account, validationFeedback : String }
 parseAccount baseAccount newId allAccounts =
     let
         idNotValid =
             "Account ID must be positive number with 3 to 5 digits."
+
         existingAccount =
             "An account with this Id already exists. Use edit to make changes to existing accounts."
 
         id =
             stringIsValidId newId
 
-        accountExists = not (AccountUtil.isEmpty (findAccount id.id allAccounts))
-
+        accountExists =
+            not (AccountUtil.isEmpty (findAccount id.id allAccounts))
     in
     if id.valid && accountExists then
-         { account = baseAccount, validationFeedback = existingAccount }
+        { account = baseAccount, validationFeedback = existingAccount }
+
     else if id.valid then
         { account = AccountUtil.updateId baseAccount id.id, validationFeedback = "" }
 
@@ -336,7 +350,6 @@ stringIsValidId id =
             { id = 0, valid = False }
 
 
-
 findAccount : Int -> List Account -> Account
 findAccount id allAccounts =
     case List.Extra.find (\account -> account.id == id) allAccounts of
@@ -356,4 +369,4 @@ reset model =
         , validationFeedback = "Account ID must be positive number with 3 to 5 digits."
         , buttonPressed = False
         , editViewActive = False
-        }
+    }
