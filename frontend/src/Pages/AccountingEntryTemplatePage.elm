@@ -106,7 +106,7 @@ type Msg
     | DropdownDebitChanged (Maybe String)
     | ActivateEditView AccountingEntryTemplate
     | DeactivateEditView
-    |BackToAccountingEntryPage
+    | BackToAccountingEntryPage
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -190,7 +190,7 @@ update msg model =
             ( { model | editViewActive = False }, Cmd.none )
 
         BackToAccountingEntryPage ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
 
 
@@ -209,8 +209,8 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [][button [ onClick BackToAccountingEntryPage ] [ text "Back" ] ]
-        , p[][]
+        [ div [] [ button [ onClick BackToAccountingEntryPage ] [ text "Back" ] ]
+        , p [] []
         , viewEditOrCreate model
         , p [] []
         , viewAccountingEntryTemplateList model
@@ -382,7 +382,8 @@ viewEditOrCreate model =
             , viewCreditInput model
             , viewDebitInput model
             , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
-          --  , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
+
+            --  , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , div []
                 [ viewUpdateButton model.aet (model.selectedCredit /= model.selectedDebit)
                 , button [ onClick DeleteAccountingEntryTemplate ] [ text "Delete" ]
@@ -396,7 +397,8 @@ viewEditOrCreate model =
             , viewCreditInput model
             , viewDebitInput model
             , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
-        --   , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
+
+            --   , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , viewCreateButton model.aet (model.selectedCredit /= model.selectedDebit)
             ]
 
@@ -461,23 +463,36 @@ mkTableLine aet =
 
 viewCreateButton : AccountingEntryTemplate -> Bool -> Html Msg
 viewCreateButton aet validSelection =
+    let
+        aetIsValid =
+            AccountingEntryTemplateUtil.isValid aet
+    in
+    if aetIsValid && not validSelection then
+        div []
+            [ button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+            , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
+            ]
 
-    if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 && not validSelection then
-             div [] [ button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
-                   , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
-    else if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 && validSelection then
-          button [ disabled False, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+    else if aetIsValid && validSelection then
+        button [ disabled False, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
 
     else
         button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
 
 
 viewUpdateButton : AccountingEntryTemplate -> Bool -> Html Msg
-viewUpdateButton aet validSelection=
-    if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 && not validSelection then
-            div []  [button [ disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
-                   , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
-    else if (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 &&  validSelection then
+viewUpdateButton aet validSelection =
+    let
+        aetIsValid =
+            AccountingEntryTemplateUtil.isValid aet
+    in
+    if aetIsValid && not validSelection then
+        div []
+            [ div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
+            , button [ disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
+            ]
+
+    else if aetIsValid && validSelection then
         button [ disabled False, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
 
     else
