@@ -2,6 +2,7 @@ module Api.General.AccountingEntryTemplateUtil exposing (..)
 
 
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
+import Api.Types.AccountingEntryTemplateCreationParams exposing (AccountingEntryTemplateCreationParams)
 import Api.Types.AccountingEntryTemplateKey exposing (AccountingEntryTemplateKey)
 
 
@@ -13,12 +14,8 @@ empty =
     , debit = 0
     , amountWhole = 0
     , amountChange = 0
+    , id = 0
     }
-
-emptyKey : AccountingEntryTemplateKey
-emptyKey =
-    { companyID = 0
-    , description = ""}
 
 updateCompanyId : AccountingEntryTemplate -> Int -> AccountingEntryTemplate
 updateCompanyId aet companyId = { aet | companyId = companyId }
@@ -54,3 +51,14 @@ giveDoubleDigitChange change =
     if change < 10 then
        String.concat ["0", String.fromInt change]
     else String.fromInt change
+
+
+getAccountingEntryTemplateCreationParams : AccountingEntryTemplate -> AccountingEntryTemplateCreationParams
+getAccountingEntryTemplateCreationParams aet =
+    { companyId = aet.companyId
+        , description = aet.description
+        , credit = aet.credit
+        , debit = aet.debit
+        , amountWhole = aet.amountWhole
+        , amountChange = aet.amountChange
+        }
