@@ -62,3 +62,7 @@ getAccountingEntryTemplateCreationParams aet =
         , amountWhole = aet.amountWhole
         , amountChange = aet.amountChange
         }
+
+
+isValid : AccountingEntryTemplate -> Bool
+isValid aet = not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0
