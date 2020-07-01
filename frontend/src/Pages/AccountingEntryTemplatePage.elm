@@ -128,9 +128,10 @@ update msg model =
         GotResponseCreateOrReplace result ->
             case result of
                 Ok value ->
-                     ( reset model, getAccountingEntryTemplates model.companyId )
+                    ( reset model, getAccountingEntryTemplates model.companyId )
+
                 Err error ->
-                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotResponseAllAccounts result ->
             case result of
@@ -167,10 +168,10 @@ update msg model =
             ( parseAndUpdateAmount model newContent, Cmd.none )
 
         CreateAccountingEntryTemplate ->
-            (  model, createAccountingEntryTemplate model.aet )
+            ( model, createAccountingEntryTemplate model.aet )
 
         ReplaceAccountingEntryTemplate ->
-            (  model, replaceAccountingEntryTemplate model.aet )
+            ( model, replaceAccountingEntryTemplate model.aet )
 
         DeleteAccountingEntryTemplate ->
             ( model, deleteAccountingEntryTemplate model.aet )
@@ -227,6 +228,7 @@ createAccountingEntryTemplate aet =
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplateCreationParams (AccountingEntryTemplateUtil.getAccountingEntryTemplateCreationParams aet))
         }
+
 
 replaceAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
 replaceAccountingEntryTemplate aet =
@@ -389,31 +391,33 @@ viewEditOrCreate model =
             , viewDebitInput model
             , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
             , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
-            , viewCreateButton model.aet
+            , viewCreateButton model.aet (model.selectedCredit /= model.selectedDebit)
             ]
 
 
 viewCreditInput : Model -> Html Msg
 viewCreditInput model =
     div []
-                    [ label [] [ text "Credit: " ]
-                    , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
-                    , Dropdown.dropdown
-                        (dropdownOptionsCredit model.allAccounts)
-                        []
-                        model.selectedCredit
-                    ]
+        [ label [] [ text "Credit: " ]
+        , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
+        , Dropdown.dropdown
+            (dropdownOptionsCredit (accountListForDropdown model.allAccounts model.selectedDebit))
+            []
+            model.selectedCredit
+        ]
+
 
 viewDebitInput : Model -> Html Msg
 viewDebitInput model =
-            div []
-                            [ label [] [ text "Debit: " ]
-                            , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
-                            , Dropdown.dropdown
-                                (dropdownOptionsDebit model.allAccounts)
-                                []
-                                model.selectedDebit
-                            ]
+    div []
+        [ label [] [ text "Debit: " ]
+        , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
+        , Dropdown.dropdown
+            (dropdownOptionsDebit (accountListForDropdown model.allAccounts model.selectedCredit))
+            []
+            model.selectedDebit
+        ]
+
 
 viewAccountingEntryTemplateList : Model -> Html Msg
 viewAccountingEntryTemplateList model =
@@ -449,10 +453,14 @@ mkTableLine aet =
         ]
 
 
-viewCreateButton : AccountingEntryTemplate -> Html Msg
-viewCreateButton aet =
-    if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 then
-        button [ disabled False, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+viewCreateButton : AccountingEntryTemplate -> Bool -> Html Msg
+viewCreateButton aet validSelection =
+
+    if not validSelection then
+             div [] [ button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+                   , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
+    else if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 && validSelection then
+          button [ disabled False, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
 
     else
         button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
@@ -520,6 +528,21 @@ dropdownOptionsDebit allAccounts =
             List.map (\acc -> accountForDropdown acc) allAccounts
         , emptyItem = Just { value = "0", text = "no valid account selected", enabled = True }
     }
+
+
+accountListForDropdown : List Account -> Maybe String -> List Account
+accountListForDropdown allAccounts selectedValueCandidate =
+    case selectedValueCandidate of
+        Just selectedValue ->
+            case String.toInt selectedValue of
+                Just selectedId ->
+                    List.filter (\acc -> acc.id /= selectedId) allAccounts
+
+                Nothing ->
+                    allAccounts
+
+        Nothing ->
+            allAccounts
 
 
 accountForDropdown : Account -> Item
