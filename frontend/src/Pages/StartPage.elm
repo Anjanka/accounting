@@ -30,12 +30,15 @@ main =
 
 
 type alias Model =
-    { companyID : Int
+    { language : String
+    , companyID : Int
     , accountingYear : Int
     , companyWasSelected : Bool
+    , languageWasSelected : Bool
     , allCompanies : List Company
     , error : String
     , validationFeedback : String
+    , selectedLanguage : Maybe String
     , selectedCompany : Maybe String
     , selectedYear : Maybe String
     }
@@ -43,6 +46,19 @@ type alias Model =
 
 type alias Flags =
     ()
+
+
+dropdownOptionsLanguage : Dropdown.Options Msg
+dropdownOptionsLanguage =
+    let
+        defaultOptions =
+            Dropdown.defaultOptions LanguageDropdownChanged
+    in
+    { defaultOptions
+        | items = [{ value = "en", text = "English", enabled = True }]
+        , emptyItem = Just { value = "0", text = "[Please Select Language]", enabled = True }
+    }
+
 
 
 dropdownOptionsCompany : List Company -> Dropdown.Options Msg
@@ -72,12 +88,15 @@ dropdownOptionsYear =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { companyID = 0
+    ( { language = ""
+      , companyID = 0
       , accountingYear = 0
       , companyWasSelected = False
+      , languageWasSelected = False
       , allCompanies = []
       , error = ""
       , validationFeedback = ""
+      , selectedLanguage = Nothing
       , selectedCompany = Nothing
       , selectedYear = Nothing
       }
@@ -93,8 +112,11 @@ type Msg
     = GotResponseForAllCompanies (Result Error (List Company))
     | ManageCompanies
     | ManageAccountingEntries
+    | ToCompanySelection
     | ToYearSelection
+    | BackToLanguageSelection
     | BackToCompanySelection
+    | LanguageDropdownChanged (Maybe String)
     | CompanyDropdownChanged (Maybe String)
     | YearDropdownChanged (Maybe String)
 
@@ -121,11 +143,20 @@ update msg model =
         ManageAccountingEntries ->
             ( model, Cmd.none )
 
+        ToCompanySelection ->
+                    ( { model | languageWasSelected = True }, Cmd.none )
+
         ToYearSelection ->
             ( { model | companyWasSelected = True }, Cmd.none )
 
+        BackToLanguageSelection ->
+            ( { model | language = "", languageWasSelected = False, selectedLanguage = Nothing, selectedCompany = Nothing }, Cmd.none )
+
         BackToCompanySelection ->
             ( { model | accountingYear = 0, companyWasSelected = False, selectedCompany = Nothing, selectedYear = Nothing }, Cmd.none )
+
+        LanguageDropdownChanged selectedValue ->
+            (updateLanguage model selectedValue, Cmd.none)
 
         CompanyDropdownChanged selectedValue ->
             ( updateCompany model selectedValue, Cmd.none )
@@ -149,7 +180,7 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    if model.companyWasSelected then
+    if model.companyWasSelected && model.languageWasSelected then
         div []
             [ Html.form []
                 [ Dropdown.dropdown
@@ -162,7 +193,7 @@ view model =
             , div [] [ text model.error ]
             ]
 
-    else
+    else if model.languageWasSelected then
         div []
             [ Html.form []
                 [ Dropdown.dropdown
@@ -172,16 +203,37 @@ view model =
                 ]
             , companyButton model.selectedCompany
             , div [] [ button [ onClick ManageCompanies ] [ text "Manage Companies" ] ]
+            , button [ onClick BackToLanguageSelection ] [ text "Back" ]
             , div [] [ text model.error ]
             ]
+     else
+          div []
+                  [ Html.form []
+                      [ Dropdown.dropdown
+                          (dropdownOptionsLanguage)
+                          []
+                          model.selectedLanguage
+                      ]
+                  , languageButton model.selectedLanguage
+                  , div [] [ text model.error ]
+                  ]
 
 
 getCompanies : Cmd Msg
 getCompanies =
     Http.get
-        { url = "http://localhost:9000/company/getAllCompanies"
+        { url = "http://localhost:9000/company/getAll"
         , expect = HttpUtil.expectJson GotResponseForAllCompanies (Decode.list decoderCompany)
         }
+
+
+updateLanguage : Model -> Maybe String -> Model
+updateLanguage model selectedValue =
+    case selectedValue of
+        Just language ->
+            {model | language = language, selectedLanguage = selectedValue}
+        Nothing ->
+             {model | selectedLanguage = selectedValue}
 
 
 updateCompany : Model -> Maybe String -> Model
@@ -192,6 +244,7 @@ updateCompany =
 updateYear : Model -> Maybe String -> Model
 updateYear =
     updateWith (\m nsv -> { m | selectedYear = nsv }) (\m nsv int -> { m | accountingYear = int, selectedYear = nsv })
+
 
 
 updateWith : (Model -> Maybe String -> Model) -> (Model -> Maybe String -> Int -> Model) -> Model -> Maybe String -> Model
@@ -211,6 +264,17 @@ updateWith nothing just model newSelectedValue =
 
         Nothing ->
             nothing model newSelectedValue
+
+
+
+languageButton : Maybe String -> Html Msg
+languageButton selectedValue =
+    case selectedValue of
+        Just value ->
+            button [ disabled False, onClick ToCompanySelection ] [ text "Ok" ]
+
+        Nothing ->
+            button [ disabled True, onClick ToCompanySelection ] [ text "Ok" ]
 
 
 companyButton : Maybe String -> Html Msg
