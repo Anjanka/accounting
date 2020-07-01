@@ -382,9 +382,9 @@ viewEditOrCreate model =
             , viewCreditInput model
             , viewDebitInput model
             , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
-            , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
+          --  , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , div []
-                [ viewUpdateButton model.aet
+                [ viewUpdateButton model.aet (model.selectedCredit /= model.selectedDebit)
                 , button [ onClick DeleteAccountingEntryTemplate ] [ text "Delete" ]
                 , button [ onClick DeactivateEditView ] [ text "Cancel" ]
                 ]
@@ -396,7 +396,7 @@ viewEditOrCreate model =
             , viewCreditInput model
             , viewDebitInput model
             , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
-            , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
+        --   , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , viewCreateButton model.aet (model.selectedCredit /= model.selectedDebit)
             ]
 
@@ -462,7 +462,7 @@ mkTableLine aet =
 viewCreateButton : AccountingEntryTemplate -> Bool -> Html Msg
 viewCreateButton aet validSelection =
 
-    if not validSelection then
+    if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 && not validSelection then
              div [] [ button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
                    , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
     else if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 && validSelection then
@@ -472,9 +472,12 @@ viewCreateButton aet validSelection =
         button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
 
 
-viewUpdateButton : AccountingEntryTemplate -> Html Msg
-viewUpdateButton aet =
-    if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 then
+viewUpdateButton : AccountingEntryTemplate -> Bool -> Html Msg
+viewUpdateButton aet validSelection=
+    if not (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 && not validSelection then
+            div []  [button [ disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
+                   , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]]
+    else if (String.isEmpty aet.description) && aet.credit /= 0 && aet.debit /= 0 &&  validSelection then
         button [ disabled False, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
 
     else
