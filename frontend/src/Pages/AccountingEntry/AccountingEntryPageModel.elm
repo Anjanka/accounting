@@ -1,9 +1,10 @@
 module Pages.AccountingEntry.AccountingEntryPageModel exposing (..)
 
-
 import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
+
+
 type alias Model =
     { companyId : Int
     , accountingYear : Int
@@ -17,7 +18,6 @@ type alias Model =
     , allAccountingEntries : List AccountingEntry
     , allAccounts : List Account
     , allAccountingEntryTemplates : List AccountingEntryTemplate
-    , dateValidation : String
     , response : String
     , feedback : String
     , error : String
