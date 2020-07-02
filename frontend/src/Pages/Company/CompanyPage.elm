@@ -37,18 +37,6 @@ type alias Flags =
     ()
 
 
-dropdownOptions : List Company -> Dropdown.Options Msg
-dropdownOptions allCompanies =
-    let
-        defaultOptions =
-            Dropdown.defaultOptions DropdownChanged
-    in
-    { defaultOptions
-        | items =
-            List.sortBy .value (List.map companyForDropdown allCompanies)
-        , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
-    }
-
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
@@ -278,6 +266,19 @@ companyForDropdown company =
     in
     { value = id, text = id ++ " - " ++ company.name, enabled = True }
 
+
+
+dropdownOptions : List Company -> Dropdown.Options Msg
+dropdownOptions allCompanies =
+    let
+        defaultOptions =
+            Dropdown.defaultOptions DropdownChanged
+    in
+    { defaultOptions
+        | items =
+            List.sortBy .value (List.map companyForDropdown allCompanies)
+        , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
+    }
 
 
 --COMMUNICATION
