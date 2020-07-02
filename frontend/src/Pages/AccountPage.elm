@@ -42,20 +42,6 @@ type alias Model =
     }
 
 
-updateContentID : Model -> String -> Model
-updateContentID model contentID =
-    { model | contentID = contentID }
-
-
-updateAccount : Model -> Account -> Model
-updateAccount model account =
-    { model | account = account }
-
-
-updateError : Model -> String -> Model
-updateError model validationFeedback =
-    { model | validationFeedback = validationFeedback }
-
 
 type alias Flags =
     ()
@@ -352,6 +338,11 @@ findAccount id allAccounts =
         Nothing ->
             AccountUtil.empty
 
+
+
+updateAccount : Model -> Account -> Model
+updateAccount model account =
+    { model | account = account }
 
 reset : Model -> Model
 reset model =
