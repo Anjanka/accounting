@@ -68,7 +68,7 @@ init _ =
       , account = AccountUtil.updateCompanyID AccountUtil.empty 1
       , allAccounts = []
       , error = ""
-      , validationFeedback = "Account ID must be non-zero, positive 5-digit number."
+      , validationFeedback = "Account ID must be positive number with 3 to 5 digits. Preceding 0s will be ignored"
       , buttonPressed = False
       , editViewActive = False
       }
@@ -135,17 +135,7 @@ update msg model =
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         ChangeID newContent ->
-            let
-                newAccountAndFeedback =
-                    parseAccount model.account newContent model.allAccounts
-
-                newModel =
-                    model
-                        |> (\md -> updateAccount md newAccountAndFeedback.account)
-                        |> (\md -> updateContentID md newContent)
-                        |> (\md -> updateError md newAccountAndFeedback.validationFeedback)
-            in
-            ( { newModel | contentID = newContent }, Cmd.none )
+            ( parseAndUpdateAccount model newContent, Cmd.none )
 
         ChangeName newContent ->
             let
@@ -172,8 +162,7 @@ update msg model =
             ( reset model, Cmd.none )
 
         BackToAccountingEntryPage ->
-            (model, Cmd.none)
-
+            ( model, Cmd.none )
 
 
 
@@ -192,16 +181,15 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [][button [ onClick BackToAccountingEntryPage ] [ text "Back" ] ]
-        , p[][]
+        [ div [] [ button [ onClick BackToAccountingEntryPage ] [ text "Back" ] ]
+        , p [] []
         , viewEditOrCreate model
-  --      , label [] [ text (AccountUtil.show model.account) ]
+        , label [] [ text (AccountUtil.show model.account) ]
         , p [] []
         , viewAccountList model
         , p [] []
         , div [] [ text model.error ]
         ]
-
 
 
 viewEditOrCreate : Model -> Html Msg
@@ -277,7 +265,9 @@ mkTableLine account =
         ]
 
 
+
 -- COMMUNICATION
+
 
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
@@ -318,49 +308,39 @@ deleteAccount account =
 -- UTILITIES
 
 
-parseAccount : Account -> String -> List Account -> { account : Account, validationFeedback : String }
-parseAccount baseAccount newId allAccounts =
+parseAndUpdateAccount : Model -> String -> Model
+parseAndUpdateAccount model idCandidate =
     let
         idNotValid =
-            "Account ID must be positive number with 3 to 5 digits."
+            "Account ID must be positive number with 3 to 5 digits. Preceding 0s will be ignored"
 
         existingAccount =
             "An account with this Id already exists. Use edit to make changes to existing accounts."
-
-        id =
-            stringIsValidId newId
-
-        accountExists =
-            not (AccountUtil.isEmpty (findAccount id.id allAccounts))
     in
-    if id.valid && accountExists then
-        { account = baseAccount, validationFeedback = existingAccount }
+    if not (String.isEmpty idCandidate) then
+        case String.toInt idCandidate of
+            Just int ->
+                let
+                    accountExist =
+                        not (AccountUtil.isEmpty (findAccount int model.allAccounts))
+                in
+                if int >= 100 && int <= 99999 && not accountExist then
+                    { model | contentID = idCandidate, account = AccountUtil.updateId model.account int, validationFeedback = "" }
 
-    else if id.valid then
-        { account = AccountUtil.updateId baseAccount id.id, validationFeedback = "" }
+                else if int >= 100 && int <= 99999 && accountExist then
+                    { model | contentID = idCandidate, validationFeedback = existingAccount }
+
+                else if int > 99999 || String.length idCandidate > 5 then
+                    model
+
+                else
+                    { model | contentID = idCandidate, account = AccountUtil.updateId model.account 0, validationFeedback = idNotValid }
+
+            Nothing ->
+                model
 
     else
-        { account = baseAccount, validationFeedback = idNotValid }
-
-
-type alias ValidID =
-    { id : Int
-    , valid : Bool
-    }
-
-
-stringIsValidId : String -> ValidID
-stringIsValidId id =
-    case String.toInt id of
-        Just int ->
-            if int >= 100 && int <= 99999 then
-                { id = int, valid = True }
-
-            else
-                { id = 0, valid = False }
-
-        Nothing ->
-            { id = 0, valid = False }
+        { model | contentID = "", account = AccountUtil.updateId model.account 0, validationFeedback = idNotValid }
 
 
 findAccount : Int -> List Account -> Account
