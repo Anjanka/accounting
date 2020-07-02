@@ -5,7 +5,6 @@ import Api.General.HttpUtil as HttpUtil
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountKey exposing (encoderAccountKey)
 import Browser
-import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, table, td, text, th, tr)
 import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
@@ -204,40 +203,6 @@ view model =
         ]
 
 
-getAccounts : Int -> Cmd Msg
-getAccounts companyId =
-    Http.get
-        { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
-        , expect = HttpUtil.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
-        }
-
-
-replaceAccount : Account -> Cmd Msg
-replaceAccount account =
-    Http.post
-        { url = "http://localhost:9000/account/replace"
-        , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
-        , body = Http.jsonBody (encoderAccount account)
-        }
-
-
-createAccount : Account -> Cmd Msg
-createAccount account =
-    Http.post
-        { url = "http://localhost:9000/account/insert"
-        , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
-        , body = Http.jsonBody (encoderAccount account)
-        }
-
-
-deleteAccount : Account -> Cmd Msg
-deleteAccount account =
-    Http.post
-        { url = "http://localhost:9000/account/delete "
-        , expect = HttpUtil.expectWhatever GotResponseDelete
-        , body = Http.jsonBody (encoderAccountKey { id = account.id, companyID = account.companyId })
-        }
-
 
 viewEditOrCreate : Model -> Html Msg
 viewEditOrCreate model =
@@ -312,6 +277,47 @@ mkTableLine account =
         ]
 
 
+-- COMMUNICATION
+
+getAccounts : Int -> Cmd Msg
+getAccounts companyId =
+    Http.get
+        { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
+        , expect = HttpUtil.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
+        }
+
+
+replaceAccount : Account -> Cmd Msg
+replaceAccount account =
+    Http.post
+        { url = "http://localhost:9000/account/replace"
+        , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
+        , body = Http.jsonBody (encoderAccount account)
+        }
+
+
+createAccount : Account -> Cmd Msg
+createAccount account =
+    Http.post
+        { url = "http://localhost:9000/account/insert"
+        , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
+        , body = Http.jsonBody (encoderAccount account)
+        }
+
+
+deleteAccount : Account -> Cmd Msg
+deleteAccount account =
+    Http.post
+        { url = "http://localhost:9000/account/delete "
+        , expect = HttpUtil.expectWhatever GotResponseDelete
+        , body = Http.jsonBody (encoderAccountKey { id = account.id, companyID = account.companyId })
+        }
+
+
+
+-- UTILITIES
+
+
 parseAccount : Account -> String -> List Account -> { account : Account, validationFeedback : String }
 parseAccount baseAccount newId allAccounts =
     let
@@ -374,6 +380,5 @@ reset model =
         , account = AccountUtil.updateCompanyID AccountUtil.empty model.companyID
         , error = ""
         , validationFeedback = "Account ID must be positive number with 3 to 5 digits."
-        , buttonPressed = False
         , editViewActive = False
     }
