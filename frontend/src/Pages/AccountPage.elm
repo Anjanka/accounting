@@ -314,7 +314,7 @@ parseAndUpdateAccount model idCandidate =
                     { model | contentID = idCandidate, account = AccountUtil.updateId model.account int, validationFeedback = "" }
 
                 else if int >= 100 && int <= 99999 && accountExist then
-                    { model | contentID = idCandidate, validationFeedback = existingAccount }
+                    { model | contentID = idCandidate, account = AccountUtil.updateId model.account 0, validationFeedback = existingAccount }
 
                 else if int > 99999 || String.length idCandidate > 5 then
                     model
