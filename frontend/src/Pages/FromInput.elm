@@ -1,37 +1,5 @@
 module Pages.FromInput exposing (..)
 
-import Browser
-import Html exposing (Attribute, Html, div, input, label, text)
-import Html.Attributes exposing (value)
-import Html.Events exposing (onInput)
-
-
-type alias Model =
-    { intFromInput : FromInput Int }
-
-
-updateIntFromInput : Model -> FromInput Int -> Model
-updateIntFromInput model intFromInput =
-    { model | intFromInput = intFromInput }
-
-
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = \_ -> Sub.none
-        }
-
-
-type alias Flags =
-    ()
-
-
-init : Flags -> ( Model, Cmd Msg )
-init _ =
-    ( { intFromInput = mkFromInput 0 0 intParser intPartial }, Cmd.none )
-
 
 intParser : String -> Result String Int
 intParser =
@@ -41,38 +9,6 @@ intParser =
 intPartial : String -> Bool
 intPartial text =
     text == "-"
-
-
-type Msg
-    = Update String
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        Update text ->
-            ( lift updateIntFromInput model.intFromInput text model, Cmd.none )
-
-
-view : Model -> Html Msg
-view model =
-    div []
-        [ input [ onInput Update, value model.intFromInput.text ] []
-        , div []
-            [ label []
-                [ text
-                    ("input is considered valid? "
-                        ++ (if isValid model.intFromInput then
-                                "yes"
-
-                            else
-                                "no"
-                           )
-                    )
-                ]
-            ]
-        , div [] [ label [] [ text ("valid value = " ++ String.fromInt model.intFromInput.value) ] ]
-        ]
 
 
 type alias FromInput a =
