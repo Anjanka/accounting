@@ -1,6 +1,4 @@
-module Pages.NumberOrEmpty exposing (..)
-
--- You need to keep track of whether to display the modal or not
+module Pages.FromInput exposing (..)
 
 import Browser
 import Html exposing (Attribute, Html, div, input, label, text)
@@ -9,7 +7,7 @@ import Html.Events exposing (onInput)
 
 
 type alias Model =
-    { intFromInput : FromInput Int}
+    { intFromInput : FromInput Int }
 
 
 updateIntFromInput : Model -> FromInput Int -> Model
@@ -30,29 +28,23 @@ type alias Flags =
     ()
 
 
-
--- Initialize your model
-
-
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { intFromInput = mkFromInput 0 0 intParser intPartial }, Cmd.none )
 
+
 intParser : String -> Result String Int
-intParser = String.toInt >> Maybe.map Ok >> Maybe.withDefault (Err "Not an integer")
+intParser =
+    String.toInt >> Maybe.map Ok >> Maybe.withDefault (Err "Not an integer")
+
 
 intPartial : String -> Bool
-intPartial text = text == "-"
-
--- Define messages for your modal
+intPartial text =
+    text == "-"
 
 
 type Msg
     = Update String
-
-
-
--- Handle modal messages in your update function to enable showing and closing
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -60,10 +52,6 @@ update msg model =
     case msg of
         Update text ->
             ( lift updateIntFromInput model.intFromInput text model, Cmd.none )
-
-
-
--- Configure your modal view using pipeline friendly functions.
 
 
 view : Model -> Html Msg
@@ -127,8 +115,9 @@ lift ui fromInput text model =
         possiblyValid =
             if String.isEmpty text || fromInput.partial text then
                 fromInput
-                    |> (\ifi -> updateValue ifi fromInput.defaultValue)
+                    |> (\ifi -> updateValue ifi fromInput.value)
                     |> (\ifi -> updateText ifi text)
+
             else
                 fromInput
     in
