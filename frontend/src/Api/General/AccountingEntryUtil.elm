@@ -21,6 +21,12 @@ empty =
     , amountChange = 0
     }
 
+emptyWith : {companyId : Int, accountingYear : Int} -> AccountingEntry
+emptyWith params =
+    {empty
+    |companyId = params.companyId
+    , accountingYear = params.accountingYear
+    , bookingDate = { year = params.accountingYear, month = 0, day = 0 }}
 
 updateCompanyId : AccountingEntry -> Int -> AccountingEntry
 updateCompanyId accountingEntry companyId =

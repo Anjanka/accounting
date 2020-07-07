@@ -8,6 +8,7 @@ import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEnt
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams, encoderAccountingEntryCreationParams)
 import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
+import Basics.Extra exposing (flip)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
@@ -60,7 +61,7 @@ init flags =
     ( { companyId = flags.companyId
       , accountingYear = flags.accountingYear
       , content = emptyInputContent
-      , accountingEntry = AccountingEntryUtil.updateCompanyId AccountingEntryUtil.empty flags.companyId
+      , accountingEntry = AccountingEntryUtil.emptyWith flags
       , allAccountingEntries = []
       , allAccounts = []
       , allAccountingEntryTemplates = []
@@ -231,7 +232,7 @@ view model =
         , p [] []
         , viewInputArea model
 
-        --   , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
+           , div [] [ text (AccountingEntryUtil.show (Debug.log "foo" model.accountingEntry)) ]
         , viewValidatedInput model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
         , div [] [ text model.error ]
         , p [] []
@@ -253,7 +254,7 @@ viewInputArea model =
         , div []
             [ input [ placeholder "Description", value model.content.description, onInput ChangeDescription ] []
             , viewTemplateSelection model
-            , input [ placeholder "Amount", value model.content.amount, onInput ChangeAmount ] []
+            , input [ placeholder "Amount", value model.content.amount.text, onInput ChangeAmount ] []
             ]
         , viewCreditInput model
         , viewDebitInput model

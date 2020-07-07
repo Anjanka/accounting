@@ -1,4 +1,4 @@
-module Pages.AccountingEntry.Amount exposing (..)
+module Pages.Amount exposing (..)
 
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Pages.FromInput as FromInput exposing (FromInput)
