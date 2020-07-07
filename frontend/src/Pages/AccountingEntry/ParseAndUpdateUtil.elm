@@ -35,33 +35,30 @@ parseWith empty nonEmpty model newContent =
         nonEmpty model newContent account
 
 
-updateCredit : Model -> Maybe String -> Model
+updateCredit : Model -> String -> Model
 updateCredit =
-    updateWith (\m nsv -> { m | selectedCredit = nsv }) (\m nsv nss id -> { m | contentCreditID = nss, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry id, selectedCredit = nsv })
+    updateWith (\m  -> m ) (\m nsv id -> { m | contentCreditID = nsv, accountingEntry = AccountingEntryUtil.updateCredit m.accountingEntry id})
 
 
-updateDebit : Model -> Maybe String -> Model
+updateDebit : Model -> String -> Model
 updateDebit =
-    updateWith (\m nsv -> { m | selectedDebit = nsv }) (\m nsv nss id -> { m | contentDebitID = nss, accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry id, selectedDebit = nsv })
+    updateWith (\m -> m) (\m nsv id -> { m | contentDebitID = nsv, accountingEntry = AccountingEntryUtil.updateDebit m.accountingEntry id })
 
 
-updateWith : (Model -> Maybe String -> Model) -> (Model -> Maybe String -> String -> Int -> Model) -> Model -> Maybe String -> Model
+updateWith : (Model -> Model) -> (Model -> String -> Int -> Model) -> Model -> String -> Model
 updateWith nothing just model newSelectedValue =
-    case newSelectedValue of
-        Just newSelectedString ->
+
             let
                 id =
-                    String.toInt newSelectedString
+                    String.toInt newSelectedValue
             in
             case id of
                 Just int ->
-                    just model newSelectedValue newSelectedString int
-
+                    just model newSelectedValue int
                 Nothing ->
-                    nothing model newSelectedValue
+                    nothing model
 
-        Nothing ->
-            nothing model newSelectedValue
+
 
 findAccountName : List Account -> String -> Account
 findAccountName accounts id =

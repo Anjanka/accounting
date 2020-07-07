@@ -2,11 +2,10 @@ module Pages.AccountingEntry.AccountingEntryPage exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams)
-
 import Api.General.HttpUtil as HttpUtil
 import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEntry, encoderAccountingEntry)
-import Api.Types.AccountingEntryCreationParams exposing (encoderAccountingEntryCreationParams)
+import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams, encoderAccountingEntryCreationParams)
 import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
 import Browser
@@ -17,7 +16,7 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
-import Pages.AccountingEntry.HelperUtil exposing (getBalance, insertForEdit, insertTemplateData, reset, updateAccountingEntry)
+import Pages.AccountingEntry.HelperUtil exposing (getBalance, handleSelection, insertForEdit, insertTemplateData, reset, updateAccountingEntry)
 import Pages.AccountingEntry.ParseAndUpdateUtil as ParseAndUpdateUtil
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown)
 
@@ -28,11 +27,21 @@ import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDr
 
 main =
     Browser.element
-        { init = init
+        { init = dummyInit
         , update = update
         , view = view
         , subscriptions = subscriptions
         }
+
+
+defaultFlags : Flags
+defaultFlags =
+    { companyId = 1, accountingYear = 2020 }
+
+
+dummyInit : () -> ( Model, Cmd Msg )
+dummyInit _ =
+    init defaultFlags
 
 
 
@@ -40,20 +49,22 @@ main =
 
 
 type alias Flags =
-    ()
+    { companyId : Int
+    , accountingYear : Int
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
-    ( { companyId = 1
-      , accountingYear = 2020
+init flags =
+    ( { companyId = flags.companyId
+      , accountingYear = flags.accountingYear
       , contentBookingDate = ""
       , contentReceiptNumber = ""
       , contentDescription = ""
       , contentDebitID = ""
       , contentCreditID = ""
       , contentAmount = ""
-      , accountingEntry = AccountingEntryUtil.updateCompanyId AccountingEntryUtil.empty 1
+      , accountingEntry = AccountingEntryUtil.updateCompanyId AccountingEntryUtil.empty flags.companyId
       , allAccountingEntries = []
       , allAccounts = []
       , allAccountingEntryTemplates = []
@@ -65,7 +76,7 @@ init _ =
       , selectedCredit = Nothing
       , selectedDebit = Nothing
       }
-    , getAccounts 1
+    , getAccounts flags.companyId
     )
 
 
@@ -137,7 +148,7 @@ update msg model =
 
         GotResponsePost result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
 
                 Err error ->
@@ -145,7 +156,7 @@ update msg model =
 
         GotResponseDelete result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
 
                 Err error ->
@@ -176,16 +187,16 @@ update msg model =
             ( ParseAndUpdateUtil.parseAndUpdateAmount model newContent, Cmd.none )
 
         DropdownTemplateChanged selectedTemplate ->
-            ( insertTemplateData model selectedTemplate, Cmd.none )
+            ( handleSelection insertTemplateData {model | selectedTemplate = selectedTemplate} selectedTemplate, Cmd.none )
 
         DropdownCreditChanged selectedCredit ->
-            ( ParseAndUpdateUtil.updateCredit model selectedCredit, Cmd.none )
+            ( handleSelection ParseAndUpdateUtil.updateCredit {model | selectedCredit = selectedCredit} selectedCredit, Cmd.none )
 
         DropdownDebitChanged selectedDebit ->
-            ( ParseAndUpdateUtil.updateDebit model selectedDebit, Cmd.none )
+            ( handleSelection ParseAndUpdateUtil.updateDebit {model | selectedDebit = selectedDebit} selectedDebit, Cmd.none )
 
         CreateAccountingEntry ->
-            ( reset model, createAccountingEntry model.accountingEntry )
+            ( reset model, createAccountingEntry (getCreationParams model.accountingEntry))
 
         ReplaceAccountingEntry ->
             ( reset model, replaceAccountingEntry model.accountingEntry )
@@ -211,7 +222,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -253,32 +264,58 @@ viewValidatedInput accountingEntry editActive validSelection =
     let
         validEntry =
             AccountingEntryUtil.isValid accountingEntry
+
+        accountWarning =
+            div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
     in
-    if editActive && not validSelection && validEntry then
-        div []
-            [ button [ disabled True, onClick ReplaceAccountingEntry ] [ text "Save Changes" ]
-            , button [ onClick DeleteAccountingEntry ] [ text "Delete" ]
-            , button [ onClick LeaveEditView ] [ text "Cancel" ]
-            , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
-            ]
+    if editActive then
+        let
+            deleteButton =
+                button [ onClick DeleteAccountingEntry ] [ text "Delete" ]
 
-    else if editActive && validEntry then
-        div [] [ button [ disabled False, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
+            cancelButton =
+                button [ onClick LeaveEditView ] [ text "Cancel" ]
 
-    else if editActive then
-        div [] [ button [ disabled True, onClick ReplaceAccountingEntry ] [ text "Save Changes" ], button [ onClick DeleteAccountingEntry ] [ text "Delete" ], button [ onClick LeaveEditView ] [ text "Cancel" ] ]
+            makeSaveButton : Bool -> Html Msg
+            makeSaveButton isDisabled =
+                button [ disabled isDisabled, onClick ReplaceAccountingEntry ] [ text "Save Changes" ]
+        in
+        if not validSelection && validEntry then
+            div []
+                [ makeSaveButton True
+                , deleteButton
+                , cancelButton
+                , accountWarning
+                ]
 
-    else if not validSelection && validEntry then
-        div []
-            [ button [ disabled True, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
-            , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
-            ]
+        else if validEntry then
+            div []
+                [ makeSaveButton False
+                , deleteButton
+                , cancelButton
+                ]
 
-    else if validEntry then
-        button [ disabled False, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
+        else
+            div []
+                [ makeSaveButton True
+                , deleteButton
+                , cancelButton
+                ]
 
     else
-        button [ disabled True, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
+        let
+            makeCreateButton : Bool -> Html Msg
+            makeCreateButton isDisabled =
+                button [ disabled isDisabled, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
+        in
+        if not validSelection && validEntry then
+            div []
+                [ makeCreateButton True
+                , accountWarning
+                ]
+
+        else
+            makeCreateButton (not validEntry)
 
 
 viewEntryList : Model -> Html Msg
@@ -306,7 +343,7 @@ viewCreditInput model =
         [ label [] [ text "Credit: " ]
         , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
         , Dropdown.dropdown
-            (dropdownOptionsCredit (accountListForDropdown model.allAccounts model.selectedDebit))
+            (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedDebit) DropdownCreditChanged)
             []
             model.selectedCredit
         , label [] [ text (getBalance model.contentCreditID model.allAccountingEntries) ]
@@ -319,7 +356,7 @@ viewDebitInput model =
         [ label [] [ text "Debit: " ]
         , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
         , Dropdown.dropdown
-            (dropdownOptionsDebit (accountListForDropdown model.allAccounts model.selectedCredit))
+            (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedCredit) DropdownDebitChanged)
             []
             model.selectedDebit
         , label [] [ text (getBalance model.contentDebitID model.allAccountingEntries) ]
@@ -344,14 +381,10 @@ mkTableLine editInactive accountingEntry =
         , td [] [ text (AccountingEntryUtil.showAmount accountingEntry) ]
         , td [] [ text (String.fromInt accountingEntry.credit) ]
         , td [] [ text (String.fromInt accountingEntry.debit) ]
-        , if editInactive then
-            button [ disabled True, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
-
-          else
-            button [ disabled False, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
+        , button [ disabled editInactive, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
         ]
 
-
+-- List.map g (List.map f xs) = List,map (\x -> g (f x)) xs
 dropdownOptionsTemplate : List AccountingEntryTemplate -> Dropdown.Options Msg
 dropdownOptionsTemplate allAccountingEntryTemplates =
     let
@@ -360,29 +393,16 @@ dropdownOptionsTemplate allAccountingEntryTemplates =
     in
     { defaultOptions
         | items =
-            List.map (\description -> { value = description, text = description, enabled = True }) (List.map (\aet -> aet.description) allAccountingEntryTemplates)
+            List.map (\aet -> { value = aet.description, text = aet.description, enabled = True }) allAccountingEntryTemplates
         , emptyItem = Just { value = "0", text = "[Select Template]", enabled = True }
     }
 
 
-dropdownOptionsCredit : List Account -> Dropdown.Options Msg
-dropdownOptionsCredit allAccounts =
+dropdownOptionsAccount : List Account -> (Maybe String -> Msg) -> Dropdown.Options Msg
+dropdownOptionsAccount allAccounts dropdownAccountChanged =
     let
         defaultOptions =
-            Dropdown.defaultOptions DropdownCreditChanged
-    in
-    { defaultOptions
-        | items =
-            List.map (\acc -> accountForDropdown acc) allAccounts
-        , emptyItem = Just { value = "0", text = "no valid account selected", enabled = True }
-    }
-
-
-dropdownOptionsDebit : List Account -> Dropdown.Options Msg
-dropdownOptionsDebit allAccounts =
-    let
-        defaultOptions =
-            Dropdown.defaultOptions DropdownDebitChanged
+            Dropdown.defaultOptions dropdownAccountChanged
     in
     { defaultOptions
         | items =
@@ -419,12 +439,12 @@ getAccounts companyId =
         }
 
 
-createAccountingEntry : AccountingEntry -> Cmd Msg
-createAccountingEntry accountingEntry =
+createAccountingEntry : AccountingEntryCreationParams -> Cmd Msg
+createAccountingEntry accountingEntryCreationParams =
     Http.post
         { url = "http://localhost:9000/accountingEntry/insert"
         , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
-        , body = Http.jsonBody (encoderAccountingEntryCreationParams (getCreationParams accountingEntry))
+        , body = Http.jsonBody (encoderAccountingEntryCreationParams accountingEntryCreationParams)
         }
 
 
