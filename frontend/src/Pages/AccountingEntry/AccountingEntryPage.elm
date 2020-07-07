@@ -16,8 +16,9 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
-import Pages.AccountingEntry.HelperUtil exposing (getBalance, handleSelection, insertForEdit, insertTemplateData, reset, updateAccountingEntry)
-import Pages.AccountingEntry.ParseAndUpdateUtil as ParseAndUpdateUtil
+import Pages.AccountingEntry.HelperUtil exposing (getBalance, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset)
+import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
+import Pages.AccountingEntry.ParseAndUpdateUtil exposing (parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDebit, updateDescription, updateReceiptNumber)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown)
 
 
@@ -58,12 +59,7 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { companyId = flags.companyId
       , accountingYear = flags.accountingYear
-      , contentBookingDate = ""
-      , contentReceiptNumber = ""
-      , contentDescription = ""
-      , contentDebitID = ""
-      , contentCreditID = ""
-      , contentAmount = ""
+      , content = emptyInputContent
       , accountingEntry = AccountingEntryUtil.updateCompanyId AccountingEntryUtil.empty flags.companyId
       , allAccountingEntries = []
       , allAccounts = []
@@ -85,7 +81,8 @@ init flags =
 
 
 type Msg
-    = ChangeBookingDate String
+    = ChangeDay String
+    | ChangeMonth String
     | ChangeReceiptNumber String
     | ChangeDescription String
     | ChangeDebit String
@@ -162,41 +159,38 @@ update msg model =
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
-        ChangeBookingDate newContent ->
-            ( ParseAndUpdateUtil.parseDate model newContent, Cmd.none )
+        ChangeDay newContent ->
+            ( parseDay model newContent, Cmd.none )
+
+        ChangeMonth newContent ->
+            ( parseMonth model newContent, Cmd.none )
 
         ChangeReceiptNumber newContent ->
-            ( { model | contentReceiptNumber = newContent, accountingEntry = AccountingEntryUtil.updateReceiptNumber model.accountingEntry newContent }, Cmd.none )
+           ( updateReceiptNumber model newContent, Cmd.none )
 
         ChangeDescription newContent ->
-            let
-                newModel =
-                    model.accountingEntry
-                        |> (\ae -> AccountingEntryUtil.updateDescription ae newContent)
-                        |> updateAccountingEntry model
-            in
-            ( { newModel | contentDescription = newContent }, Cmd.none )
+            ( updateDescription model newContent , Cmd.none )
 
         ChangeDebit newContent ->
-            ( ParseAndUpdateUtil.parseAndUpdateDebit model newContent, Cmd.none )
+            ( parseAndUpdateDebit model newContent, Cmd.none )
 
         ChangeCredit newContent ->
-            ( ParseAndUpdateUtil.parseAndUpdateCredit model newContent, Cmd.none )
+            ( parseAndUpdateCredit model newContent, Cmd.none )
 
         ChangeAmount newContent ->
-            ( ParseAndUpdateUtil.parseAndUpdateAmount model newContent, Cmd.none )
+            ( parseAndUpdateAmount model newContent, Cmd.none )
 
         DropdownTemplateChanged selectedTemplate ->
-            ( handleSelection insertTemplateData {model | selectedTemplate = selectedTemplate} selectedTemplate, Cmd.none )
+            ( handleSelection insertTemplateData { model | selectedTemplate = selectedTemplate } selectedTemplate, Cmd.none )
 
         DropdownCreditChanged selectedCredit ->
-            ( handleSelection ParseAndUpdateUtil.updateCredit {model | selectedCredit = selectedCredit} selectedCredit, Cmd.none )
+            ( handleAccountSelection updateCredit { model | selectedCredit = selectedCredit } selectedCredit, Cmd.none )
 
         DropdownDebitChanged selectedDebit ->
-            ( handleSelection ParseAndUpdateUtil.updateDebit {model | selectedDebit = selectedDebit} selectedDebit, Cmd.none )
+            ( handleAccountSelection updateDebit { model | selectedDebit = selectedDebit } selectedDebit, Cmd.none )
 
         CreateAccountingEntry ->
-            ( reset model, createAccountingEntry (getCreationParams model.accountingEntry))
+            ( reset model, createAccountingEntry (getCreationParams model.accountingEntry) )
 
         ReplaceAccountingEntry ->
             ( reset model, replaceAccountingEntry model.accountingEntry )
@@ -248,11 +242,18 @@ view model =
 viewInputArea : Model -> Html Msg
 viewInputArea model =
     div []
-        [ div [] [ label [] [ text "Booking Date: " ], input [ placeholder "dd.mm", value model.contentBookingDate, onInput ChangeBookingDate ] [], label [] [ text (String.fromInt model.accountingYear) ], input [ placeholder "Receipt Number", value model.contentReceiptNumber, onInput ChangeReceiptNumber ] [] ]
+        [ div []
+            [ label [] [ text "Booking Date: " ]
+            , input [ placeholder "dd", value model.content.day, onInput ChangeDay ] []
+            , label [] [ text "." ]
+            , input [ placeholder "mm", value model.content.month, onInput ChangeMonth ] []
+            , label [] [ text (String.fromInt model.accountingYear) ]
+            , input [ placeholder "Receipt Number", value model.content.receiptNumber, onInput ChangeReceiptNumber ] []
+            ]
         , div []
-            [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] []
+            [ input [ placeholder "Description", value model.content.description, onInput ChangeDescription ] []
             , viewTemplateSelection model
-            , input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] []
+            , input [ placeholder "Amount", value model.content.amount, onInput ChangeAmount ] []
             ]
         , viewCreditInput model
         , viewDebitInput model
@@ -341,12 +342,12 @@ viewCreditInput : Model -> Html Msg
 viewCreditInput model =
     div []
         [ label [] [ text "Credit: " ]
-        , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
+        , input [ placeholder "Credit Account ID", value model.content.creditId, onInput ChangeCredit ] []
         , Dropdown.dropdown
             (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedDebit) DropdownCreditChanged)
             []
             model.selectedCredit
-        , label [] [ text (getBalance model.contentCreditID model.allAccountingEntries) ]
+        , label [] [ text (getBalance model.content.creditId model.allAccountingEntries) ]
         ]
 
 
@@ -354,12 +355,12 @@ viewDebitInput : Model -> Html Msg
 viewDebitInput model =
     div []
         [ label [] [ text "Debit: " ]
-        , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
+        , input [ placeholder "Debit Account ID", value model.content.debitId, onInput ChangeDebit ] []
         , Dropdown.dropdown
             (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedCredit) DropdownDebitChanged)
             []
             model.selectedDebit
-        , label [] [ text (getBalance model.contentDebitID model.allAccountingEntries) ]
+        , label [] [ text (getBalance model.content.debitId model.allAccountingEntries) ]
         ]
 
 
@@ -384,7 +385,11 @@ mkTableLine editInactive accountingEntry =
         , button [ disabled editInactive, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
         ]
 
+
+
 -- List.map g (List.map f xs) = List,map (\x -> g (f x)) xs
+
+
 dropdownOptionsTemplate : List AccountingEntryTemplate -> Dropdown.Options Msg
 dropdownOptionsTemplate allAccountingEntryTemplates =
     let
