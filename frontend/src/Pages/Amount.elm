@@ -108,3 +108,7 @@ amountFromInput =
 amountOf : AccountingEntry -> Amount
 amountOf accountingEntry =
     { whole = accountingEntry.amountWhole, change = accountingEntry.amountChange }
+
+toCents : Amount -> Int
+toCents amount =
+    amount.whole * 100 + amount.change
