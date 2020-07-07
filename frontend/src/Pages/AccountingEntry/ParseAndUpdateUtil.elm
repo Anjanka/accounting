@@ -219,40 +219,40 @@ parseAndUpdateAmount model newContent =
                 model
 
 
-parseDay : Model -> String -> Model
+parseDay : Model -> String -> Int
 parseDay model newDay =
     if String.isEmpty newDay then
-        updateDay model -1
+         -1
 
     else
         case String.toInt newDay of
             Just dayCandidate ->
                 if validDate dayCandidate model.accountingEntry.bookingDate.month model.accountingYear then
-                    updateDay model dayCandidate
+                    dayCandidate
 
                 else
-                    model
+                    -1
 
             Nothing ->
-                model
+                -1
 
 
-parseMonth : Model -> String -> Model
+parseMonth : Model -> String -> Int
 parseMonth model newMonth =
     if String.isEmpty newMonth then
-        updateMonth model -1
+         -1
 
     else
         case String.toInt newMonth of
             Just monthCandidate ->
                 if validDate  model.accountingEntry.bookingDate.day monthCandidate model.accountingYear then
-                    updateMonth model monthCandidate
+                     monthCandidate
 
                 else
-                    model
+                    -1
 
             Nothing ->
-                model
+                -1
 
 
 validDate : Int -> Int -> Int -> Bool
