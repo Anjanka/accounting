@@ -106,7 +106,7 @@ update msg model =
 
         GotResponseCreateOrReplace result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getAccounts model.companyID )
 
                 Err error ->
@@ -114,7 +114,7 @@ update msg model =
 
         GotResponseDelete result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getAccounts model.companyID )
 
                 Err error ->
@@ -156,7 +156,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
