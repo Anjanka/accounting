@@ -8,7 +8,6 @@ import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEnt
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams, encoderAccountingEntryCreationParams)
 import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
-import Basics.Extra exposing (flip)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
@@ -232,7 +231,7 @@ view model =
         , p [] []
         , viewInputArea model
 
-           , div [] [ text (AccountingEntryUtil.show (Debug.log "foo" model.accountingEntry)) ]
+           , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
         , viewValidatedInput model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
         , div [] [ text model.error ]
         , p [] []
