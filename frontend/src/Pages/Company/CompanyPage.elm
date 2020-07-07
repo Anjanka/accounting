@@ -98,7 +98,7 @@ update msg model =
 
         GotResponseCreateOrUpdate result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getCompanies )
 
                 Err error ->
@@ -106,7 +106,7 @@ update msg model =
 
         GotResponseDelete result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getCompanies )
 
                 Err error ->
@@ -163,7 +163,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -251,7 +251,7 @@ viewValidatedInput model =
 viewEditButton : Maybe String -> Html Msg
 viewEditButton selectedValue =
     case selectedValue of
-        Just value ->
+        Just _ ->
             button [ disabled False, onClick ActivateEditView ] [ text "Edit" ]
 
         Nothing ->
