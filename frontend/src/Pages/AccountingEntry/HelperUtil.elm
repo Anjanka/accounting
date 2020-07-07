@@ -2,28 +2,24 @@ module Pages.AccountingEntry.HelperUtil exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.AccountingEntryUtil as AccountingEntryUtil
-import Api.General.DateUtil as DateUtil
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import List.Extra
-import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
+import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
+import Pages.AccountingEntry.InputContent exposing (emptyInputContent, updateWithEntry, updateWithTemplate)
 
 
-updateAccountingEntry : Model -> AccountingEntry -> Model
-updateAccountingEntry model accountingEntry =
-    { model | accountingEntry = accountingEntry }
 
 
 insertForEdit : Model -> AccountingEntry -> Model
 insertForEdit model accountingEntry =
-    { model
-        | contentBookingDate = DateUtil.showDayAndMonth accountingEntry.bookingDate
-        , contentReceiptNumber = accountingEntry.receiptNumber
-        , contentDescription = accountingEntry.description
-        , contentCreditID = String.fromInt accountingEntry.credit
-        , contentDebitID = String.fromInt accountingEntry.debit
-        , contentAmount = AccountingEntryUtil.showAmount accountingEntry
-        , accountingEntry = accountingEntry
+    let newModel =
+             model.content
+               |> (\c -> updateWithEntry c accountingEntry)
+               |> updateContent model
+    in
+    { newModel
+        | accountingEntry = accountingEntry
         , editActive = True
         , selectedTemplate = Nothing
         , selectedCredit = Just (String.fromInt accountingEntry.credit)
@@ -40,6 +36,14 @@ handleSelection updateFunction model newSelection =
         Nothing ->
             model
 
+handleAccountSelection : (Model -> Int -> Model) -> Model -> Maybe String -> Model
+handleAccountSelection updateFunction model newSelection =
+     newSelection
+       |> Maybe.andThen String.toInt
+       |> Maybe.map (\id -> updateFunction model id)
+       |> Maybe.withDefault model
+
+
 
 
 insertTemplateData : Model -> String -> Model
@@ -48,21 +52,18 @@ insertTemplateData model description =
             let
                 selectedTemplate =
                     findEntry description model.allAccountingEntryTemplates
+                modelWithNewEntry =
+                    model.accountingEntry
+                      |> (\ae -> AccountingEntryUtil.updateWithTemplate ae selectedTemplate)
+                      |>  updateAccountingEntry model
+                modelWithNewContent =
+                    modelWithNewEntry.content
+                       |>(\c -> updateWithTemplate c selectedTemplate)
+                       |> updateContent modelWithNewEntry
 
-                contentAmount =
-                    if selectedTemplate.amountWhole /= 0 && selectedTemplate.amountChange /= 0 then
-                        AccountingEntryTemplateUtil.showAmount selectedTemplate
-
-                    else
-                        ""
             in
-            { model
-                | contentDescription = description
-                , contentCreditID = String.fromInt selectedTemplate.credit
-                , contentDebitID = String.fromInt selectedTemplate.debit
-                , contentAmount = contentAmount
-                , accountingEntry = AccountingEntryUtil.updateWithTemplate model.accountingEntry selectedTemplate
-                , selectedCredit = Just (String.fromInt selectedTemplate.credit)
+            { modelWithNewContent
+                | selectedCredit = Just (String.fromInt selectedTemplate.credit)
                 , selectedDebit = Just (String.fromInt selectedTemplate.debit)
             }
 
@@ -70,12 +71,7 @@ insertTemplateData model description =
 reset : Model -> Model
 reset model =
     { model
-        | contentDescription = ""
-        , contentBookingDate = ""
-        , contentReceiptNumber = ""
-        , contentDebitID = ""
-        , contentCreditID = ""
-        , contentAmount = ""
+        | content = emptyInputContent
         , accountingEntry = AccountingEntryUtil.empty
         , error = ""
         , editActive = False
