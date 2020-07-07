@@ -1,9 +1,8 @@
 module Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePage exposing (..)
 
-import Api.General.AccountUtil as AccountUtil
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.HttpUtil as HttpUtil
-import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
+import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
 import Api.Types.AccountingEntryTemplateCreationParams exposing (encoderAccountingEntryTemplateCreationParams)
 import Api.Types.AccountingEntryTemplateKey exposing (AccountingEntryTemplateKey, encoderAccountingEntryTemplateKey)
@@ -16,7 +15,7 @@ import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel exposing (Model)
 import Pages.AccountingEntryTemplatePage.HelperUtil exposing (insertData, reset, updateAccountingEntryTemplate)
-import Pages.AccountingEntryTemplatePage.ParseAndUpdateUtil exposing (parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
+import Pages.AccountingEntryTemplatePage.ParseAndUpdateUtil exposing (handleSelection, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown)
 
 
@@ -107,7 +106,7 @@ update msg model =
 
         GotResponseCreateOrReplace result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getAccountingEntryTemplates model.companyId )
 
                 Err error ->
@@ -123,7 +122,7 @@ update msg model =
 
         GotResponseDelete result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getAccountingEntryTemplates model.companyId )
 
                 Err error ->
@@ -157,10 +156,10 @@ update msg model =
             ( model, deleteAccountingEntryTemplate model.aet )
 
         DropdownCreditChanged selectedCredit ->
-            ( updateCredit model selectedCredit, Cmd.none )
+            ( handleSelection updateCredit {model | selectedCredit = selectedCredit} selectedCredit, Cmd.none )
 
         DropdownDebitChanged selectedDebit ->
-            ( updateDebit model selectedDebit, Cmd.none )
+            ( handleSelection updateDebit {model | selectedDebit = selectedDebit} selectedDebit, Cmd.none )
 
         ActivateEditView aet ->
             ( insertData model aet, Cmd.none )
@@ -177,7 +176,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -224,7 +223,7 @@ viewEditOrCreate model =
             , viewDebitInput model
             , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
 
-            --   , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
+            , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , viewCreateButton model.aet (model.selectedCredit /= model.selectedDebit)
             ]
 
@@ -289,11 +288,10 @@ viewCreateButton aet validSelection =
             , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
             ]
 
-    else if aetIsValid && validSelection then
-        button [ disabled False, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
-
     else
-        button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+        button [ disabled (not (aetIsValid && validSelection)), onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+
+
 
 
 viewUpdateButton : AccountingEntryTemplate -> Bool -> Html Msg
