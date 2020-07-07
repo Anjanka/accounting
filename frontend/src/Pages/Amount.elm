@@ -31,6 +31,7 @@ digit : Parser Int
 digit =
     oneOf (List.map (typedToken String.fromInt) (List.range 0 9))
 
+
 changeParser : Parser Int
 changeParser =
     Parser.oneOf
@@ -96,12 +97,14 @@ parseAmount =
 
 amountFromInput : FromInput Amount
 amountFromInput =
-    inputFrom zero
+    FromInput.emptyText
+        { value = zero
+        , ifEmptyValue = zero
+        , parse = parseAmount
+        , isPartial = partialAmount
+        }
 
-
-inputFrom : Amount -> FromInput Amount
-inputFrom amount =
-    FromInput.mkFromInput amount amount parseAmount partialAmount
 
 amountOf : AccountingEntry -> Amount
-amountOf accountingEntry = { whole = accountingEntry.amountWhole, change = accountingEntry.amountChange }
+amountOf accountingEntry =
+    { whole = accountingEntry.amountWhole, change = accountingEntry.amountChange }
