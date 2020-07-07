@@ -72,7 +72,7 @@ reset : Model -> Model
 reset model =
     { model
         | content = emptyInputContent
-        , accountingEntry = AccountingEntryUtil.empty
+        , accountingEntry = AccountingEntryUtil.emptyWith {companyId = model.companyId, accountingYear = model.accountingYear}
         , error = ""
         , editActive = False
         , selectedTemplate = Nothing

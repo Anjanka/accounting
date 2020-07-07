@@ -1,10 +1,12 @@
 module Pages.AccountingEntry.InputContent exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
-import Api.General.AccountingEntryUtil exposing (showAmount)
 import Api.General.DateUtil exposing (showDay, showMonth)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
+import Basics.Extra exposing (flip)
+import Pages.Amount as Amount exposing (Amount)
+import Pages.FromInput as FromInput exposing (FromInput)
 
 
 type alias InputContent =
@@ -14,7 +16,7 @@ type alias InputContent =
     , description : String
     , debitId : String
     , creditId : String
-    , amount : String
+    , amount : FromInput Amount
     }
 
 
@@ -26,7 +28,7 @@ emptyInputContent =
     , description = ""
     , debitId = ""
     , creditId = ""
-    , amount = ""
+    , amount = Amount.amountFromInput
     }
 
 
@@ -60,13 +62,19 @@ updateDebitId inputContent debitId =
     { inputContent | debitId = debitId }
 
 
-updateAmount : InputContent -> String -> InputContent
-updateAmount inputContent amount =
-    { inputContent | amount = amount }
+updateAmount : InputContent -> FromInput Amount -> InputContent
+updateAmount inputContent afi =
+    { inputContent | amount = afi }
 
 
 updateWithEntry : InputContent -> AccountingEntry -> InputContent
 updateWithEntry inputContent accountingEntry =
+    let
+        newAmountFI =
+            inputContent.amount
+                |> flip FromInput.updateText (Amount.displayAmount (Amount.amountOf accountingEntry))
+                |> flip FromInput.updateValue (Amount.amountOf accountingEntry)
+    in
     { inputContent
         | day = showDay accountingEntry.bookingDate.day
         , month = showMonth accountingEntry.bookingDate.month
@@ -74,23 +82,28 @@ updateWithEntry inputContent accountingEntry =
         , description = accountingEntry.description
         , creditId = String.fromInt accountingEntry.credit
         , debitId = String.fromInt accountingEntry.debit
-        , amount = showAmount accountingEntry
+        , amount = newAmountFI
     }
 
 
 updateWithTemplate : InputContent -> AccountingEntryTemplate -> InputContent
 updateWithTemplate inputContent aet =
     let
-        newAmount =
+        newAmountText =
             if aet.amountWhole /= 0 && aet.amountChange /= 0 then
                 AccountingEntryTemplateUtil.showAmount aet
 
             else
                 ""
+
+        newAmountFI =
+            inputContent.amount
+                |> flip FromInput.updateText newAmountText
+                |> flip FromInput.updateValue { whole = aet.amountWhole, change = aet.amountChange }
     in
     { inputContent
         | description = aet.description
         , creditId = String.fromInt aet.credit
         , debitId = String.fromInt aet.debit
-        , amount = newAmount
+        , amount = newAmountFI
     }

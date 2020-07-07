@@ -7,6 +7,7 @@ import Api.Types.Account exposing (Account)
 import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
 import Pages.AccountingEntry.InputContent as InputContent exposing (updateAmount, updateCreditId, updateDebitId)
+import Pages.FromInput as FromInput
 
 
 updateDay : Model -> Int -> Model
@@ -158,65 +159,76 @@ findAccountName accounts id =
         Nothing ->
             AccountUtil.empty
 
-
 parseAndUpdateAmount : Model -> String -> Model
-parseAndUpdateAmount model newContent =
-    if String.isEmpty newContent then
-        { model
-            | content = updateAmount model.content ""
-            , accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry 0 0
-        }
+parseAndUpdateAmount model amountContent =
+    FromInput.lift updateAmount model.content.amount amountContent model.content
+        |> updateContent model
+        |> (\md ->
+                updateAccountingEntry md
+                    (model.accountingEntry
+                        |> (\ae -> AccountingEntryUtil.updateCompleteAmount ae md.content.amount.value.whole md.content.amount.value.change)
+                    )
+           )
 
-    else
-        let
-            wholeAndChange =
-                String.split "," newContent
-        in
-        case List.head wholeAndChange of
-            Just wholeString ->
-                case String.toInt wholeString of
-                    Just whole ->
-                        case List.tail wholeAndChange of
-                            Just tailList ->
-                                case List.head tailList of
-                                    Just changeString ->
-                                        case String.toInt (String.left 2 changeString) of
-                                            Just change ->
-                                                if change < 10 && String.length changeString == 1 then
-                                                    { model
-                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",", String.fromInt change ])
-                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry (change * 10)) whole
-                                                    }
 
-                                                else if change < 10 && String.length changeString >= 2 then
-                                                    { model
-                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",0", String.fromInt change ])
-                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole
-                                                    }
+--parseAndUpdateAmount : Model -> String -> Model
+--parseAndUpdateAmount model newContent =
+--    if String.isEmpty newContent then
+--        { model
+--            | content = updateAmount model.content ""
+--            , accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry 0 0
+--        }
 
-                                                else
-                                                    { model
-                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",", String.fromInt change ])
-                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole
-                                                    }
+--    else
+--        let
+--            wholeAndChange =
+--                String.split "," newContent
+--        in
+--        case List.head wholeAndChange of
+--            Just wholeString ->
+--                case String.toInt wholeString of
+--                    Just whole ->
+--                        case List.tail wholeAndChange of
+--                            Just tailList ->
+--                                case List.head tailList of
+--                                    Just changeString ->
+--                                        case String.toInt (String.left 2 changeString) of
+--                                            Just change ->
+--                                                if change < 10 && String.length changeString == 1 then
+--                                                    { model
+--                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",", String.fromInt change ])
+--                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry (change * 10)) whole
+--                                                    }
 
-                                            Nothing ->
-                                                { model
-                                                    | content = updateAmount model.content (String.concat [ String.fromInt whole, "," ])
-                                                    , accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0
-                                                }
+--                                                else if change < 10 && String.length changeString >= 2 then
+--                                                    { model
+--                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",0", String.fromInt change ])
+--                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole
+--                                                    }
 
-                                    Nothing ->
-                                        { model | content = updateAmount model.content newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
+--                                                else
+--                                                    { model
+--                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",", String.fromInt change ])
+--                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole
+--                                                    }
 
-                            Nothing ->
-                                { model | content = updateAmount model.content newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
+--                                            Nothing ->
+--                                                { model
+--                                                    | content = updateAmount model.content (String.concat [ String.fromInt whole, "," ])
+--                                                    , accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0
+--                                                }
 
-                    Nothing ->
-                        model
+--                                    Nothing ->
+--                                        { model | content = updateAmount model.content newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
 
-            Nothing ->
-                model
+--                            Nothing ->
+--                                { model | content = updateAmount model.content newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
+
+--                    Nothing ->
+--                        model
+
+--            Nothing ->
+--                model
 
 
 parseDay : Model -> String -> Int
