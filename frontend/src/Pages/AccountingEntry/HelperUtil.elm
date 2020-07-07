@@ -9,9 +9,6 @@ import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
 
 
-
-
-
 updateAccountingEntry : Model -> AccountingEntry -> Model
 updateAccountingEntry model accountingEntry =
     { model | accountingEntry = accountingEntry }
@@ -34,40 +31,40 @@ insertForEdit model accountingEntry =
     }
 
 
-insertTemplateData : Model -> Maybe String -> Model
-insertTemplateData model newSelectedTemplate =
-    case newSelectedTemplate of
-        Just description ->
+
+handleSelection : (Model -> String -> Model) -> Model -> Maybe String -> Model
+handleSelection updateFunction model newSelection =
+    case newSelection of
+        Just selection ->
+            updateFunction model selection
+        Nothing ->
+            model
+
+
+
+insertTemplateData : Model -> String -> Model
+insertTemplateData model description =
+
             let
                 selectedTemplate =
-                    findEntry newSelectedTemplate model.allAccountingEntryTemplates
+                    findEntry description model.allAccountingEntryTemplates
+
+                contentAmount =
+                    if selectedTemplate.amountWhole /= 0 && selectedTemplate.amountChange /= 0 then
+                        AccountingEntryTemplateUtil.showAmount selectedTemplate
+
+                    else
+                        ""
             in
-            if selectedTemplate.amountWhole /= 0 && selectedTemplate.amountChange /= 0 then
-                { model
-                    | contentDescription = description
-                    , contentCreditID = String.fromInt selectedTemplate.credit
-                    , contentDebitID = String.fromInt selectedTemplate.debit
-                    , contentAmount = AccountingEntryTemplateUtil.showAmount selectedTemplate
-                    , accountingEntry = AccountingEntryUtil.updateWithTemplate model.accountingEntry selectedTemplate
-                    , selectedTemplate = newSelectedTemplate
-                    , selectedCredit = Just (String.fromInt selectedTemplate.credit)
-                    , selectedDebit = Just (String.fromInt selectedTemplate.debit)
-                }
-
-            else
-                { model
-                    | contentDescription = description
-                    , contentCreditID = String.fromInt selectedTemplate.credit
-                    , contentDebitID = String.fromInt selectedTemplate.debit
-                    , contentAmount = ""
-                    , accountingEntry = AccountingEntryUtil.updateWithTemplate model.accountingEntry selectedTemplate
-                    , selectedTemplate = newSelectedTemplate
-                    , selectedCredit = Just (String.fromInt selectedTemplate.credit)
-                    , selectedDebit = Just (String.fromInt selectedTemplate.debit)
-                }
-
-        Nothing ->
-            { model | selectedTemplate = newSelectedTemplate }
+            { model
+                | contentDescription = description
+                , contentCreditID = String.fromInt selectedTemplate.credit
+                , contentDebitID = String.fromInt selectedTemplate.debit
+                , contentAmount = contentAmount
+                , accountingEntry = AccountingEntryUtil.updateWithTemplate model.accountingEntry selectedTemplate
+                , selectedCredit = Just (String.fromInt selectedTemplate.credit)
+                , selectedDebit = Just (String.fromInt selectedTemplate.debit)
+            }
 
 
 reset : Model -> Model
@@ -88,20 +85,16 @@ reset model =
     }
 
 
+findEntry : String -> List AccountingEntryTemplate -> AccountingEntryTemplate
+findEntry description allAccountingEntryTemplates =
 
-findEntry : Maybe String -> List AccountingEntryTemplate -> AccountingEntryTemplate
-findEntry selectedValue allAccountingEntryTemplates =
-    case selectedValue of
-        Just string ->
-            case List.Extra.find (\aet -> aet.description == string) allAccountingEntryTemplates of
+            case List.Extra.find (\aet -> aet.description == description) allAccountingEntryTemplates of
                 Just value ->
                     value
 
                 Nothing ->
                     AccountingEntryTemplateUtil.empty
 
-        Nothing ->
-            AccountingEntryTemplateUtil.empty
 
 
 getBalance : String -> List AccountingEntry -> String
@@ -122,8 +115,30 @@ getAmount accountId allEntries =
 
         allEntriesDebit =
             List.filter (\entry -> entry.debit == accountId) allEntries
+
+        sumOf : List AccountingEntry -> Int
+        sumOf entries =
+            List.sum (List.map (amountOf >> toCents) entries)
     in
-    List.foldr (+) 0 (List.map (\entry -> (entry.amountWhole * 100) + entry.amountChange) allEntriesCredit) - List.foldr (+) 0 (List.map (\entry -> (entry.amountWhole * 100) + entry.amountChange) allEntriesDebit)
+    sumOf allEntriesCredit - sumOf allEntriesDebit
+
+
+type alias Amount =
+    { whole : Int
+    , change : Int
+    }
+
+
+amountOf : AccountingEntry -> Amount
+amountOf entry =
+    { whole = entry.amountWhole
+    , change = entry.amountChange
+    }
+
+
+toCents : Amount -> Int
+toCents amount =
+    amount.whole * 100 + amount.change
 
 
 showBalance : Int -> String
