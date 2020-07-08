@@ -163,7 +163,7 @@ update msg model =
             ( updateDay model (parseDay model newContent), Cmd.none )
 
         ChangeMonth newContent ->
-            ( updateMonth model (parseMonth model newContent), Cmd.none )
+            ( updateMonth model (Debug.log "month" (parseMonth model newContent)), Cmd.none )
 
         ChangeReceiptNumber newContent ->
            ( updateReceiptNumber model newContent, Cmd.none )
