@@ -18,7 +18,7 @@ import Json.Decode as Decode
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
 import Pages.AccountingEntry.HelperUtil exposing (getBalance, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
-import Pages.AccountingEntry.ParseAndUpdateUtil exposing (parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
+import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown)
 
 
@@ -160,10 +160,10 @@ update msg model =
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         ChangeDay newContent ->
-            ( updateDay model (parseDay model newContent), Cmd.none )
+            ( updateDay model (handleParseResultDay model.accountingEntry.bookingDate.day (parseDay model newContent)), Cmd.none )
 
         ChangeMonth newContent ->
-            ( updateMonth model (Debug.log "month" (parseMonth model newContent)), Cmd.none )
+            ( updateMonth model (handleParseResultMonth model.accountingEntry.bookingDate.month (parseMonth model newContent)), Cmd.none )
 
         ChangeReceiptNumber newContent ->
            ( updateReceiptNumber model newContent, Cmd.none )
