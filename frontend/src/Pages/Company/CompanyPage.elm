@@ -1,4 +1,4 @@
-module Pages.Company.CompanyPage exposing (..)
+module Pages.Company.CompanyPage exposing (Msg, init, update, view)
 
 import Api.General.CompanyUtil as CompanyUtil
 import Api.General.HttpUtil as HttpUtil
@@ -14,6 +14,8 @@ import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.Company.CompanyPageModel exposing (Model)
 import Pages.Company.ParseAndUpdateUtil exposing (insertData, reset, updateAddress)
+import Pages.SharedViewComponents exposing (linkButton)
+import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath, makeLinkYear)
 
 
 
@@ -175,7 +177,9 @@ view : Model -> Html Msg
 view model =
     div []
         [ div []
-            [ button [ onClick BackToStartPage ] [ text "Back" ]
+            [ linkButton (makeLinkPath StartPage)
+                         [ value "Back" ]
+                         []
             , p [] []
             ]
         , div []

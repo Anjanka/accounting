@@ -1,4 +1,4 @@
-module Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePage exposing (..)
+module Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePage exposing (Msg, init, update, view)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.HttpUtil as HttpUtil
@@ -25,24 +25,34 @@ import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDr
 
 main =
     Browser.element
-        { init = init
+        { init = dummyInit
         , update = update
         , view = view
         , subscriptions = subscriptions
         }
 
+defaultFlags : Flags
+defaultFlags =
+    { companyId = 1
+    , accountingYear = 1}
 
+
+dummyInit : () -> ( Model, Cmd Msg )
+dummyInit _ =
+    init defaultFlags
 
 -- MODEL
 
 
 type alias Flags =
-    ()
+    { companyId :Int
+    , accountingYear : Int}
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
-    ( { companyId = 1
+init flags =
+    ( { companyId = flags.companyId
+      , accountingYear = flags.accountingYear
       , contentDescription = ""
       , contentDebitID = ""
       , contentCreditID = ""
@@ -58,7 +68,8 @@ init _ =
       , buttonPressed = False
       , editViewActive = False
       }
-    , getAccounts 1
+    , Cmd.batch [getAccounts flags.companyId
+                , getAccountingEntryTemplates flags.companyId]
     )
 
 
@@ -115,7 +126,7 @@ update msg model =
         GotResponseAllAccounts result ->
             case result of
                 Ok value ->
-                    ( { model | allAccounts = value }, getAccountingEntryTemplates model.companyId )
+                    ( { model | allAccounts = value }, Cmd.none )
 
                 Err error ->
                     ( { model | allAccounts = [], error = HttpUtil.errorToString error }, Cmd.none )
