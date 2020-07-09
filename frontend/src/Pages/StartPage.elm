@@ -1,4 +1,4 @@
-module Pages.StartPage exposing (..)
+module Pages.StartPage exposing (Model, Msg, init, update, view)
 
 import Api.General.HttpUtil as HttpUtil
 import Api.Types.Company exposing (Company, decoderCompany)
@@ -10,6 +10,8 @@ import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List exposing (range)
+import Pages.SharedViewComponents exposing (linkButton)
+import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath, makeLinkYear)
 
 
 
@@ -31,7 +33,7 @@ main =
 
 type alias Model =
     { language : String
-    , companyID : Int
+    , companyId : Int
     , accountingYear : Int
     , selectionState : State
     , allCompanies : List Company
@@ -56,7 +58,7 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { language = ""
-      , companyID = 0
+      , companyId = 0
       , accountingYear = 0
       , selectionState = SelectLanguage
       , allCompanies = []
@@ -201,7 +203,7 @@ viewAccountingYearSelection model =
                 []
                 model.selectedYear
             ]
-        , yearButton model.selectedYear
+        , yearButton model
         , button [ onClick BackToCompanySelection ] [ text "Back" ]
         , div [] [ text model.error ]
         ]
@@ -217,9 +219,13 @@ companyButton selectedValue =
     button [ disabled (isNothing selectedValue), onClick ToYearSelection ] [ text "Ok" ]
 
 
-yearButton : Maybe String -> Html Msg
-yearButton selectedValue =
-    button [ disabled (isNothing selectedValue), onClick ManageAccountingEntries ] [ text "Ok" ]
+yearButton : Model -> Html Msg
+yearButton model =
+     linkButton (String.concat [(makeLinkPath AccountingEntryPage), (makeLinkId model.companyId), (makeLinkYear model.accountingYear)])
+                [ disabled (isNothing model.selectedYear), value "Ok" ]
+                []
+
+
 
 
 isNothing : Maybe a -> Bool
@@ -315,7 +321,7 @@ updateSelectedLanguage model selectedLanguage =
 
 updateCompany : Model -> Maybe String -> Model
 updateCompany =
-    updateWith (\m nsv -> { m | selectedCompany = nsv }) (\m nsv int -> { m | companyID = int, selectedCompany = nsv })
+    updateWith (\m nsv -> { m | selectedCompany = nsv }) (\m nsv int -> { m | companyId = int, selectedCompany = nsv })
 
 
 updateYear : Model -> Maybe String -> Model

@@ -1,4 +1,4 @@
-module Pages.AccountPage exposing (..)
+module Pages.AccountPage exposing (Model, Msg, init, update, view)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.General.HttpUtil as HttpUtil
@@ -11,6 +11,8 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List.Extra
+import Pages.SharedViewComponents exposing (linkButton)
+import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath, makeLinkYear)
 
 
 
@@ -19,7 +21,7 @@ import List.Extra
 
 main =
     Browser.element
-        { init = init
+        { init = dummyInit
         , update = update
         , view = view
         , subscriptions = subscriptions
@@ -31,8 +33,9 @@ main =
 
 
 type alias Model =
-    { companyID : Int
-    , contentID : String
+    { companyId : Int
+    , accountingYear : Int
+    , contentId : String
     , account : Account
     , allAccounts : List Account
     , error : String
@@ -42,15 +45,30 @@ type alias Model =
     }
 
 
+defaultFlags : Flags
+defaultFlags =
+    { companyId = 1,
+    accountingYear = 1}
+
+
+dummyInit : () -> ( Model, Cmd Msg )
+dummyInit _ =
+    init defaultFlags
+
+-- MODEL
+
 
 type alias Flags =
-    ()
+    { companyId :Int
+     , accountingYear : Int}
+
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
-    ( { companyID = 1
-      , contentID = ""
+init flags =
+    ( { companyId = flags.companyId
+      , accountingYear = flags.accountingYear
+      , contentId = ""
       , account = AccountUtil.updateCompanyID AccountUtil.empty 1
       , allAccounts = []
       , error = ""
@@ -58,7 +76,7 @@ init _ =
       , buttonPressed = False
       , editViewActive = False
       }
-    , getAccounts 1
+    , getAccounts flags.companyId
     )
 
 
@@ -86,7 +104,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ShowAllAccounts ->
-            ( { model | buttonPressed = True }, getAccounts model.companyID )
+            ( { model | buttonPressed = True }, getAccounts model.companyId )
 
         HideAllAccounts ->
             ( { model | buttonPressed = False }, Cmd.none )
@@ -107,7 +125,7 @@ update msg model =
         GotResponseCreateOrReplace result ->
             case result of
                 Ok _ ->
-                    ( reset model, getAccounts model.companyID )
+                    ( reset model, getAccounts model.companyId )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -115,7 +133,7 @@ update msg model =
         GotResponseDelete result ->
             case result of
                 Ok _ ->
-                    ( reset model, getAccounts model.companyID )
+                    ( reset model, getAccounts model.companyId )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -142,7 +160,7 @@ update msg model =
             ( model, deleteAccount model.account )
 
         ActivateEditView account ->
-            ( { model | contentID = String.fromInt account.id, account = account, editViewActive = True }, Cmd.none )
+            ( { model | contentId = String.fromInt account.id, account = account, editViewActive = True }, Cmd.none )
 
         DeactivateEditView ->
             ( reset model, Cmd.none )
@@ -167,7 +185,9 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] [ button [ onClick BackToAccountingEntryPage ] [ text "Back" ] ]
+        [ div [] [ linkButton (String.concat [(makeLinkPath AccountingEntryPage), (makeLinkId model.companyId), (makeLinkYear model.accountingYear)])
+                                                      [ value "Back" ]
+                                                      []]
         , p [] []
         , viewEditOrCreate model
         , label [] [ text (AccountUtil.show model.account) ]
@@ -182,7 +202,7 @@ viewEditOrCreate : Model -> Html Msg
 viewEditOrCreate model =
     if model.editViewActive then
         div []
-            [ label [] [ text model.contentID ]
+            [ label [] [ text model.contentId ]
             , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
             , div []
                 [ button
@@ -196,7 +216,7 @@ viewEditOrCreate model =
 
     else
         div []
-            [ input [ placeholder "Account ID", value model.contentID, onInput ChangeID ] []
+            [ input [ placeholder "Account ID", value model.contentId, onInput ChangeID ] []
             , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
             , viewCreateButton model
             , viewValidation model.validationFeedback
@@ -311,22 +331,22 @@ parseAndUpdateAccount model idCandidate =
                         not (AccountUtil.isEmpty (findAccount int model.allAccounts))
                 in
                 if int >= 100 && int <= 99999 && not accountExist then
-                    { model | contentID = idCandidate, account = AccountUtil.updateId model.account int, validationFeedback = "" }
+                    { model | contentId = idCandidate, account = AccountUtil.updateId model.account int, validationFeedback = "" }
 
                 else if int >= 100 && int <= 99999 && accountExist then
-                    { model | contentID = idCandidate, account = AccountUtil.updateId model.account 0, validationFeedback = existingAccount }
+                    { model | contentId = idCandidate, account = AccountUtil.updateId model.account 0, validationFeedback = existingAccount }
 
                 else if int > 99999 || String.length idCandidate > 5 then
                     model
 
                 else
-                    { model | contentID = idCandidate, account = AccountUtil.updateId model.account 0, validationFeedback = idNotValid }
+                    { model | contentId = idCandidate, account = AccountUtil.updateId model.account 0, validationFeedback = idNotValid }
 
             Nothing ->
                 model
 
     else
-        { model | contentID = "", account = AccountUtil.updateId model.account 0, validationFeedback = idNotValid }
+        { model | contentId = "", account = AccountUtil.updateId model.account 0, validationFeedback = idNotValid }
 
 
 findAccount : Int -> List Account -> Account
@@ -347,8 +367,8 @@ updateAccount model account =
 reset : Model -> Model
 reset model =
     { model
-        | contentID = ""
-        , account = AccountUtil.updateCompanyID AccountUtil.empty model.companyID
+        | contentId = ""
+        , account = AccountUtil.updateCompanyID AccountUtil.empty model.companyId
         , error = ""
         , validationFeedback = "Account ID must be positive number with 3 to 5 digits."
         , editViewActive = False

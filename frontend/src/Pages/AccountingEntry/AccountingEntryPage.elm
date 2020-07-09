@@ -1,4 +1,4 @@
-module Pages.AccountingEntry.AccountingEntryPage exposing (..)
+module Pages.AccountingEntry.AccountingEntryPage exposing (Msg, init, update, view)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams)
@@ -19,7 +19,8 @@ import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
 import Pages.AccountingEntry.HelperUtil exposing (getBalance, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
-import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown)
+import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
+import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath)
 
 
 
@@ -72,7 +73,11 @@ init flags =
       , selectedCredit = Nothing
       , selectedDebit = Nothing
       }
-    , getAccounts flags.companyId
+    , Cmd.batch
+      [ getAccounts flags.companyId
+      , getAccountingEntryTemplates flags.companyId
+      , getAccountingEntriesForCurrentYear flags.companyId flags.accountingYear
+      ]
     )
 
 
@@ -129,7 +134,7 @@ update msg model =
                         , response = value |> List.sortBy .description |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
                         , feedback = ""
                       }
-                    , getAccountingEntriesForCurrentYear model.companyId model.accountingYear
+                    , Cmd.none
                     )
 
                 Err error ->
@@ -138,7 +143,7 @@ update msg model =
         GotResponseAllAccounts result ->
             case result of
                 Ok value ->
-                    ( { model | allAccounts = List.sortBy .title value }, getAccountingEntryTemplates model.companyId )
+                    ( { model | allAccounts = List.sortBy .title value }, Cmd.none )
 
                 Err error ->
                     ( { model | allAccounts = [], error = HttpUtil.errorToString error }, Cmd.none )
@@ -227,7 +232,13 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] [ button [ onClick GoToAccountPage ] [ text "Manage Accounts" ], button [ onClick GoToAccountingTemplatePage ] [ text "Manage Templates" ] ]
+        [ div [] [ linkButton (String.concat [(makeLinkPath AccountPage), (makeLinkId model.companyId)])
+                                   [ value "Manage Accounts" ]
+                                   []
+                 , linkButton (String.concat [(makeLinkPath AccountingEntryTemplatePage), (makeLinkId model.companyId)])
+                                   [  value "Manage Templates" ]
+                                   []
+                ]
         , p [] []
         , viewInputArea model
 
