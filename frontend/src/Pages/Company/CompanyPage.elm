@@ -14,8 +14,8 @@ import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.Company.CompanyPageModel exposing (Model)
 import Pages.Company.ParseAndUpdateUtil exposing (insertData, reset, updateAddress)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkPath)
 import Pages.SharedViewComponents exposing (linkButton)
-import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath, makeLinkYear)
 
 
 
@@ -37,7 +37,6 @@ main =
 
 type alias Flags =
     ()
-
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -176,12 +175,10 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ div []
-            [ linkButton (makeLinkPath StartPage)
-                         [ value "Back" ]
-                         []
-            , p [] []
-            ]
+        [ linkButton (fragmentUrl [ makeLinkPath StartPage ])
+            [ value "Back" ]
+            []
+        , p [] []
         , div []
             [ if model.editViewActivated then
                 viewEdit model
@@ -271,7 +268,6 @@ companyForDropdown company =
     { value = id, text = id ++ " - " ++ company.name, enabled = True }
 
 
-
 dropdownOptions : List Company -> Dropdown.Options Msg
 dropdownOptions allCompanies =
     let
@@ -283,6 +279,7 @@ dropdownOptions allCompanies =
             List.sortBy .value (List.map companyForDropdown allCompanies)
         , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
     }
+
 
 
 --COMMUNICATION

@@ -19,8 +19,8 @@ import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
 import Pages.AccountingEntry.HelperUtil exposing (getBalance, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
-import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath)
 
 
 
@@ -29,24 +29,22 @@ import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath)
 
 main =
     Browser.element
-        { init = dummyInit
+        { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
         }
 
 
-defaultFlags : Flags
-defaultFlags =
-    { companyId = 1, accountingYear = 2020 }
 
-
-dummyInit : () -> ( Model, Cmd Msg )
-dummyInit _ =
-    init defaultFlags
-
-
-
+--defaultFlags : Flags
+--defaultFlags =
+--    { companyId = 1, accountingYear = 2020 }
+--
+--
+--dummyInit : () -> ( Model, Cmd Msg )
+--dummyInit _ =
+--    init defaultFlags
 -- MODEL
 
 
@@ -74,10 +72,10 @@ init flags =
       , selectedDebit = Nothing
       }
     , Cmd.batch
-      [ getAccounts flags.companyId
-      , getAccountingEntryTemplates flags.companyId
-      , getAccountingEntriesForCurrentYear flags.companyId flags.accountingYear
-      ]
+        [ getAccounts flags.companyId
+        , getAccountingEntryTemplates flags.companyId
+        , getAccountingEntriesForCurrentYear flags.companyId flags.accountingYear
+        ]
     )
 
 
@@ -171,10 +169,10 @@ update msg model =
             ( updateMonth model (handleParseResultMonth model.accountingEntry.bookingDate.month (parseMonth model newContent)), Cmd.none )
 
         ChangeReceiptNumber newContent ->
-           ( updateReceiptNumber model newContent, Cmd.none )
+            ( updateReceiptNumber model newContent, Cmd.none )
 
         ChangeDescription newContent ->
-            ( updateDescription model newContent , Cmd.none )
+            ( updateDescription model newContent, Cmd.none )
 
         ChangeDebit newContent ->
             ( parseAndUpdateDebit model newContent, Cmd.none )
@@ -232,17 +230,15 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] [ linkButton (String.concat [(makeLinkPath AccountPage), (makeLinkId model.companyId)])
-                                   [ value "Manage Accounts" ]
-                                   []
-                 , linkButton (String.concat [(makeLinkPath AccountingEntryTemplatePage), (makeLinkId model.companyId)])
-                                   [  value "Manage Templates" ]
-                                   []
-                ]
+        [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage ])
+            [ value "Manage Accounts" ]
+            []
+        , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage ])
+            [ value "Manage Templates" ]
+            []
         , p [] []
         , viewInputArea model
-
-           , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
+        , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
         , viewValidatedInput model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
         , div [] [ text model.error ]
         , p [] []

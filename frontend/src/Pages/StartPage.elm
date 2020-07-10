@@ -10,8 +10,8 @@ import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List exposing (range)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (linkButton)
-import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath, makeLinkYear)
 
 
 
@@ -188,7 +188,9 @@ viewCompanySelection model =
                 model.selectedCompany
             ]
         , companyButton model.selectedCompany
-        , div [] [ button [ onClick ManageCompanies ] [ text "Manage Companies" ] ]
+        , linkButton (fragmentUrl [ makeLinkPath CompanyPage ])
+            [ value "Manage Companies" ]
+            []
         , button [ onClick BackToLanguageSelection ] [ text "Back" ]
         , div [] [ text model.error ]
         ]
@@ -221,11 +223,9 @@ companyButton selectedValue =
 
 yearButton : Model -> Html Msg
 yearButton model =
-     linkButton (String.concat [(makeLinkPath AccountingEntryPage), (makeLinkId model.companyId), (makeLinkYear model.accountingYear)])
-                [ disabled (isNothing model.selectedYear), value "Ok" ]
-                []
-
-
+    linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear ])
+        [ disabled (isNothing model.selectedYear), value "Ok" ]
+        []
 
 
 isNothing : Maybe a -> Bool

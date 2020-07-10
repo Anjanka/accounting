@@ -11,8 +11,7 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List.Extra
-import Pages.SharedViewComponents exposing (linkButton)
-import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath, makeLinkYear)
+import Pages.SharedViewComponents exposing (backToEntryPage)
 
 
 
@@ -21,7 +20,7 @@ import Pages.WireUtil exposing (Path(..), makeLinkId, makeLinkPath, makeLinkYear
 
 main =
     Browser.element
-        { init = dummyInit
+        { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
@@ -34,7 +33,7 @@ main =
 
 type alias Model =
     { companyId : Int
-    , accountingYear : Int
+    , accountingYear : Maybe Int
     , contentId : String
     , account : Account
     , allAccounts : List Account
@@ -45,23 +44,23 @@ type alias Model =
     }
 
 
-defaultFlags : Flags
-defaultFlags =
-    { companyId = 1,
-    accountingYear = 1}
 
-
-dummyInit : () -> ( Model, Cmd Msg )
-dummyInit _ =
-    init defaultFlags
-
+--defaultFlags : Flags
+--defaultFlags =
+--    { companyId = 1,
+--    accountingYear = Just 1}
+--
+--
+--dummyInit : () -> ( Model, Cmd Msg )
+--dummyInit _ =
+--    init defaultFlags
 -- MODEL
 
 
 type alias Flags =
-    { companyId :Int
-     , accountingYear : Int}
-
+    { companyId : Int
+    , accountingYear : Maybe Int
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -72,7 +71,7 @@ init flags =
       , account = AccountUtil.updateCompanyID AccountUtil.empty 1
       , allAccounts = []
       , error = ""
-      , validationFeedback = "Account ID must be positive number with 3 to 5 digits. Preceding 0s will be ignored"
+      , validationFeedback = "Account ID must be positive number with 3 to 5 digits. Leading 0s will be ignored"
       , buttonPressed = False
       , editViewActive = False
       }
@@ -185,9 +184,7 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] [ linkButton (String.concat [(makeLinkPath AccountingEntryPage), (makeLinkId model.companyId), (makeLinkYear model.accountingYear)])
-                                                      [ value "Back" ]
-                                                      []]
+        [ backToEntryPage model.companyId model.accountingYear
         , p [] []
         , viewEditOrCreate model
         , label [] [ text (AccountUtil.show model.account) ]
@@ -318,7 +315,7 @@ parseAndUpdateAccount : Model -> String -> Model
 parseAndUpdateAccount model idCandidate =
     let
         idNotValid =
-            "Account ID must be positive number with 3 to 5 digits. Preceding 0s will be ignored"
+            "Account ID must be positive number with 3 to 5 digits. Leading 0s will be ignored"
 
         existingAccount =
             "An account with this Id already exists. Use edit to make changes to existing accounts."
@@ -359,10 +356,10 @@ findAccount id allAccounts =
             AccountUtil.empty
 
 
-
 updateAccount : Model -> Account -> Model
 updateAccount model account =
     { model | account = account }
+
 
 reset : Model -> Model
 reset model =

@@ -1,13 +1,19 @@
-module Pages.WireUtil exposing (..)
+module Pages.LinkUtil exposing (..)
 
-type Path =
-      StartPage
+import Url.Builder exposing (Root(..))
+
+
+type Path
+    = StartPage
     | CompanyPage
     | AccountPage
     | AccountingEntryPage
     | AccountingEntryTemplatePage
 
 
+--makeLinkHost : String
+--makeLinkHost =
+--    "http://localhost:8080"
 
 
 makeLinkPath : Path -> String
@@ -20,18 +26,25 @@ makeLinkPath page =
             "Company"
 
         AccountPage ->
-            "Account"
+            "Accounts"
 
         AccountingEntryPage ->
             "Accounting"
 
         AccountingEntryTemplatePage ->
-            "Template"
+            "Templates"
+
 
 makeLinkId : Int -> String
 makeLinkId id =
-    "/companyId/" ++ String.fromInt id
+    "companyId/" ++ String.fromInt id
+
 
 makeLinkYear : Int -> String
 makeLinkYear year =
-    "/accountingYear/" ++ String.fromInt year
+    "accountingYear/" ++ String.fromInt year
+
+
+fragmentUrl : List String -> String
+fragmentUrl parts =
+    Url.Builder.custom Relative [] [] (Just (Url.Builder.absolute parts []))
