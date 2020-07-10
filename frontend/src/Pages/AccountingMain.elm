@@ -1,20 +1,18 @@
 module Pages.AccountingMain exposing (..)
 
-import Pages.AccountPage as Account
-import Pages.StartPage as Start
-import Pages.AccountingEntry.AccountingEntryPage as AccountingEntry
-import Pages.AccountingEntry.AccountingEntryPageModel as AccountingEntryModel
-import Pages.Company.CompanyPage as Company
-import Pages.Company.CompanyPageModel as CompanyModel
-import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePage as AccountingEntryTemplate
-import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel as AccountingEntryTemplateModel
-
-import Basics.Extra exposing (flip)
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Html exposing (Html, div, text)
+import Pages.AccountPage as Account
+import Pages.AccountingEntry.AccountingEntryPage as AccountingEntry
+import Pages.AccountingEntry.AccountingEntryPageModel as AccountingEntryModel
+import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePage as AccountingEntryTemplate
+import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel as AccountingEntryTemplateModel
+import Pages.Company.CompanyPage as Company
+import Pages.Company.CompanyPageModel as CompanyModel
+import Pages.StartPage as Start
 import Url exposing (Protocol(..), Url)
-import Url.Parser as Parser exposing ((</>), (<?>), Parser, oneOf, s)
+import Url.Parser as Parser exposing ((</>), (<?>), Parser, s)
 
 
 main : Program () Model Msg
@@ -38,35 +36,33 @@ type alias Model =
 titleFor : Model -> String
 titleFor model =
     case model.page of
-        Start  _ ->
+        Start _ ->
             "Accounting"
 
         Company _ ->
             "Manage Companies"
 
-
         Account _ ->
-             "Manage Accounts"
+            "Manage Accounts"
 
         AccountingEntry accountingEntryModel ->
-             "Accounting: " ++  String.fromInt accountingEntryModel.accountingYear
+            "Accounting: " ++ String.fromInt accountingEntryModel.accountingYear
 
-        AccountingEntryTemplate  _ ->
-             "Manage Templates"
-
+        AccountingEntryTemplate _ ->
+            "Manage Templates"
 
         NotFound ->
             "Page not Found"
 
 
-
 type Page
-       = Start Start.Model
-       | Company CompanyModel.Model
-       | Account Account.Model
-       | AccountingEntry AccountingEntryModel.Model
-       | AccountingEntryTemplate AccountingEntryTemplateModel.Model
-       | NotFound
+    = Start Start.Model
+    | Company CompanyModel.Model
+    | Account Account.Model
+    | AccountingEntry AccountingEntryModel.Model
+    | AccountingEntryTemplate AccountingEntryTemplateModel.Model
+    | NotFound
+
 
 type Msg
     = ClickedLink UrlRequest
@@ -80,7 +76,7 @@ type Msg
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    updateUrl url {page = NotFound, key = key}
+    updateUrl url { page = NotFound, key = key }
 
 
 view : Model -> Html Msg
@@ -99,10 +95,10 @@ view model =
             Html.map AccountingEntryMsg (AccountingEntry.view accountingEntry)
 
         AccountingEntryTemplate accountingEntryTemplate ->
-                    Html.map AccountingEntryTemplateMsg (AccountingEntryTemplate.view accountingEntryTemplate)
+            Html.map AccountingEntryTemplateMsg (AccountingEntryTemplate.view accountingEntryTemplate)
 
         NotFound ->
-            div [] [ text "404 - PAGE NOT FOUND"]
+            div [] [ text "404 - PAGE NOT FOUND" ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -144,22 +140,20 @@ update msg model =
                     ( model, Cmd.none )
 
         AccountingEntryMsg accountingEntryMsg ->
-                    case model.page of
-                        AccountingEntry accountingEntry ->
-                            stepAccountingEntry model (AccountingEntry.update accountingEntryMsg accountingEntry)
+            case model.page of
+                AccountingEntry accountingEntry ->
+                    stepAccountingEntry model (AccountingEntry.update accountingEntryMsg accountingEntry)
 
-                        _ ->
-                            ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
         AccountingEntryTemplateMsg accountingEntryTemplateMsg ->
-                            case model.page of
-                                AccountingEntryTemplate accountingEntryTemplate ->
-                                    stepAccountingEntryTemplate model (AccountingEntryTemplate.update accountingEntryTemplateMsg accountingEntryTemplate)
+            case model.page of
+                AccountingEntryTemplate accountingEntryTemplate ->
+                    stepAccountingEntryTemplate model (AccountingEntryTemplate.update accountingEntryTemplateMsg accountingEntryTemplate)
 
-                                _ ->
-                                    ( model, Cmd.none )
-
-
+                _ ->
+                    ( model, Cmd.none )
 
 
 stepStart : Model -> ( Start.Model, Cmd Start.Msg ) -> ( Model, Cmd Msg )
@@ -181,59 +175,74 @@ stepAccountingEntry : Model -> ( AccountingEntryModel.Model, Cmd AccountingEntry
 stepAccountingEntry model ( accountingEntry, cmd ) =
     ( { model | page = AccountingEntry accountingEntry }, Cmd.map AccountingEntryMsg cmd )
 
+
 stepAccountingEntryTemplate : Model -> ( AccountingEntryTemplateModel.Model, Cmd AccountingEntryTemplate.Msg ) -> ( Model, Cmd Msg )
 stepAccountingEntryTemplate model ( accountingEntryTemplate, cmd ) =
     ( { model | page = AccountingEntryTemplate accountingEntryTemplate }, Cmd.map AccountingEntryTemplateMsg cmd )
 
 
-
-type Route =
-        StartRoute
-      | CompanyRoute
-      | AccountRoute Int
-      | AccountingEntryRoute Int Int
-      | AccountingEntryTemplateRoute Int
-
+type Route
+    = StartRoute
+    | CompanyRoute
+    | AccountRoute Int
+    | AccountingEntryRoute Int Int
+    | AccountingEntryTemplateRoute Int
 
 
-updateUrl : Url -> Model -> (Model, Cmd Msg)
+updateUrl : Url -> Model -> ( Model, Cmd Msg )
 updateUrl url model =
-    case Parser.parse parser url of
+    let
+        yearFromEntryPage =
+            case model.page of
+                AccountingEntry accountingEntry ->
+                    Just accountingEntry.accountingYear
+
+                _ ->
+                    Nothing
+    in
+    case Parser.parse parser (fragmentToPath url) of
         Just StartRoute ->
             Start.init ()
-              |> stepStart model
+                |> stepStart model
+
         Just CompanyRoute ->
             Company.init ()
-               |> stepCompany model
+                |> stepCompany model
+
         Just (AccountRoute companyId) ->
-             Account.init ({companyId = companyId, accountingYear = 1})
-               |> stepAccount model
-        Just (AccountingEntryRoute companyId accountingYear)->
-            AccountingEntry.init ({companyId = companyId, accountingYear = accountingYear})
-               |> stepAccountingEntry model
+            Account.init { companyId = companyId, accountingYear = yearFromEntryPage }
+                |> stepAccount model
+
+        Just (AccountingEntryRoute companyId accountingYear) ->
+            AccountingEntry.init { companyId = companyId, accountingYear = accountingYear }
+                |> stepAccountingEntry model
+
         Just (AccountingEntryTemplateRoute companyId) ->
-             AccountingEntryTemplate.init ({companyId = companyId, accountingYear = 1})
-               |> stepAccountingEntryTemplate model
+            AccountingEntryTemplate.init { companyId = companyId, accountingYear = yearFromEntryPage }
+                |> stepAccountingEntryTemplate model
+
         Nothing ->
-            ({ model | page = NotFound}, Cmd.none)
+            ( { model | page = NotFound }, Cmd.none )
 
 
-
-parser :  Parser (Route -> a) a
+parser : Parser (Route -> a) a
 parser =
     let
         companyIdParser =
-             s "companyId" </> Parser.int
+            s "companyId" </> Parser.int
 
         accountingYearParser =
-              s "accountingYear" </> Parser.int
-
+            s "accountingYear" </> Parser.int
     in
     Parser.oneOf
         [ Parser.map StartRoute Parser.top
         , Parser.map CompanyRoute (s "Company")
-        , Parser.map AccountRoute (s "Account" </> companyIdParser)
-        , Parser.map AccountingEntryTemplateRoute (s "Template" </> companyIdParser)
-        , Parser.map AccountingEntryRoute (s "Accounting" </> companyIdParser </> accountingYearParser)
+        , Parser.map AccountRoute (companyIdParser </> s "Accounts")
+        , Parser.map AccountingEntryTemplateRoute (companyIdParser </> s "Templates")
+        , Parser.map AccountingEntryRoute (companyIdParser </> s "Accounting" </> accountingYearParser)
         ]
 
+
+fragmentToPath : Url -> Url
+fragmentToPath url =
+    { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }

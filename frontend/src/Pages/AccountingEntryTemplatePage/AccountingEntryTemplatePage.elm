@@ -16,7 +16,7 @@ import Json.Decode as Decode
 import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel exposing (Model)
 import Pages.AccountingEntryTemplatePage.HelperUtil exposing (insertData, reset, updateAccountingEntryTemplate)
 import Pages.AccountingEntryTemplatePage.ParseAndUpdateUtil exposing (handleSelection, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
-import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown)
+import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, backToEntryPage)
 
 
 
@@ -25,28 +25,30 @@ import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDr
 
 main =
     Browser.element
-        { init = dummyInit
+        { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
         }
 
-defaultFlags : Flags
-defaultFlags =
-    { companyId = 1
-    , accountingYear = 1}
 
 
-dummyInit : () -> ( Model, Cmd Msg )
-dummyInit _ =
-    init defaultFlags
-
+--defaultFlags : Flags
+--defaultFlags =
+--    { companyId = 1
+--    , accountingYear =  Just 1}
+--
+--
+--dummyInit : () -> ( Model, Cmd Msg )
+--dummyInit _ =
+--    init defaultFlags
 -- MODEL
 
 
 type alias Flags =
-    { companyId :Int
-    , accountingYear : Int}
+    { companyId : Int
+    , accountingYear : Maybe Int
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -68,8 +70,10 @@ init flags =
       , buttonPressed = False
       , editViewActive = False
       }
-    , Cmd.batch [getAccounts flags.companyId
-                , getAccountingEntryTemplates flags.companyId]
+    , Cmd.batch
+        [ getAccounts flags.companyId
+        , getAccountingEntryTemplates flags.companyId
+        ]
     )
 
 
@@ -167,10 +171,10 @@ update msg model =
             ( model, deleteAccountingEntryTemplate model.aet )
 
         DropdownCreditChanged selectedCredit ->
-            ( handleSelection updateCredit {model | selectedCredit = selectedCredit} selectedCredit, Cmd.none )
+            ( handleSelection updateCredit { model | selectedCredit = selectedCredit } selectedCredit, Cmd.none )
 
         DropdownDebitChanged selectedDebit ->
-            ( handleSelection updateDebit {model | selectedDebit = selectedDebit} selectedDebit, Cmd.none )
+            ( handleSelection updateDebit { model | selectedDebit = selectedDebit } selectedDebit, Cmd.none )
 
         ActivateEditView aet ->
             ( insertData model aet, Cmd.none )
@@ -198,7 +202,7 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] [ button [ onClick BackToAccountingEntryPage ] [ text "Back" ] ]
+        [ backToEntryPage model.companyId model.accountingYear
         , p [] []
         , viewEditOrCreate model
         , p [] []
@@ -206,8 +210,6 @@ view model =
         , p [] []
         , div [] [ text model.error ]
         ]
-
-
 
 
 viewEditOrCreate : Model -> Html Msg
@@ -233,7 +235,6 @@ viewEditOrCreate model =
             , viewCreditInput model
             , viewDebitInput model
             , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
-
             , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , viewCreateButton model.aet (model.selectedCredit /= model.selectedDebit)
             ]
@@ -262,6 +263,7 @@ viewDebitInput model =
             model.selectedDebit
         ]
 
+
 dropdownOptionsCredit : List Account -> Dropdown.Options Msg
 dropdownOptionsCredit allAccounts =
     let
@@ -287,6 +289,7 @@ dropdownOptionsDebit allAccounts =
         , emptyItem = Just { value = "0", text = "no valid account selected", enabled = True }
     }
 
+
 viewCreateButton : AccountingEntryTemplate -> Bool -> Html Msg
 viewCreateButton aet validSelection =
     let
@@ -301,8 +304,6 @@ viewCreateButton aet validSelection =
 
     else
         button [ disabled (not (aetIsValid && validSelection)), onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
-
-
 
 
 viewUpdateButton : AccountingEntryTemplate -> Bool -> Html Msg
@@ -322,7 +323,6 @@ viewUpdateButton aet validSelection =
 
     else
         button [ disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
-
 
 
 viewAccountingEntryTemplateList : Model -> Html Msg
@@ -361,6 +361,7 @@ mkTableLine aet =
 
 
 -- COMMUNICATION
+
 
 getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
@@ -403,7 +404,3 @@ getAccounts companyId =
         { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
-
-
-
-
