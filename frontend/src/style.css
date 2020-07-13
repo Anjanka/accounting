@@ -1,4 +1,9 @@
-.button, .linkButton, .showButton, .saveButton, .deleteButton, .backButton, .cancelButton, .editButton {
+#navButtons{
+display: inline-block;
+align: left;
+}
+
+.button, .linkButton, .showButton, .saveButton, .deleteButton, .backButton, .cancelButton  {
   border: none;
   border-radius: 4px;
   color: white;
@@ -7,10 +12,20 @@
   font-size: 15px;
 }
 
+.editButton{
+             border: none;
+             border-radius: 3px;
+             color: white;
+             padding: 3px 10px;
+             text-align: center;
+             font-size: 13px;
+             }
+
 
 .backButton, .cancelButton {
   background-color: rgb(128, 128, 128);
 }
+
 
 .deleteButton {
   background-color: rgb(153, 0, 0);
@@ -29,4 +44,39 @@
   background-color: rgb(100, 100, 100);
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+
+
+
+
+table {
+  border-collapse: collapse;
+  font-size: 18px;
+ }
+
+tr, td{
+padding: 5px;}
+
+tr {
+height: 27px;
+vertical-align: middle;}
+
+tr:nth-child(even) {
+background-color: rgb(220, 220, 220)}
+
+tr:hover {
+background-color: rgb(200, 200, 200);
+}
+
+
+.buttonColumn{
+align: center }
+
+.numberColumn {
+text-align: right;
+}
+
+.textColumn {
+text-align: left;
 }

@@ -330,9 +330,9 @@ viewAccountingEntryTemplateList model =
     if model.buttonPressed then
         div []
             [ div [] [ button [class "showButton", onClick HideAllAccountingEntryTemplates ] [ text "Hide Accounting Entry Templates" ] ]
-            , div [ id "allAccountingEntryTemplates" ]
+            , div [  ]
                 [ table
-                    []
+                    [id "allAccountingEntryTemplates"]
                     (tr [ class "tableHeader" ]
                         [ th [] [ label [ for "description" ] [ text "description" ] ]
                         , th [] [ label [ for "credit" ] [ text "credit" ] ]
@@ -351,11 +351,11 @@ viewAccountingEntryTemplateList model =
 mkTableLine : AccountingEntryTemplate -> Html Msg
 mkTableLine aet =
     tr []
-        [ td [] [ text aet.description ]
-        , td [] [ text (String.fromInt aet.credit) ]
-        , td [] [ text (String.fromInt aet.debit) ]
-        , td [] [ text (AccountingEntryTemplateUtil.showAmount aet) ]
-        , button [ class "editButton", onClick (ActivateEditView aet) ] [ text "Edit" ]
+        [ td [class "textColumn"] [ text aet.description ]
+        , td [class "numberColumn"] [ text (String.fromInt aet.credit) ]
+        , td [class "numberColumn"] [ text (String.fromInt aet.debit) ]
+        , td [class "numberColumn"] [ text (AccountingEntryTemplateUtil.showAmount aet) ]
+        , td [class "buttonColumn"] [button [ class "editButton", onClick (ActivateEditView aet) ] [ text "Edit" ]]
         ]
 
 
