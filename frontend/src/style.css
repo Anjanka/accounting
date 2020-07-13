@@ -1,0 +1,32 @@
+.button, .linkButton, .showButton, .saveButton, .deleteButton, .backButton, .cancelButton, .editButton {
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 5px 18px;
+  text-align: center;
+  font-size: 15px;
+}
+
+
+.backButton, .cancelButton {
+  background-color: rgb(128, 128, 128);
+}
+
+.deleteButton {
+  background-color: rgb(153, 0, 0);
+}
+
+.showButton, .linkButton {
+  background-color: rgb(0, 76, 153);
+}
+
+.saveButton:enabled, .editButton:enabled {
+  background-color: rgb(0, 153, 76);
+
+}
+
+.saveButton:disabled, .editButton:disabled {
+  background-color: rgb(100, 100, 100);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
