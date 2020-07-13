@@ -3,7 +3,7 @@ module Pages.SharedViewComponents exposing (..)
 import Api.Types.Account exposing (Account)
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, div, form, input)
-import Html.Attributes exposing (action, type_, value)
+import Html.Attributes exposing (action, class, type_, value)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath, makeLinkYear)
 
 
@@ -35,7 +35,7 @@ backToEntryPage companyId yearCandidate =
     case yearCandidate of
         Just accountingYear ->
             linkButton (fragmentUrl [ makeLinkId companyId, makeLinkPath AccountingEntryPage, makeLinkYear accountingYear ])
-                [ value "Back" ]
+                [ class "backButton", value "Back" ]
                 []
 
         Nothing ->

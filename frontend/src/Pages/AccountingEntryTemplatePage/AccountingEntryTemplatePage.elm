@@ -224,8 +224,8 @@ viewEditOrCreate model =
             --  , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , div []
                 [ viewUpdateButton model.aet (model.selectedCredit /= model.selectedDebit)
-                , button [ onClick DeleteAccountingEntryTemplate ] [ text "Delete" ]
-                , button [ onClick DeactivateEditView ] [ text "Cancel" ]
+                , button [ class "deleteButton", onClick DeleteAccountingEntryTemplate ] [ text "Delete" ]
+                , button [ class "cancelButton", onClick DeactivateEditView ] [ text "Cancel" ]
                 ]
             ]
 
@@ -298,12 +298,12 @@ viewCreateButton aet validSelection =
     in
     if aetIsValid && not validSelection then
         div []
-            [ button [ disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+            [ button [ class "saveButton", disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
             , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
             ]
 
     else
-        button [ disabled (not (aetIsValid && validSelection)), onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+        button [ class "saveButton", disabled (not (aetIsValid && validSelection)), onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
 
 
 viewUpdateButton : AccountingEntryTemplate -> Bool -> Html Msg
@@ -315,21 +315,21 @@ viewUpdateButton aet validSelection =
     if aetIsValid && not validSelection then
         div []
             [ div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
-            , button [ disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
+            , button [ class "saveButton", disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
             ]
 
     else if aetIsValid && validSelection then
-        button [ disabled False, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
+        button [ class "saveButton", disabled False, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
 
     else
-        button [ disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
+        button [ class "saveButton", disabled True, onClick ReplaceAccountingEntryTemplate ] [ text "Save Changes" ]
 
 
 viewAccountingEntryTemplateList : Model -> Html Msg
 viewAccountingEntryTemplateList model =
     if model.buttonPressed then
         div []
-            [ div [] [ button [ onClick HideAllAccountingEntryTemplates ] [ text "Hide Accounting Entry Templates" ] ]
+            [ div [] [ button [class "showButton", onClick HideAllAccountingEntryTemplates ] [ text "Hide Accounting Entry Templates" ] ]
             , div [ id "allAccountingEntryTemplates" ]
                 [ table
                     []
@@ -345,7 +345,7 @@ viewAccountingEntryTemplateList model =
             ]
 
     else
-        div [] [ button [ onClick ShowAllAccountingEntryTemplates ] [ text "Manage Accounts" ] ]
+        div [] [ button [ class "showButton", onClick ShowAllAccountingEntryTemplates ] [ text "Manage Accounts" ] ]
 
 
 mkTableLine : AccountingEntryTemplate -> Html Msg
@@ -355,7 +355,7 @@ mkTableLine aet =
         , td [] [ text (String.fromInt aet.credit) ]
         , td [] [ text (String.fromInt aet.debit) ]
         , td [] [ text (AccountingEntryTemplateUtil.showAmount aet) ]
-        , button [ onClick (ActivateEditView aet) ] [ text "Edit" ]
+        , button [ class "editButton", onClick (ActivateEditView aet) ] [ text "Edit" ]
         ]
 
 
