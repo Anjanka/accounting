@@ -23,7 +23,7 @@ object AccountDAO {
 
   val daoCompanion: DAOCompanion[Account, Tables.AccountTable, AccountKey] = DAOCompanion(
     _table = Tables.accountTable,
-    _compare = (acc, accountKey) => acc.id === accountKey.id && acc.companyId === accountKey.companyID
+    _compare = (acc, accountKey) => acc.id === accountKey.id && acc.companyId === accountKey.companyId
   )
 
 }

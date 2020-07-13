@@ -36,11 +36,11 @@ class AccountingEntryController @Inject() (
       controllerComponents
     )
 
-  def find(companyID: Int, id: Int, accountingYear: Int): Action[AnyContent] =
-    controller.find(AccountingEntryKey(companyID = companyID, id = id, accountingYear = accountingYear))
+  def find(companyId: Int, id: Int, accountingYear: Int): Action[AnyContent] =
+    controller.find(AccountingEntryKey(companyId = companyId, id = id, accountingYear = accountingYear))
 
-  def findByYear(companyID: Int, accountingYear: Int): Action[AnyContent] =
-    controller.findPartial(CompanyYearKey(companyID, accountingYear))(AccountingEntryDAO.compareCompanyYearKey)
+  def findByYear(companyId: Int, accountingYear: Int): Action[AnyContent] =
+    controller.findPartial(CompanyYearKey(companyId, accountingYear))(AccountingEntryDAO.compareCompanyYearKey)
 
   def replace: Action[Json] =
     controller.replace

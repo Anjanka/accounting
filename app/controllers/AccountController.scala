@@ -24,8 +24,8 @@ class AccountController @Inject() (val controllerComponents: ControllerComponent
       controllerComponents
     )
 
-  def find(companyID: Int, id: Int): Action[AnyContent] =
-    controller.find(AccountKey(companyID = companyID, id = id))
+  def find(companyId: Int, id: Int): Action[AnyContent] =
+    controller.find(AccountKey(companyId = companyId, id = id))
 
   def insert: Action[Json] =
     controller.insert
@@ -36,7 +36,7 @@ class AccountController @Inject() (val controllerComponents: ControllerComponent
   def delete: Action[Json] =
     controller.delete
 
-  def findAll(companyID: Int): Action[AnyContent] =
-    controller.findPartial(companyID)(AccountDAO.compareByCompany)
+  def findAll(companyId: Int): Action[AnyContent] =
+    controller.findPartial(companyId)(AccountDAO.compareByCompany)
 
 }

@@ -9,6 +9,6 @@ case class Account(id: Int, title: String, companyId: Int)
 object Account {
 
   def keyOf(account: Account): AccountKey =
-    AccountKey(companyID = account.companyId, id = account.id)
+    AccountKey(companyId = account.companyId, id = account.id)
 
 }
