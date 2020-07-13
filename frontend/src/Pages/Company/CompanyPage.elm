@@ -8,7 +8,7 @@ import Api.Types.CompanyKey exposing (encoderCompanyKey)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, text)
-import Html.Attributes exposing (disabled, placeholder, style, value)
+import Html.Attributes exposing (class, disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -176,7 +176,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ linkButton (fragmentUrl [ makeLinkPath StartPage ])
-            [ value "Back" ]
+            [ class "backButton", value "Back" ]
             []
         , p [] []
         , div []
@@ -232,9 +232,9 @@ viewEdit model =
         , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
         , div [] [ text (CompanyUtil.show model.company) ]
         , div []
-            [ button [ onClick UpdateCompany ] [ text "Save Changes" ]
-            , button [ onClick DeleteCompany ] [ text "Delete Company" ]
-            , button [ onClick DeactivateEditView ] [ text "Cancel" ]
+            [ button [ class "saveButton", onClick UpdateCompany ] [ text "Save Changes" ]
+            , button [ class "deleteButton", onClick DeleteCompany ] [ text "Delete Company" ]
+            , button [ class "cancelButton", onClick DeactivateEditView ] [ text "Cancel" ]
             ]
         , div [] [ text model.error ]
         ]
@@ -243,20 +243,20 @@ viewEdit model =
 viewValidatedInput : Model -> Html Msg
 viewValidatedInput model =
     if CompanyUtil.isValid model.company then
-        button [ disabled False, onClick CreateCompany ] [ text "Create new Company" ]
+        button [ class "saveButton", disabled False, onClick CreateCompany ] [ text "Create new Company" ]
 
     else
-        button [ disabled True, onClick CreateCompany ] [ text "Create new Company" ]
+        button [ class "saveButton", disabled True, onClick CreateCompany ] [ text "Create new Company" ]
 
 
 viewEditButton : Maybe String -> Html Msg
 viewEditButton selectedValue =
     case selectedValue of
         Just _ ->
-            button [ disabled False, onClick ActivateEditView ] [ text "Edit" ]
+            button [ class "editButton", disabled False, onClick ActivateEditView ] [ text "Edit" ]
 
         Nothing ->
-            button [ disabled True, onClick ActivateEditView ] [ text "Edit" ]
+            button [ class "editButton", disabled True, onClick ActivateEditView ] [ text "Edit" ]
 
 
 companyForDropdown : Company -> Item

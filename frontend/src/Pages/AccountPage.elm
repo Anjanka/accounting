@@ -203,11 +203,11 @@ viewEditOrCreate model =
             , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
             , div []
                 [ button
-                    [ onClick ReplaceAccount
+                    [ class "saveButton",  onClick ReplaceAccount
                     ]
                     [ text "Save Changes" ]
-                , button [ onClick DeleteAccount ] [ text "Delete" ]
-                , button [ onClick DeactivateEditView ] [ text "Cancel" ]
+                , button [ class "deleteButton", onClick DeleteAccount ] [ text "Delete" ]
+                , button [ class "cancelButton", onClick DeactivateEditView ] [ text "Cancel" ]
                 ]
             ]
 
@@ -232,17 +232,17 @@ viewValidation error =
 viewCreateButton : Model -> Html Msg
 viewCreateButton model =
     if not (String.isEmpty model.validationFeedback) || String.isEmpty model.account.title then
-        button [ disabled True, onClick CreateAccount ] [ text "Create new Account" ]
+        button [ class "saveButton", disabled True, onClick CreateAccount ] [ text "Create new Account" ]
 
     else
-        button [ disabled False, onClick CreateAccount ] [ text "Create new Account" ]
+        button [ class "saveButton", disabled False, onClick CreateAccount ] [ text "Create new Account" ]
 
 
 viewAccountList : Model -> Html Msg
 viewAccountList model =
     if model.buttonPressed then
         div []
-            [ div [] [ button [ onClick HideAllAccounts ] [ text "Hide Accounts" ] ]
+            [ div [] [ button [ class "showButton", onClick HideAllAccounts ] [ text "Hide Accounts" ] ]
             , div [ id "allAccounts" ]
                 [ table
                     []
@@ -256,7 +256,7 @@ viewAccountList model =
             ]
 
     else
-        div [] [ button [ onClick ShowAllAccounts ] [ text "Manage Accounts" ] ]
+        div [] [ button [ class "showButton", onClick ShowAllAccounts ] [ text "Manage Accounts" ] ]
 
 
 mkTableLine : Account -> Html Msg
@@ -264,7 +264,7 @@ mkTableLine account =
     tr []
         [ td [] [ text (String.fromInt account.id) ]
         , td [] [ text account.title ]
-        , button [ onClick (ActivateEditView account) ] [ text "Edit" ]
+        , button [ class "editButton", onClick (ActivateEditView account) ] [ text "Edit" ]
         ]
 
 

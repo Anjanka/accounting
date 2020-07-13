@@ -231,14 +231,14 @@ view : Model -> Html Msg
 view model =
     div []
         [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage ])
-            [ value "Manage Accounts" ]
+            [ class "linkButton", id "accountPageButton", value "Manage Accounts" ]
             []
         , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage ])
-            [ value "Manage Templates" ]
+            [ class "linkButton",id "templatePageButton", value "Manage Templates" ]
             []
         , p [] []
         , viewInputArea model
-        , div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
+        --, div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
         , viewValidatedInput model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
         , div [] [ text model.error ]
         , p [] []
@@ -279,14 +279,14 @@ viewValidatedInput accountingEntry editActive validSelection =
     if editActive then
         let
             deleteButton =
-                button [ onClick DeleteAccountingEntry ] [ text "Delete" ]
+                button [ class "deleteButton", onClick DeleteAccountingEntry ] [ text "Delete" ]
 
             cancelButton =
-                button [ onClick LeaveEditView ] [ text "Cancel" ]
+                button [ class "cancelButton", onClick LeaveEditView ] [ text "Cancel" ]
 
             makeSaveButton : Bool -> Html Msg
             makeSaveButton isDisabled =
-                button [ disabled isDisabled, onClick ReplaceAccountingEntry ] [ text "Save Changes" ]
+                button [ class "saveButton", disabled isDisabled, onClick ReplaceAccountingEntry ] [ text "Save Changes" ]
         in
         if not validSelection && validEntry then
             div []
@@ -314,7 +314,7 @@ viewValidatedInput accountingEntry editActive validSelection =
         let
             makeCreateButton : Bool -> Html Msg
             makeCreateButton isDisabled =
-                button [ disabled isDisabled, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
+                button [ class "saveButton", disabled isDisabled, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
         in
         if not validSelection && validEntry then
             div []
@@ -389,7 +389,7 @@ mkTableLine editInactive accountingEntry =
         , td [] [ text (AccountingEntryUtil.showAmount accountingEntry) ]
         , td [] [ text (String.fromInt accountingEntry.credit) ]
         , td [] [ text (String.fromInt accountingEntry.debit) ]
-        , button [ disabled editInactive, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
+        , button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
         ]
 
 

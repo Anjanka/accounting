@@ -5,7 +5,7 @@ import Api.Types.Company exposing (Company, decoderCompany)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, text)
-import Html.Attributes exposing (disabled, value)
+import Html.Attributes exposing (class, disabled, value)
 import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -189,9 +189,9 @@ viewCompanySelection model =
             ]
         , companyButton model.selectedCompany
         , linkButton (fragmentUrl [ makeLinkPath CompanyPage ])
-            [ value "Manage Companies" ]
+            [class "linkButton", value "Manage Companies" ]
             []
-        , button [ onClick BackToLanguageSelection ] [ text "Back" ]
+        , button [ class "backButton", onClick BackToLanguageSelection ] [ text "Back" ]
         , div [] [ text model.error ]
         ]
 
@@ -206,25 +206,25 @@ viewAccountingYearSelection model =
                 model.selectedYear
             ]
         , yearButton model
-        , button [ onClick BackToCompanySelection ] [ text "Back" ]
+        , button [ class "backButton", onClick BackToCompanySelection ] [ text "Back" ]
         , div [] [ text model.error ]
         ]
 
 
 languageButton : Maybe String -> Html Msg
 languageButton selectedValue =
-    button [ disabled (isNothing selectedValue), onClick ToCompanySelection ] [ text "Ok" ]
+    button [ class "saveButton", disabled (isNothing selectedValue), onClick ToCompanySelection ] [ text "Ok" ]
 
 
 companyButton : Maybe String -> Html Msg
 companyButton selectedValue =
-    button [ disabled (isNothing selectedValue), onClick ToYearSelection ] [ text "Ok" ]
+    button [ class "saveButton", disabled (isNothing selectedValue), onClick ToYearSelection ] [ text "Ok" ]
 
 
 yearButton : Model -> Html Msg
 yearButton model =
     linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear ])
-        [ disabled (isNothing model.selectedYear), value "Ok" ]
+        [ class "saveButton", disabled (isNothing model.selectedYear), value "Ok" ]
         []
 
 
