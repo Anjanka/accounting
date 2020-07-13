@@ -10,8 +10,8 @@ import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
 import Browser
 import Dropdown exposing (Item)
-import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
-import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
+import Html exposing (Html, button, div, input, label, li, p, table, td, text, th, tr, ul)
+import Html.Attributes exposing (class, disabled, for, href, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -330,15 +330,15 @@ viewEntryList : Model -> Html Msg
 viewEntryList model =
     div [ id "allAccountingEntries" ]
         [ table
-            []
+            [id "allAccountingEntriesTable"]
             (tr [ class "tableHeader" ]
-                [ th [] [ label [ for "id" ] [ text "id" ] ]
-                , th [] [ label [ for "receipt number" ] [ text "receipt number" ] ]
-                , th [] [ label [ for "booking date" ] [ text "booking date" ] ]
-                , th [] [ label [ for "description" ] [ text "description" ] ]
-                , th [] [ label [ for "amount" ] [ text "amount" ] ]
-                , th [] [ label [ for "credit account" ] [ text "credit account" ] ]
-                , th [] [ label [ for "debit account" ] [ text "debit account" ] ]
+                [ th [class "numberColumn"] [ label [ for "id" ] [ text "id" ] ]
+                , th [class "numberColumn"] [ label [ for "receipt number" ] [ text "no." ] ]
+                , th [class "numberColumn"] [ label [ for "booking date" ] [ text "booking date" ] ]
+                , th [class "textColumn"] [ label [ for "description" ] [ text "description" ] ]
+                , th [class "numberColumn"] [ label [ for "amount" ] [ text "amount" ] ]
+                , th [class "numberColumn"] [ label [ for "credit account" ] [ text "credit" ] ]
+                , th [class "numberColumn"] [ label [ for "debit account" ] [ text "debit" ] ]
                 ]
                 :: List.map (mkTableLine model.editActive) model.allAccountingEntries
             )
@@ -382,14 +382,14 @@ viewTemplateSelection model =
 mkTableLine : Bool -> AccountingEntry -> Html Msg
 mkTableLine editInactive accountingEntry =
     tr []
-        [ td [] [ text (String.fromInt accountingEntry.id) ]
-        , td [] [ text accountingEntry.receiptNumber ]
-        , td [] [ text (AccountingEntryUtil.stringFromDate accountingEntry.bookingDate) ]
-        , td [] [ text accountingEntry.description ]
-        , td [] [ text (AccountingEntryUtil.showAmount accountingEntry) ]
-        , td [] [ text (String.fromInt accountingEntry.credit) ]
-        , td [] [ text (String.fromInt accountingEntry.debit) ]
-        , button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]
+        [ td [class "numberColumn"] [ text (String.fromInt accountingEntry.id) ]
+        , td [class "numberColumn"] [ text accountingEntry.receiptNumber ]
+        , td [class "numberColumn"] [ text (AccountingEntryUtil.stringFromDate accountingEntry.bookingDate) ]
+        , td [class "textColumn"] [ text accountingEntry.description ]
+        , td [class "numberColumn"] [ text (AccountingEntryUtil.showAmount accountingEntry) ]
+        , td [class "numberColumn"] [ text (String.fromInt accountingEntry.credit) ]
+        , td [class "numberColumn"] [ text (String.fromInt accountingEntry.debit) ]
+        , td [class "buttonColumn"] [button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]]
         ]
 
 

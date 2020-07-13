@@ -262,9 +262,9 @@ viewAccountList model =
 mkTableLine : Account -> Html Msg
 mkTableLine account =
     tr []
-        [ td [] [ text (String.fromInt account.id) ]
-        , td [] [ text account.title ]
-        , button [ class "editButton", onClick (ActivateEditView account) ] [ text "Edit" ]
+        [ td [class "numberColumn"] [ text (String.fromInt account.id) ]
+        , td [class "textColumn"] [ text account.title ]
+        , td [class "buttonColumn"] [button [ class "editButton", onClick (ActivateEditView account) ] [ text "Edit" ]]
         ]
 
 
