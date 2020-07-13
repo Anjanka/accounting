@@ -474,5 +474,5 @@ deleteAccountingEntry accountingEntry =
     Http.post
         { url = "http://localhost:9000/accountingEntry/delete"
         , expect = HttpUtil.expectWhatever GotResponseDelete
-        , body = Http.jsonBody (encoderAccountingEntryKey { companyID = accountingEntry.companyId, id = accountingEntry.id, accountingYear = accountingEntry.accountingYear })
+        , body = Http.jsonBody (encoderAccountingEntryKey { companyId = accountingEntry.companyId, id = accountingEntry.id, accountingYear = accountingEntry.accountingYear })
         }

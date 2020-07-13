@@ -303,7 +303,7 @@ deleteAccount account =
     Http.post
         { url = "http://localhost:9000/account/delete "
         , expect = HttpUtil.expectWhatever GotResponseDelete
-        , body = Http.jsonBody (encoderAccountKey { id = account.id, companyID = account.companyId })
+        , body = Http.jsonBody (encoderAccountKey { id = account.id, companyId = account.companyId })
         }
 
 
