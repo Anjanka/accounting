@@ -50,7 +50,7 @@ class AccountingEntryTemplateController @Inject() (
   def delete: Action[Json] =
     controller.delete
 
-  def findAll(companyID: Int): Action[AnyContent] =
-    controller.findPartial(companyID)(AccountingEntryTemplateDAO.compareByCompany)
+  def findAll(companyId: Int): Action[AnyContent] =
+    controller.findPartial(companyId)(AccountingEntryTemplateDAO.compareByCompany)
 
 }

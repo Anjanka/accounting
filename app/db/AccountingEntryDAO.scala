@@ -39,7 +39,7 @@ object AccountingEntryDAO {
   val daoCompanion: DAOCompanion[AccountingEntry, Tables.AccountingEntryTable, AccountingEntryKey] = DAOCompanion(
     _table = Tables.accountingEntryTable,
     _compare = (entry, key) =>
-      entry.companyId === key.companyID &&
+      entry.companyId === key.companyId &&
         entry.id === key.id &&
         entry.accountingYear === key.accountingYear
   )
@@ -58,12 +58,12 @@ object AccountingEntryDAO {
       ec: ExecutionContext
   ): DBIO[Unit] = {
     val accountingEntryKey1 = AccountingEntryKey(
-      companyID = companyYearKey.companyId,
+      companyId = companyYearKey.companyId,
       accountingYear = companyYearKey.accountingYear,
       id = accountingEntryId1
     )
     val accountingEntryKey2 = AccountingEntryKey(
-      companyID = companyYearKey.companyId,
+      companyId = companyYearKey.companyId,
       accountingYear = companyYearKey.accountingYear,
       id = accountingEntryId2
     )
@@ -89,7 +89,7 @@ object AccountingEntryDAO {
       lowerIds <-
         daoCompanion.table
           .filter(ae =>
-            ae.companyId === accountingEntryKey.companyID &&
+            ae.companyId === accountingEntryKey.companyId &&
               ae.accountingYear === accountingEntryKey.accountingYear && ae.id < accountingEntryKey.id
           )
           .map(_.id)
@@ -99,7 +99,7 @@ object AccountingEntryDAO {
         else
           swapAction(
             companyYearKey = CompanyYearKey(
-              companyId = accountingEntryKey.companyID,
+              companyId = accountingEntryKey.companyId,
               accountingYear = accountingEntryKey.accountingYear
             ),
             accountingEntryId1 = accountingEntryKey.id,
@@ -114,7 +114,7 @@ object AccountingEntryDAO {
       lowerIds <-
         daoCompanion.table
           .filter(ae =>
-            ae.companyId === accountingEntryKey.companyID &&
+            ae.companyId === accountingEntryKey.companyId &&
               ae.accountingYear === accountingEntryKey.accountingYear && ae.id > accountingEntryKey.id
           )
           .map(_.id)
@@ -124,7 +124,7 @@ object AccountingEntryDAO {
         else
           swapAction(
             companyYearKey = CompanyYearKey(
-              companyId = accountingEntryKey.companyID,
+              companyId = accountingEntryKey.companyId,
               accountingYear = accountingEntryKey.accountingYear
             ),
             accountingEntryId1 = accountingEntryKey.id,
