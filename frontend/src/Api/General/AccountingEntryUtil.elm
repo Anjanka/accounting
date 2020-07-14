@@ -128,6 +128,19 @@ isValid accountingEntry =
         /= 0
         && (accountingEntry.amountWhole /= 0 || accountingEntry.amountChange /= 0)
 
+isEmpty : AccountingEntry -> Bool
+isEmpty accountingEntry =
+    accountingEntry.companyId == 0
+    && accountingEntry.id == 0
+    && accountingEntry.accountingYear == 0
+    && accountingEntry.bookingDate == { year = 0, month = 0, day = 0 }
+    && accountingEntry.receiptNumber == ""
+    && accountingEntry.description == ""
+    && accountingEntry.credit == 0
+    && accountingEntry.debit == 0
+    && accountingEntry.amountWhole == 0
+    && accountingEntry.amountChange == 0
+
 
 getCreationParams : AccountingEntry -> AccountingEntryCreationParams
 getCreationParams accountingEntry =
