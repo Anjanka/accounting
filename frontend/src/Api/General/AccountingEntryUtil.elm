@@ -3,6 +3,7 @@ module Api.General.AccountingEntryUtil exposing (..)
 import Api.General.DateUtil as DateUtil
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams)
+import Api.Types.AccountingEntryKey exposing (AccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.Date exposing (Date)
 
@@ -21,6 +22,12 @@ empty =
     , amountChange = 0
     }
 
+emptyWith : {companyId : Int, accountingYear : Int} -> AccountingEntry
+emptyWith params =
+    {empty
+    |companyId = params.companyId
+    , accountingYear = params.accountingYear
+    , bookingDate = { year = params.accountingYear, month = 0, day = 0 }}
 
 updateCompanyId : AccountingEntry -> Int -> AccountingEntry
 updateCompanyId accountingEntry companyId =
@@ -121,6 +128,19 @@ isValid accountingEntry =
         /= 0
         && (accountingEntry.amountWhole /= 0 || accountingEntry.amountChange /= 0)
 
+isEmpty : AccountingEntry -> Bool
+isEmpty accountingEntry =
+    accountingEntry.companyId == 0
+    && accountingEntry.id == 0
+    && accountingEntry.accountingYear == 0
+    && accountingEntry.bookingDate == { year = 0, month = 0, day = 0 }
+    && accountingEntry.receiptNumber == ""
+    && accountingEntry.description == ""
+    && accountingEntry.credit == 0
+    && accountingEntry.debit == 0
+    && accountingEntry.amountWhole == 0
+    && accountingEntry.amountChange == 0
+
 
 getCreationParams : AccountingEntry -> AccountingEntryCreationParams
 getCreationParams accountingEntry =
@@ -134,3 +154,7 @@ getCreationParams accountingEntry =
     , amountWhole = accountingEntry.amountWhole
     , amountChange = accountingEntry.amountChange
     }
+
+getKey : AccountingEntry -> AccountingEntryKey
+getKey accountingEntry =
+    {companyId = accountingEntry.companyId, accountingYear = accountingEntry.accountingYear, id = accountingEntry.id}

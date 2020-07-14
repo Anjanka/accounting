@@ -1,21 +1,13 @@
 module Pages.FromInput exposing (..)
 
-
-intParser : String -> Result String Int
-intParser =
-    String.toInt >> Maybe.map Ok >> Maybe.withDefault (Err "Not an integer")
-
-
-intPartial : String -> Bool
-intPartial text =
-    text == "-"
+import Basics.Extra exposing (flip)
 
 
 type alias FromInput a =
     { value : a
-    , defaultValue : a
+    , ifEmptyValue : a
     , text : String
-    , parser : String -> Result String a
+    , parse : String -> Result String a
     , partial : String -> Bool
     }
 
@@ -30,14 +22,25 @@ updateValue intFromInput value =
     { intFromInput | value = value }
 
 
-mkFromInput : a -> a -> (String -> Result String a) -> (String -> Bool) -> FromInput a
-mkFromInput defaultValue value parser partial =
-    { value = value, defaultValue = defaultValue, text = "", parser = parser, partial = partial }
+emptyText :
+    { ifEmptyValue : a
+    , value : a
+    , parse : String -> Result String a
+    , isPartial : String -> Bool
+    }
+    -> FromInput a
+emptyText params =
+    { value = params.value
+    , ifEmptyValue = params.ifEmptyValue
+    , text = ""
+    , parse = params.parse
+    , partial = params.isPartial
+    }
 
 
 isValid : FromInput a -> Bool
 isValid fromInput =
-    case fromInput.parser fromInput.text of
+    case fromInput.parse fromInput.text of
         Ok value ->
             value == fromInput.value
 
@@ -51,17 +54,16 @@ lift ui fromInput text model =
         possiblyValid =
             if String.isEmpty text || fromInput.partial text then
                 fromInput
-                    |> (\ifi -> updateValue ifi fromInput.value)
-                    |> (\ifi -> updateText ifi text)
+                    |> flip updateValue fromInput.ifEmptyValue
+                    |> flip updateText text
 
             else
                 fromInput
     in
-    case fromInput.parser text of
+    case fromInput.parse text of
         Ok value ->
             possiblyValid
-                |> (\ifi -> updateText ifi text)
-                |> (\ifi -> updateValue ifi value)
+                |> flip updateValue value
                 |> ui model
 
         Err _ ->

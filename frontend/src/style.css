@@ -1,0 +1,92 @@
+#navButtons{
+display: inline-block;
+align: left;
+}
+
+.button, .linkButton, .showButton, .saveButton, .deleteButton, .backButton, .cancelButton  {
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 5px 18px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.editButton{
+             border: none;
+             border-radius: 3px;
+             color: white;
+             padding: 3px 10px;
+             text-align: center;
+             font-size: 13px;
+             }
+
+.arrowButton{
+              border: none;
+              border-radius: 3px;
+              color: black;
+              background-color: rgb(255,255,153);
+              padding: 1px 5px;
+              text-align: center;
+              font-size: 15px;
+              }
+
+
+.backButton, .cancelButton {
+  background-color: rgb(128, 128, 128);
+}
+
+
+.deleteButton {
+  background-color: rgb(153, 0, 0);
+}
+
+.showButton, .linkButton {
+  background-color: rgb(0, 76, 153);
+}
+
+.saveButton:enabled, .editButton:enabled {
+  background-color: rgb(0, 153, 76);
+
+}
+
+.saveButton:disabled, .editButton:disabled {
+  background-color: rgb(100, 100, 100);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+
+
+
+table {
+  border-collapse: collapse;
+  font-size: 18px;
+ }
+
+tr, td{
+padding: 5px;}
+
+tr {
+height: 27px;
+vertical-align: middle;}
+
+tr:nth-child(even) {
+background-color: rgb(220, 220, 220)}
+
+tr:hover {
+background-color: rgb(200, 200, 200);
+}
+
+
+.buttonColumn, .arrowColumn{
+align: center }
+
+.numberColumn {
+text-align: right;
+}
+
+.textColumn {
+text-align: left;
+}

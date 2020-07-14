@@ -23,7 +23,7 @@ case class AccountingEntry(
 object AccountingEntry {
   def keyOf(accountingEntry: AccountingEntry): AccountingEntryKey =
     AccountingEntryKey(
-      companyID = accountingEntry.companyId,
+      companyId = accountingEntry.companyId,
       id = accountingEntry.id,
       accountingYear = accountingEntry.accountingYear
     )
