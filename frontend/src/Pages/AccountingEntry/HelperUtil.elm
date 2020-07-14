@@ -160,3 +160,34 @@ showBalance amount =
 
     else
         "0"
+
+
+
+
+unicodeToString : Int -> String
+unicodeToString symbol =
+  String.fromChar (Char.fromCode symbol)
+
+type alias EntryWithListPosition =
+    { position : Position, accountingEntry : AccountingEntry }
+
+type Position = OnlyOne
+              | First
+              | Middle
+              | Last
+
+
+getListWithPosition : List AccountingEntry -> List EntryWithListPosition
+getListWithPosition allAccountingEntries =
+    if List.length allAccountingEntries <= 1 then
+           case List.head allAccountingEntries of
+               Just first ->
+                   [{position = OnlyOne, accountingEntry = first}]
+               Nothing -> []
+    else
+      List.indexedMap (\i ae -> if i == 0 then
+                                          {position = First, accountingEntry = ae}
+                                 else if i == List.length allAccountingEntries - 1 then
+                                      {position = Last, accountingEntry = ae}
+                                 else {position = Middle, accountingEntry = ae})
+                      allAccountingEntries
