@@ -19,8 +19,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick"     %% "slick"                 % "3.3.2",
   "com.typesafe.slick"     %% "slick-codegen"         % "3.3.2",
   "com.typesafe.slick"     %% "slick-hikaricp"        % "3.3.2",
-  "org.postgresql"         % "postgresql"             % "9.4-1206-jdbc42",
-  "org.slf4j"              % "slf4j-nop"              % "1.6.4",
+  "org.postgresql"          % "postgresql"            % "9.4-1206-jdbc42",
+  "org.slf4j"               % "slf4j-nop"             % "1.6.4",
   "io.circe"               %% "circe-core"            % circeVersion,
   "io.circe"               %% "circe-generic"         % circeVersion,
   "io.circe"               %% "circe-parser"          % circeVersion,
@@ -32,7 +32,8 @@ libraryDependencies ++= Seq(
   "com.davegurnell"        %% "bridges"               % "0.21.0",
   "com.github.pathikrit"   %% "better-files"          % "3.9.1",
   "org.scalameta"          %% "scalameta"             % "4.3.13",
-  "org.scalameta"          %% "scalafmt-dynamic"      % "2.6.1"
+  "org.scalameta"          %% "scalafmt-dynamic"      % "2.6.1",
+  "org.apache.xmlgraphics"  % "fop"                   % "0.93"
 )
 
 lazy val elmGenerate = Command.command("elmGenerate") { state =>
