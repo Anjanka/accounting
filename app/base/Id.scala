@@ -9,10 +9,10 @@ object Id {
   case class AccountingEntryTemplateKey(id: Int)
 
   @JsonCodec
-  case class AccountingEntryKey(companyID: Int, id: Int, accountingYear: Int)
+  case class AccountingEntryKey(companyId: Int, id: Int, accountingYear: Int)
 
   @JsonCodec
-  case class AccountKey(companyID: Int, id: Int)
+  case class AccountKey(companyId: Int, id: Int)
 
   @JsonCodec
   case class CompanyKey(id: Int)

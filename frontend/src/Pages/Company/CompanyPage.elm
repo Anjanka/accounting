@@ -1,4 +1,4 @@
-module Pages.Company.CompanyPage exposing (..)
+module Pages.Company.CompanyPage exposing (Msg, init, update, view)
 
 import Api.General.CompanyUtil as CompanyUtil
 import Api.General.HttpUtil as HttpUtil
@@ -8,12 +8,14 @@ import Api.Types.CompanyKey exposing (encoderCompanyKey)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, text)
-import Html.Attributes exposing (disabled, placeholder, style, value)
+import Html.Attributes exposing (class, disabled, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.Company.CompanyPageModel exposing (Model)
 import Pages.Company.ParseAndUpdateUtil exposing (insertData, reset, updateAddress)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkPath)
+import Pages.SharedViewComponents exposing (linkButton)
 
 
 
@@ -35,7 +37,6 @@ main =
 
 type alias Flags =
     ()
-
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -98,7 +99,7 @@ update msg model =
 
         GotResponseCreateOrUpdate result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getCompanies )
 
                 Err error ->
@@ -106,7 +107,7 @@ update msg model =
 
         GotResponseDelete result ->
             case result of
-                Ok value ->
+                Ok _ ->
                     ( reset model, getCompanies )
 
                 Err error ->
@@ -163,7 +164,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -174,10 +175,10 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ div []
-            [ button [ onClick BackToStartPage ] [ text "Back" ]
-            , p [] []
-            ]
+        [ linkButton (fragmentUrl [ makeLinkPath StartPage ])
+            [ class "backButton", value "Back" ]
+            []
+        , p [] []
         , div []
             [ if model.editViewActivated then
                 viewEdit model
@@ -231,9 +232,9 @@ viewEdit model =
         , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
         , div [] [ text (CompanyUtil.show model.company) ]
         , div []
-            [ button [ onClick UpdateCompany ] [ text "Save Changes" ]
-            , button [ onClick DeleteCompany ] [ text "Delete Company" ]
-            , button [ onClick DeactivateEditView ] [ text "Cancel" ]
+            [ button [ class "saveButton", onClick UpdateCompany ] [ text "Save Changes" ]
+            , button [ class "deleteButton", onClick DeleteCompany ] [ text "Delete Company" ]
+            , button [ class "cancelButton", onClick DeactivateEditView ] [ text "Cancel" ]
             ]
         , div [] [ text model.error ]
         ]
@@ -242,20 +243,20 @@ viewEdit model =
 viewValidatedInput : Model -> Html Msg
 viewValidatedInput model =
     if CompanyUtil.isValid model.company then
-        button [ disabled False, onClick CreateCompany ] [ text "Create new Company" ]
+        button [ class "saveButton", disabled False, onClick CreateCompany ] [ text "Create new Company" ]
 
     else
-        button [ disabled True, onClick CreateCompany ] [ text "Create new Company" ]
+        button [ class "saveButton", disabled True, onClick CreateCompany ] [ text "Create new Company" ]
 
 
 viewEditButton : Maybe String -> Html Msg
 viewEditButton selectedValue =
     case selectedValue of
-        Just value ->
-            button [ disabled False, onClick ActivateEditView ] [ text "Edit" ]
+        Just _ ->
+            button [ class "editButton", disabled False, onClick ActivateEditView ] [ text "Edit" ]
 
         Nothing ->
-            button [ disabled True, onClick ActivateEditView ] [ text "Edit" ]
+            button [ class "editButton", disabled True, onClick ActivateEditView ] [ text "Edit" ]
 
 
 companyForDropdown : Company -> Item
@@ -265,7 +266,6 @@ companyForDropdown company =
             String.fromInt company.id
     in
     { value = id, text = id ++ " - " ++ company.name, enabled = True }
-
 
 
 dropdownOptions : List Company -> Dropdown.Options Msg
@@ -279,6 +279,7 @@ dropdownOptions allCompanies =
             List.sortBy .value (List.map companyForDropdown allCompanies)
         , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
     }
+
 
 
 --COMMUNICATION

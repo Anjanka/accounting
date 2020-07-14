@@ -1,10 +1,12 @@
 module Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel exposing (..)
 
-
 import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
+
+
 type alias Model =
     { companyId : Int
+    , accountingYear : Maybe Int
     , contentDescription : String
     , contentDebitID : String
     , contentCreditID : String

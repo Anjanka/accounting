@@ -1,15 +1,17 @@
-module Pages.StartPage exposing (..)
+module Pages.StartPage exposing (Model, Msg, init, update, view)
 
 import Api.General.HttpUtil as HttpUtil
 import Api.Types.Company exposing (Company, decoderCompany)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, text)
-import Html.Attributes exposing (disabled, value)
+import Html.Attributes exposing (class, disabled, value)
 import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List exposing (range)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath, makeLinkYear)
+import Pages.SharedViewComponents exposing (linkButton)
 
 
 
@@ -31,10 +33,9 @@ main =
 
 type alias Model =
     { language : String
-    , companyID : Int
+    , companyId : Int
     , accountingYear : Int
-    , companyWasSelected : Bool
-    , languageWasSelected : Bool
+    , selectionState : State
     , allCompanies : List Company
     , error : String
     , validationFeedback : String
@@ -44,6 +45,12 @@ type alias Model =
     }
 
 
+type State
+    = SelectLanguage
+    | SelectCompany
+    | SelectYear
+
+
 type alias Flags =
     ()
 
@@ -51,10 +58,9 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { language = ""
-      , companyID = 0
+      , companyId = 0
       , accountingYear = 0
-      , companyWasSelected = False
-      , languageWasSelected = False
+      , selectionState = SelectLanguage
       , allCompanies = []
       , error = ""
       , validationFeedback = ""
@@ -106,19 +112,24 @@ update msg model =
             ( model, Cmd.none )
 
         ToCompanySelection ->
-            ( { model | languageWasSelected = True }, Cmd.none )
+            ( { model | selectionState = SelectCompany }, Cmd.none )
 
         ToYearSelection ->
-            ( { model | companyWasSelected = True }, Cmd.none )
+            ( { model | selectionState = SelectYear }, Cmd.none )
 
         BackToLanguageSelection ->
-            ( { model | language = "", languageWasSelected = False, selectedLanguage = Nothing, selectedCompany = Nothing }, Cmd.none )
+            ( { model | language = "", selectionState = SelectLanguage, selectedLanguage = Nothing, selectedCompany = Nothing }, Cmd.none )
 
         BackToCompanySelection ->
-            ( { model | accountingYear = 0, companyWasSelected = False, selectedCompany = Nothing, selectedYear = Nothing }, Cmd.none )
+            ( { model | accountingYear = 0, selectionState = SelectCompany, selectedCompany = Nothing, selectedYear = Nothing }, Cmd.none )
 
         LanguageDropdownChanged selectedValue ->
-            ( updateLanguage model selectedValue, Cmd.none )
+            let
+                newModel =
+                    updateSelectedLanguage model selectedValue
+                        |> (\md -> foldMaybe md (updateLanguage md) selectedValue)
+            in
+            ( newModel, Cmd.none )
 
         CompanyDropdownChanged selectedValue ->
             ( updateCompany model selectedValue, Cmd.none )
@@ -132,7 +143,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -142,14 +153,15 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    if model.companyWasSelected && model.languageWasSelected then
-        viewAccountingYearSelection model
+    case model.selectionState of
+        SelectLanguage ->
+            viewLanguageSelection model
 
-    else if model.languageWasSelected then
-        viewCompanySelection model
+        SelectCompany ->
+            viewCompanySelection model
 
-    else
-        viewLanguageSelection model
+        SelectYear ->
+            viewAccountingYearSelection model
 
 
 viewLanguageSelection : Model -> Html Msg
@@ -176,8 +188,10 @@ viewCompanySelection model =
                 model.selectedCompany
             ]
         , companyButton model.selectedCompany
-        , div [] [ button [ onClick ManageCompanies ] [ text "Manage Companies" ] ]
-        , button [ onClick BackToLanguageSelection ] [ text "Back" ]
+        , linkButton (fragmentUrl [ makeLinkPath CompanyPage ])
+            [class "linkButton", value "Manage Companies" ]
+            []
+        , button [ class "backButton", onClick BackToLanguageSelection ] [ text "Back" ]
         , div [] [ text model.error ]
         ]
 
@@ -191,42 +205,37 @@ viewAccountingYearSelection model =
                 []
                 model.selectedYear
             ]
-        , yearButton model.selectedYear
-        , button [ onClick BackToCompanySelection ] [ text "Back" ]
+        , yearButton model
+        , button [ class "backButton", onClick BackToCompanySelection ] [ text "Back" ]
         , div [] [ text model.error ]
         ]
 
 
 languageButton : Maybe String -> Html Msg
 languageButton selectedValue =
-    case selectedValue of
-        Just value ->
-            button [ disabled False, onClick ToCompanySelection ] [ text "Ok" ]
-
-        Nothing ->
-            button [ disabled True, onClick ToCompanySelection ] [ text "Ok" ]
+    button [ class "saveButton", disabled (isNothing selectedValue), onClick ToCompanySelection ] [ text "Ok" ]
 
 
 companyButton : Maybe String -> Html Msg
 companyButton selectedValue =
-    case selectedValue of
-        Just value ->
-            button [ disabled False, onClick ToYearSelection ] [ text "Ok" ]
+    button [ class "saveButton", disabled (isNothing selectedValue), onClick ToYearSelection ] [ text "Ok" ]
+
+
+yearButton : Model -> Html Msg
+yearButton model =
+    linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear ])
+        [ class "saveButton", disabled (isNothing model.selectedYear), value "Ok" ]
+        []
+
+
+isNothing : Maybe a -> Bool
+isNothing maybe =
+    case maybe of
+        Just _ ->
+            False
 
         Nothing ->
-            button [ disabled True, onClick ToYearSelection ] [ text "Ok" ]
-
-
-yearButton : Maybe String -> Html Msg
-yearButton selectedValue =
-    case selectedValue of
-        Just value ->
-            button [ disabled False, onClick ManageAccountingEntries ] [ text "Ok" ]
-
-        Nothing ->
-            button [ disabled True, onClick ManageAccountingEntries ] [ text "Ok" ]
-
-
+            True
 
 
 dropdownOptionsLanguage : Dropdown.Options Msg
@@ -300,19 +309,19 @@ getCompanies =
 -- UTILITIES
 
 
-updateLanguage : Model -> Maybe String -> Model
-updateLanguage model selectedValue =
-    case selectedValue of
-        Just language ->
-            { model | language = language, selectedLanguage = selectedValue }
+updateLanguage : Model -> String -> Model
+updateLanguage model language =
+    { model | language = language }
 
-        Nothing ->
-            { model | selectedLanguage = selectedValue }
+
+updateSelectedLanguage : Model -> Maybe String -> Model
+updateSelectedLanguage model selectedLanguage =
+    { model | selectedLanguage = selectedLanguage }
 
 
 updateCompany : Model -> Maybe String -> Model
 updateCompany =
-    updateWith (\m nsv -> { m | selectedCompany = nsv }) (\m nsv int -> { m | companyID = int, selectedCompany = nsv })
+    updateWith (\m nsv -> { m | selectedCompany = nsv }) (\m nsv int -> { m | companyId = int, selectedCompany = nsv })
 
 
 updateYear : Model -> Maybe String -> Model
@@ -337,3 +346,10 @@ updateWith nothing just model newSelectedValue =
 
         Nothing ->
             nothing model newSelectedValue
+
+
+foldMaybe : b -> (a -> b) -> Maybe a -> b
+foldMaybe b f ma =
+    ma
+        |> Maybe.map f
+        |> Maybe.withDefault b

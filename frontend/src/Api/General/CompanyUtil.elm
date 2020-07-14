@@ -36,12 +36,11 @@ show company =
 
 isValid : Company -> Bool
 isValid company =
-    if not (String.isEmpty company.name)
+       not (String.isEmpty company.name)
        && not (String.isEmpty company.address)
        && not (String.isEmpty company.taxNumber)
        && not (String.isEmpty company.revenueOffice)
-       then True
-    else False
+
 
 
 getCreationParams : Company -> CompanyCreationParams

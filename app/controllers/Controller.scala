@@ -54,7 +54,7 @@ trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, Creati
       dao.findPartial(part)(compare).map(result => Ok(result.asJson)).recoverServerError
     }
 
-  private def parseAndProcess[A: Decoder, B](suffix: String, process: A => Future[B])(
+  def parseAndProcess[A: Decoder, B](suffix: String, process: A => Future[B])(
       respond: (A, B) => Result
   ): Action[Json] =
     Action.async(circe.json) { request =>

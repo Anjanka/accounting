@@ -12,12 +12,12 @@ empty =
 
 updateDay: Date -> Int -> Date
 updateDay date day =
-        if (1 <= day && day <= 31) then {date | day = day}
+        if (0 <= day && day <= 31) then {date | day = day}
         else date
 
 updateMonth : Date -> Int -> Date
 updateMonth date month =
-    if 1 <= month && month <= 12 then {date | month = month}
+    if 0 <= month && month <= 12 then {date | month = month}
     else date
 
 updateYear : Date -> Int -> Date

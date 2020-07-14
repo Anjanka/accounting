@@ -5,33 +5,26 @@ import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.Types.Account exposing (Account)
 import List.Extra
 import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel exposing (Model)
-updateCredit : Model -> Maybe String -> Model
-updateCredit =
-    updateWith (\m nsv -> { m | selectedCredit = nsv }) (\m nsv nss id -> { m | contentCreditID = nss, aet = AccountingEntryTemplateUtil.updateCredit m.aet id, selectedCredit = nsv })
 
 
-updateDebit : Model -> Maybe String -> Model
-updateDebit =
-    updateWith (\m nsv -> { m | selectedDebit = nsv }) (\m nsv nss id -> { m | contentDebitID = nss, aet = AccountingEntryTemplateUtil.updateDebit m.aet id, selectedDebit = nsv })
+
+handleSelection : (Model -> Int -> Model) -> Model -> Maybe String -> Model
+handleSelection updateFunction model selectedValue =
+    selectedValue
+     |> Maybe.andThen String.toInt
+     |> Maybe.map (\id -> updateFunction model id)
+     |> Maybe.withDefault model
 
 
-updateWith : (Model -> Maybe String -> Model) -> (Model -> Maybe String -> String -> Int -> Model) -> Model -> Maybe String -> Model
-updateWith nothing just model newSelectedValue =
-    case newSelectedValue of
-        Just newSelectedString ->
-            let
-                id =
-                    String.toInt newSelectedString
-            in
-            case id of
-                Just int ->
-                    just model newSelectedValue newSelectedString int
+updateCredit : Model -> Int -> Model
+updateCredit model id =
+    { model | contentCreditID = String.fromInt id, aet = AccountingEntryTemplateUtil.updateCredit model.aet id }
 
-                Nothing ->
-                    nothing model newSelectedValue
+updateDebit : Model -> Int -> Model
+updateDebit model id=
+     { model | contentDebitID = String.fromInt id, aet = AccountingEntryTemplateUtil.updateDebit model.aet id }
 
-        Nothing ->
-            nothing model newSelectedValue
+
 
 
 parseAndUpdateCredit : Model -> String -> Model
