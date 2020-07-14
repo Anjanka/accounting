@@ -3,6 +3,7 @@ module Api.General.AccountingEntryUtil exposing (..)
 import Api.General.DateUtil as DateUtil
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams)
+import Api.Types.AccountingEntryKey exposing (AccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.Date exposing (Date)
 
@@ -140,3 +141,7 @@ getCreationParams accountingEntry =
     , amountWhole = accountingEntry.amountWhole
     , amountChange = accountingEntry.amountChange
     }
+
+getKey : AccountingEntry -> AccountingEntryKey
+getKey accountingEntry =
+    {companyId = accountingEntry.companyId, accountingYear = accountingEntry.accountingYear, id = accountingEntry.id}
