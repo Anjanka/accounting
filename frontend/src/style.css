@@ -21,6 +21,16 @@ align: left;
              font-size: 13px;
              }
 
+.arrowButton{
+              border: none;
+              border-radius: 3px;
+              color: black;
+              background-color: rgb(255,255,153);
+              padding: 1px 5px;
+              text-align: center;
+              font-size: 15px;
+              }
+
 
 .backButton, .cancelButton {
   background-color: rgb(128, 128, 128);
@@ -70,7 +80,7 @@ background-color: rgb(200, 200, 200);
 }
 
 
-.buttonColumn{
+.buttonColumn, .arrowColumn{
 align: center }
 
 .numberColumn {

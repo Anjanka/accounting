@@ -1,7 +1,7 @@
 module Pages.AccountingEntry.AccountingEntryPage exposing (Msg, init, update, view)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
-import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams)
+import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams, getKey)
 import Api.General.HttpUtil as HttpUtil
 import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEntry, encoderAccountingEntry)
@@ -10,13 +10,13 @@ import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
 import Browser
 import Dropdown exposing (Item)
-import Html exposing (Html, button, div, input, label, li, p, table, td, text, th, tr, ul)
-import Html.Attributes exposing (class, disabled, for, href, id, placeholder, style, value)
+import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
+import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
-import Pages.AccountingEntry.HelperUtil exposing (getBalance, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset)
+import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset, unicodeToString)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath)
@@ -94,11 +94,13 @@ type Msg
     | CreateAccountingEntry
     | ReplaceAccountingEntry
     | DeleteAccountingEntry
+    | MoveEntryUp AccountingEntry
+    | MoveEntryDown AccountingEntry
     | GotResponseAllAccountingEntries (Result Error (List AccountingEntry))
     | GotResponseAllAccountingEntryTemplates (Result Error (List AccountingEntryTemplate))
     | GotResponseAllAccounts (Result Error (List Account))
     | GotResponsePost (Result Error AccountingEntry)
-    | GotResponseDelete (Result Error ())
+    | GotResponseDeleteOrSwap (Result Error ())
     | DropdownTemplateChanged (Maybe String)
     | DropdownCreditChanged (Maybe String)
     | DropdownDebitChanged (Maybe String)
@@ -154,7 +156,7 @@ update msg model =
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
-        GotResponseDelete result ->
+        GotResponseDeleteOrSwap result ->
             case result of
                 Ok _ ->
                     ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
@@ -204,6 +206,12 @@ update msg model =
         EditAccountingEntry accountingEntry ->
             ( insertForEdit model accountingEntry, Cmd.none )
 
+        MoveEntryUp accountingEntry ->
+            (model, moveAccountingEntryUp accountingEntry)
+
+        MoveEntryDown accountingEntry ->
+             (model, moveAccountingEntryDown accountingEntry)
+
         LeaveEditView ->
             ( reset model, Cmd.none )
 
@@ -212,6 +220,9 @@ update msg model =
 
         GoToAccountingTemplatePage ->
             ( model, Cmd.none )
+
+
+
 
 
 
@@ -340,7 +351,7 @@ viewEntryList model =
                 , th [class "numberColumn"] [ label [ for "credit account" ] [ text "credit" ] ]
                 , th [class "numberColumn"] [ label [ for "debit account" ] [ text "debit" ] ]
                 ]
-                :: List.map (mkTableLine model.editActive) model.allAccountingEntries
+                :: List.map (mkTableLine model.editActive) (getListWithPosition model.allAccountingEntries)
             )
         ]
 
@@ -379,18 +390,44 @@ viewTemplateSelection model =
         model.selectedTemplate
 
 
-mkTableLine : Bool -> AccountingEntry -> Html Msg
-mkTableLine editInactive accountingEntry =
+
+
+mkTableLine : Bool -> EntryWithListPosition -> Html Msg
+mkTableLine editInactive entryWithPosition =
+    let
+        upButton = case entryWithPosition.position of
+            OnlyOne ->
+                td [] []
+
+            First ->
+                td [] []
+
+            _ ->
+                td [class "buttonColumn"] [button [class "arrowButton", onClick (MoveEntryUp entryWithPosition.accountingEntry)] [text (unicodeToString 129045)]]
+
+        downButton = case entryWithPosition.position of
+            OnlyOne ->
+                td [] []
+
+            Last ->
+                td [] []
+
+            _ ->
+                td [class "buttonColumn"] [button [class "arrowButton", onClick (MoveEntryDown entryWithPosition.accountingEntry)] [text (unicodeToString 129047)]]
+    in
     tr []
-        [ td [class "numberColumn"] [ text (String.fromInt accountingEntry.id) ]
-        , td [class "numberColumn"] [ text accountingEntry.receiptNumber ]
-        , td [class "numberColumn"] [ text (AccountingEntryUtil.stringFromDate accountingEntry.bookingDate) ]
-        , td [class "textColumn"] [ text accountingEntry.description ]
-        , td [class "numberColumn"] [ text (AccountingEntryUtil.showAmount accountingEntry) ]
-        , td [class "numberColumn"] [ text (String.fromInt accountingEntry.credit) ]
-        , td [class "numberColumn"] [ text (String.fromInt accountingEntry.debit) ]
-        , td [class "buttonColumn"] [button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry accountingEntry) ] [ text "Edit" ]]
+        [ td [class "numberColumn"] [ text (String.fromInt entryWithPosition.accountingEntry.id) ]
+        , td [class "numberColumn"] [ text entryWithPosition.accountingEntry.receiptNumber ]
+        , td [class "numberColumn"] [ text (AccountingEntryUtil.stringFromDate entryWithPosition.accountingEntry.bookingDate) ]
+        , td [class "textColumn"] [ text entryWithPosition.accountingEntry.description ]
+        , td [class "numberColumn"] [ text (AccountingEntryUtil.showAmount entryWithPosition.accountingEntry) ]
+        , td [class "numberColumn"] [ text (String.fromInt entryWithPosition.accountingEntry.credit) ]
+        , td [class "numberColumn"] [ text (String.fromInt entryWithPosition.accountingEntry.debit) ]
+        , upButton
+        , downButton
+        , td [class "buttonColumn"] [button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry entryWithPosition.accountingEntry) ] [ text "Edit" ]]
         ]
+
 
 
 
@@ -473,6 +510,23 @@ deleteAccountingEntry : AccountingEntry -> Cmd Msg
 deleteAccountingEntry accountingEntry =
     Http.post
         { url = "http://localhost:9000/accountingEntry/delete"
-        , expect = HttpUtil.expectWhatever GotResponseDelete
-        , body = Http.jsonBody (encoderAccountingEntryKey { companyId = accountingEntry.companyId, id = accountingEntry.id, accountingYear = accountingEntry.accountingYear })
+        , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
+        , body = Http.jsonBody (encoderAccountingEntryKey (getKey accountingEntry))
+        }
+
+
+moveAccountingEntryUp : AccountingEntry -> Cmd Msg
+moveAccountingEntryUp accountingEntry =
+    Http.post
+        { url = "http://localhost:9000/accountingEntry/moveUp"
+        , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
+        , body = Http.jsonBody (encoderAccountingEntryKey (getKey accountingEntry))
+        }
+
+moveAccountingEntryDown : AccountingEntry -> Cmd Msg
+moveAccountingEntryDown accountingEntry =
+    Http.post
+        { url = "http://localhost:9000/accountingEntry/moveDown"
+        , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
+        , body = Http.jsonBody (encoderAccountingEntryKey (getKey accountingEntry))
         }
