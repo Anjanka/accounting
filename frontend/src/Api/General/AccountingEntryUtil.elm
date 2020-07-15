@@ -91,12 +91,8 @@ updateWithTemplate accountingEntry aet =
 
 show : AccountingEntry -> String
 show accountingEntry =
-    String.concat [ String.fromInt accountingEntry.companyId, " - ", stringFromDate accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", showAmount accountingEntry, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit ]
+    String.concat [ String.fromInt accountingEntry.companyId, " - ", DateUtil.show accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", showAmount accountingEntry, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit ]
 
-
-stringFromDate : Date -> String
-stringFromDate date =
-    String.fromInt date.day ++ "." ++ String.fromInt date.month ++ "." ++ String.fromInt date.year
 
 
 showAmount : AccountingEntry -> String
