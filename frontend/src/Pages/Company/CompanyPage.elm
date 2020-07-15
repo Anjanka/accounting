@@ -174,7 +174,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [class "page"]
         [ linkButton (fragmentUrl [ makeLinkPath StartPage ])
             [ class "backButton", value "Back" ]
             []

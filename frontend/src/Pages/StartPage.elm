@@ -180,7 +180,7 @@ viewLanguageSelection model =
 
 viewCompanySelection : Model -> Html Msg
 viewCompanySelection model =
-    div []
+    div [class "page"]
         [ Html.form []
             [ Dropdown.dropdown
                 (dropdownOptionsCompany model.allCompanies)

@@ -201,7 +201,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [class "page"]
         [ backToEntryPage model.companyId model.accountingYear
         , p [] []
         , viewEditOrCreate model
@@ -219,7 +219,7 @@ viewEditOrCreate model =
             [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] []
             , viewCreditInput model
             , viewDebitInput model
-            , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
+            , div [] [ input [ id "amountFieldTemplate", placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
 
             --  , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , div []

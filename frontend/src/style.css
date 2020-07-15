@@ -1,13 +1,25 @@
+.page{
+font-family: Helvetica, Arial, sans-serif;
+font-size: 16px;}
+
 #templatePageButton, #accountPageButton, #accountListButton{
 margin-top: 1%;
 margin-right: 1%;
 margin-bottom: 3%;
-margin-left: 5%;
 float: left;
 }
 
-#accountListButton {
-clear:right;}
+#accountPageButton{
+margin-left: 5%;}
+
+#templatePageButton#accountListButton{
+margin-left: 1%;
+}
+
+#accountListButton{
+margin-left: 2%;
+clear: right;
+}
 
 #freeP{
 clear:both;}
@@ -28,25 +40,42 @@ margin-left: 5%;
 display: block;
 width: 40%;}
 
-input{
+label{
+font-size: 16px;
+margin-top: 5px;
+margin-bottom: 5px;}
+
+.balance{
+margin-left: 5px;
+}
+
+input, select{
+font-size: 16px;
 margin-top: 5px;
 margin-right: 1%;
 margin-bottom: 5px;}
 
 #dayField{
 margin-right: 0px;
-width: 22px;}
+width: 25px;
+text-align: right;}
 
 #monthField{
 margin-left: 0px;
 margin-right: 0px;
-width: 22px;}
+width: 26px;
+text-align: right;}
 
 #receiptNumberField, #amountField{
 float: right;
 clear: left;
 width: 80px;
+text-align: right;
 }
+
+#amountFieldTemplate{
+width: 80px;
+text-align: right;}
 
 
 .button, .linkButton, .pageButton, .showButton, .saveButton, .deleteButton, .backButton, .cancelButton  {

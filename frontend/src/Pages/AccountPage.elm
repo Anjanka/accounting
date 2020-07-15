@@ -183,7 +183,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [class "page"]
         [ backToEntryPage model.companyId model.accountingYear
         , p [] []
         , viewEditOrCreate model
