@@ -18,6 +18,7 @@ type alias Model =
     , feedback : String
     , error : String
     , editActive : Bool
+    , accountViewActive: Bool
     , selectedTemplate : Maybe String
     , selectedCredit : Maybe String
     , selectedDebit : Maybe String
