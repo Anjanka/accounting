@@ -11,7 +11,7 @@ import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, deco
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
-import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
+import Html.Attributes exposing (action, class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -67,6 +67,7 @@ init flags =
       , feedback = ""
       , error = ""
       , editActive = False
+      , accountViewActive = False
       , selectedTemplate = Nothing
       , selectedCredit = Nothing
       , selectedDebit = Nothing
@@ -106,6 +107,8 @@ type Msg
     | DropdownDebitChanged (Maybe String)
     | EditAccountingEntry AccountingEntry
     | LeaveEditView
+    | ShowAccountList
+    | HideAccountList
     | GoToAccountPage
     | GoToAccountingTemplatePage
 
@@ -207,22 +210,25 @@ update msg model =
             ( insertForEdit model accountingEntry, Cmd.none )
 
         MoveEntryUp accountingEntry ->
-            (model, moveAccountingEntryUp accountingEntry)
+            ( model, moveAccountingEntryUp accountingEntry )
 
         MoveEntryDown accountingEntry ->
-             (model, moveAccountingEntryDown accountingEntry)
+            ( model, moveAccountingEntryDown accountingEntry )
 
         LeaveEditView ->
             ( reset model, Cmd.none )
+
+        ShowAccountList ->
+            ( { model | accountViewActive = True }, Cmd.none )
+
+        HideAccountList ->
+            ( { model | accountViewActive = False }, Cmd.none )
 
         GoToAccountPage ->
             ( model, Cmd.none )
 
         GoToAccountingTemplatePage ->
             ( model, Cmd.none )
-
-
-
 
 
 
@@ -242,13 +248,16 @@ view : Model -> Html Msg
 view model =
     div []
         [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage ])
-            [ class "linkButton", id "accountPageButton", value "Manage Accounts" ]
+            [ class "pageButton", id "accountPageButton", value "Manage Accounts" ]
             []
         , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage ])
-            [ class "linkButton",id "templatePageButton", value "Manage Templates" ]
+            [ class "pageButton", id "templatePageButton", value "Manage Templates" ]
             []
-        , p [] []
+        , viewAccountListButton model.accountViewActive
+        , p [ id "freeP" ] []
+        , viewAccountList model
         , viewInputArea model
+
         --, div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
         , viewValidatedInput model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
         , div [] [ text model.error ]
@@ -257,21 +266,56 @@ view model =
         ]
 
 
+viewAccountList : Model -> Html Msg
+viewAccountList model =
+    if model.accountViewActive then
+        div [ id "accountList" ]
+            [ table
+                []
+                (tr [ class "tableHeader" ]
+                    [ th [] [ label [ for "id" ] [ text "id" ] ]
+                    , th [] [ label [ for "name" ] [ text "name" ] ]
+                    ]
+                    :: List.map mkAccountTableLine model.allAccounts
+                )
+            ]
+
+    else
+        div [] []
+
+
+viewAccountListButton : Bool -> Html Msg
+viewAccountListButton accountViewActive =
+    if accountViewActive then
+        div [] [ button [ class "showButton", id "AccountListButton", onClick HideAccountList ] [ text "Hide Account List" ] ]
+
+    else
+        div [] [ button [ class "showButton", id "AccountListButton", onClick ShowAccountList ] [ text "Show Account List" ] ]
+
+
+mkAccountTableLine : Account -> Html Msg
+mkAccountTableLine account =
+    tr []
+        [ td [ class "numberColumn" ] [ text (String.fromInt account.id) ]
+        , td [ class "textColumn" ] [ text account.title ]
+        ]
+
+
 viewInputArea : Model -> Html Msg
 viewInputArea model =
-    div []
+    div [ class "inputArea" ]
         [ div []
             [ label [] [ text "Booking Date: " ]
-            , input [ placeholder "dd", value model.content.day, onInput ChangeDay ] []
+            , input [ id "dayField", placeholder "dd", value model.content.day, onInput ChangeDay ] []
             , label [] [ text "." ]
-            , input [ placeholder "mm", value model.content.month, onInput ChangeMonth ] []
+            , input [ id "monthField", placeholder "mm", value model.content.month, onInput ChangeMonth ] []
             , label [] [ text (String.fromInt model.accountingYear) ]
-            , input [ placeholder "Receipt Number", value model.content.receiptNumber, onInput ChangeReceiptNumber ] []
+            , input [ id "receiptNumberField", placeholder "Receipt No.", value model.content.receiptNumber, onInput ChangeReceiptNumber ] []
             ]
         , div []
-            [ input [ placeholder "Description", value model.content.description, onInput ChangeDescription ] []
+            [ input [ id "descriptionField", placeholder "Description", value model.content.description, onInput ChangeDescription ] []
             , viewTemplateSelection model
-            , input [ placeholder "Amount", value model.content.amount.text, onInput ChangeAmount ] []
+            , input [ id "amountField", placeholder "Amount", value model.content.amount.text, onInput ChangeAmount ] []
             ]
         , viewCreditInput model
         , viewDebitInput model
@@ -300,7 +344,7 @@ viewValidatedInput accountingEntry editActive validSelection =
                 button [ class "saveButton", disabled isDisabled, onClick ReplaceAccountingEntry ] [ text "Save Changes" ]
         in
         if not validSelection && validEntry then
-            div []
+            div [ class "inputArea" ]
                 [ makeSaveButton True
                 , deleteButton
                 , cancelButton
@@ -308,14 +352,14 @@ viewValidatedInput accountingEntry editActive validSelection =
                 ]
 
         else if validEntry then
-            div []
+            div [ class "inputArea" ]
                 [ makeSaveButton False
                 , deleteButton
                 , cancelButton
                 ]
 
         else
-            div []
+            div [ class "inputArea" ]
                 [ makeSaveButton True
                 , deleteButton
                 , cancelButton
@@ -328,28 +372,28 @@ viewValidatedInput accountingEntry editActive validSelection =
                 button [ class "saveButton", disabled isDisabled, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
         in
         if not validSelection && validEntry then
-            div []
+            div [ class "inputArea" ]
                 [ makeCreateButton True
                 , accountWarning
                 ]
 
         else
-            makeCreateButton (not validEntry)
+            div [ class "inputArea" ] [ makeCreateButton (not validEntry) ]
 
 
 viewEntryList : Model -> Html Msg
 viewEntryList model =
     div [ id "allAccountingEntries" ]
         [ table
-            [id "allAccountingEntriesTable"]
+            [ id "allAccountingEntriesTable" ]
             (tr [ class "tableHeader" ]
-                [ th [class "numberColumn"] [ label [ for "id" ] [ text "id" ] ]
-                , th [class "numberColumn"] [ label [ for "receipt number" ] [ text "no." ] ]
-                , th [class "numberColumn"] [ label [ for "booking date" ] [ text "booking date" ] ]
-                , th [class "textColumn"] [ label [ for "description" ] [ text "description" ] ]
-                , th [class "numberColumn"] [ label [ for "amount" ] [ text "amount" ] ]
-                , th [class "numberColumn"] [ label [ for "credit account" ] [ text "credit" ] ]
-                , th [class "numberColumn"] [ label [ for "debit account" ] [ text "debit" ] ]
+                [ th [ class "numberColumn" ] [ label [ for "id" ] [ text "id" ] ]
+                , th [ class "numberColumn" ] [ label [ for "receipt number" ] [ text "no." ] ]
+                , th [ class "numberColumn" ] [ label [ for "booking date" ] [ text "booking date" ] ]
+                , th [ class "textColumn", id "descriptionColumn" ] [ label [ for "description" ] [ text "description" ] ]
+                , th [ class "numberColumn" ] [ label [ for "amount" ] [ text "amount" ] ]
+                , th [ class "numberColumn" ] [ label [ for "credit account" ] [ text "credit" ] ]
+                , th [ class "numberColumn" ] [ label [ for "debit account" ] [ text "debit" ] ]
                 ]
                 :: List.map (mkTableLine model.editActive) (getListWithPosition model.allAccountingEntries)
             )
@@ -390,44 +434,43 @@ viewTemplateSelection model =
         model.selectedTemplate
 
 
-
-
 mkTableLine : Bool -> EntryWithListPosition -> Html Msg
 mkTableLine editInactive entryWithPosition =
     let
-        upButton = case entryWithPosition.position of
-            OnlyOne ->
-                td [] []
+        upButton =
+            case entryWithPosition.position of
+                OnlyOne ->
+                    td [] []
 
-            First ->
-                td [] []
+                First ->
+                    td [] []
 
-            _ ->
-                td [class "buttonColumn"] [button [class "arrowButton", onClick (MoveEntryUp entryWithPosition.accountingEntry)] [text (unicodeToString 129045)]]
+                _ ->
+                    td [ class "buttonColumn" ] [ button [ class "arrowButton", onClick (MoveEntryUp entryWithPosition.accountingEntry) ] [ text (unicodeToString 129045) ] ]
 
-        downButton = case entryWithPosition.position of
-            OnlyOne ->
-                td [] []
+        downButton =
+            case entryWithPosition.position of
+                OnlyOne ->
+                    td [] []
 
-            Last ->
-                td [] []
+                Last ->
+                    td [] []
 
-            _ ->
-                td [class "buttonColumn"] [button [class "arrowButton", onClick (MoveEntryDown entryWithPosition.accountingEntry)] [text (unicodeToString 129047)]]
+                _ ->
+                    td [ class "buttonColumn" ] [ button [ class "arrowButton", onClick (MoveEntryDown entryWithPosition.accountingEntry) ] [ text (unicodeToString 129047) ] ]
     in
     tr []
-        [ td [class "numberColumn"] [ text (String.fromInt entryWithPosition.accountingEntry.id) ]
-        , td [class "numberColumn"] [ text entryWithPosition.accountingEntry.receiptNumber ]
-        , td [class "numberColumn"] [ text (AccountingEntryUtil.stringFromDate entryWithPosition.accountingEntry.bookingDate) ]
-        , td [class "textColumn"] [ text entryWithPosition.accountingEntry.description ]
-        , td [class "numberColumn"] [ text (AccountingEntryUtil.showAmount entryWithPosition.accountingEntry) ]
-        , td [class "numberColumn"] [ text (String.fromInt entryWithPosition.accountingEntry.credit) ]
-        , td [class "numberColumn"] [ text (String.fromInt entryWithPosition.accountingEntry.debit) ]
+        [ td [ class "numberColumn" ] [ text (String.fromInt entryWithPosition.accountingEntry.id) ]
+        , td [ class "numberColumn" ] [ text entryWithPosition.accountingEntry.receiptNumber ]
+        , td [ class "numberColumn" ] [ text (AccountingEntryUtil.stringFromDate entryWithPosition.accountingEntry.bookingDate) ]
+        , td [ class "textColumn" ] [ text entryWithPosition.accountingEntry.description ]
+        , td [ class "numberColumn" ] [ text (AccountingEntryUtil.showAmount entryWithPosition.accountingEntry) ]
+        , td [ class "numberColumn" ] [ text (String.fromInt entryWithPosition.accountingEntry.credit) ]
+        , td [ class "numberColumn" ] [ text (String.fromInt entryWithPosition.accountingEntry.debit) ]
         , upButton
         , downButton
-        , td [class "buttonColumn"] [button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry entryWithPosition.accountingEntry) ] [ text "Edit" ]]
+        , td [ class "buttonColumn" ] [ button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry entryWithPosition.accountingEntry) ] [ text "Edit" ] ]
         ]
-
 
 
 
@@ -522,6 +565,7 @@ moveAccountingEntryUp accountingEntry =
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
         , body = Http.jsonBody (encoderAccountingEntryKey (getKey accountingEntry))
         }
+
 
 moveAccountingEntryDown : AccountingEntry -> Cmd Msg
 moveAccountingEntryDown accountingEntry =
