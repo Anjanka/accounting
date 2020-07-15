@@ -2,6 +2,7 @@ module Pages.AccountingEntry.AccountingEntryPage exposing (Msg, init, update, vi
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams, getKey)
+import Api.General.DateUtil as DateUtil
 import Api.General.HttpUtil as HttpUtil
 import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEntry, encoderAccountingEntry)
@@ -246,7 +247,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [class "page"]
         [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage ])
             [ class "pageButton", id "accountPageButton", value "Manage Accounts" ]
             []
@@ -409,7 +410,7 @@ viewCreditInput model =
             (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedDebit) DropdownCreditChanged)
             []
             model.selectedCredit
-        , label [] [ text (getBalance model.content.creditId model.allAccountingEntries) ]
+        , label [class "balance"] [ text (getBalance model.content.creditId model.allAccountingEntries) ]
         ]
 
 
@@ -422,7 +423,7 @@ viewDebitInput model =
             (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedCredit) DropdownDebitChanged)
             []
             model.selectedDebit
-        , label [] [ text (getBalance model.content.debitId model.allAccountingEntries) ]
+        , label [class "balance"] [ text (getBalance model.content.debitId model.allAccountingEntries) ]
         ]
 
 
@@ -462,7 +463,7 @@ mkTableLine editInactive entryWithPosition =
     tr []
         [ td [ class "numberColumn" ] [ text (String.fromInt entryWithPosition.accountingEntry.id) ]
         , td [ class "numberColumn" ] [ text entryWithPosition.accountingEntry.receiptNumber ]
-        , td [ class "numberColumn" ] [ text (AccountingEntryUtil.stringFromDate entryWithPosition.accountingEntry.bookingDate) ]
+        , td [ class "numberColumn" ] [ text (DateUtil.show entryWithPosition.accountingEntry.bookingDate) ]
         , td [ class "textColumn" ] [ text entryWithPosition.accountingEntry.description ]
         , td [ class "numberColumn" ] [ text (AccountingEntryUtil.showAmount entryWithPosition.accountingEntry) ]
         , td [ class "numberColumn" ] [ text (String.fromInt entryWithPosition.accountingEntry.credit) ]

@@ -97,7 +97,7 @@ getBalance : String -> List AccountingEntry -> String
 getBalance accountIdCandidate allEntries =
     case String.toInt accountIdCandidate of
         Just accountId ->
-            showBalance (getAmount accountId allEntries)
+            ("Balance: " ++ showBalance (getAmount accountId allEntries))
 
         Nothing ->
             ""
