@@ -1,52 +1,49 @@
 package report
 
-import java.io.{BufferedOutputStream, FileOutputStream, InputStream}
+import java.io.StringReader
 
 import better.files._
-import db.AccountingEntryDAO.CompanyYearKey
-import javax.xml.transform.{TransformerFactory, stream}
+import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream
+import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
 import org.apache.fop.apps.{FopFactory, MimeConstants}
 
 import scala.xml.Elem
 
-case class ReportCreator () {
+case class ReportCreator() {
   private val xsltStyleFile = "conf" / "xslt" / "test.xsl"
-  private val pdfDirectory = "."
   private val fopFactory = FopFactory.newInstance()
   private val foUserAgent = fopFactory.newFOUserAgent()
 
-  val xml: Elem =
-    <example
-    name="name"
-    description="description">
-  </example>
-
-  def createPdf(companyYearKey: CompanyYearKey): Unit = {
-    val resultFile = mkReportFilePath(companyYearKey)
-    val outputStream = new BufferedOutputStream(resultFile.newOutputStream)
+  def createPdf(xml: Elem): ByteOutputStream = {
+    val outputStream = new ByteOutputStream()
     val fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, outputStream)
 
     val factory = TransformerFactory.newInstance()
     val transformer = factory.newTransformer(new StreamSource(xsltStyleFile.toJava))
 
-    val testFile = File("testFile")
-    // TODO: Is this step necessary?
-    val src = new StreamSource(testFile.write(xml.toString()).toJava)
+    val src = new StreamSource(new StringReader(xml.toString()))
     val res = new SAXResult(fop.getDefaultHandler)
 
     transformer.transform(src, res)
     outputStream.close()
+    outputStream
   }
 
-  private def mkReportFilePath(companyYearKey: CompanyYearKey): File =
-    "conf" / "xslt" / s"report${companyYearKey.companyId}-${companyYearKey.accountingYear}.pdf"
 }
 
 object TestMe {
+
+  val xml: Elem =
+    <example
+      name="name"
+      description="description">
+    </example>
+
   def main(args: Array[String]): Unit = {
     val reportCreator = ReportCreator()
-    reportCreator.createPdf(CompanyYearKey(1, 2020))
+    reportCreator.createPdf(xml)
   }
+
 }

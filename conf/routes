@@ -31,3 +31,5 @@ GET     /company/getAll                                                         
 POST    /company/replace                                                           controllers.CompanyController.replace
 POST    /company/insert                                                            controllers.CompanyController.insert
 POST    /company/delete                                                            controllers.CompanyController.delete
+
+GET /reports/test controllers.ReportController.test
