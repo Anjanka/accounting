@@ -129,13 +129,13 @@ trait Tables {
   /** GetResult implicit for fetching Company objects using plain SQL queries */
   implicit def GetResultCompany(implicit e0: GR[Int], e1: GR[String]): GR[Company] = GR{
     prs => import prs._
-    (Company.apply _).tupled((<<[Int], <<[String], <<[String], <<[String], <<[String]))
+    (Company.apply _).tupled((<<[Int], <<[String], <<[String], <<[String], <<[String], <<[String], <<[String], <<[String]))
   }
   /** Table description of table company. Objects of this class serve as prototypes for rows in queries. */
   class CompanyTable(_tableTag: Tag) extends profile.api.Table[Company](_tableTag, "company") {
-    def * = (id, name, address, taxNumber, revenueOffice) <> ((Company.apply _).tupled, Company.unapply)
+    def * = (id, name, address, taxNumber, revenueOffice, postalCode, city, country) <> ((Company.apply _).tupled, Company.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = ((Rep.Some(id), Rep.Some(name), Rep.Some(address), Rep.Some(taxNumber), Rep.Some(revenueOffice))).shaped.<>({r=>import r._; _1.map(_=> (Company.apply _).tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = ((Rep.Some(id), Rep.Some(name), Rep.Some(address), Rep.Some(taxNumber), Rep.Some(revenueOffice), Rep.Some(postalCode), Rep.Some(city), Rep.Some(country))).shaped.<>({r=>import r._; _1.map(_=> (Company.apply _).tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column id SqlType(int4), PrimaryKey */
     val id: Rep[Int] = column[Int]("id", O.PrimaryKey)
@@ -147,6 +147,12 @@ trait Tables {
     val taxNumber: Rep[String] = column[String]("tax_number")
     /** Database column revenue_office SqlType(text) */
     val revenueOffice: Rep[String] = column[String]("revenue_office")
+    /** Database column postal_code SqlType(text) */
+    val postalCode: Rep[String] = column[String]("postal_code")
+    /** Database column city SqlType(text) */
+    val city: Rep[String] = column[String]("city")
+    /** Database column country SqlType(text) */
+    val country: Rep[String] = column[String]("country")
   }
   /** Collection-like TableQuery object for table companyTable */
   lazy val companyTable = new TableQuery(tag => new CompanyTable(tag))
