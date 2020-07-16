@@ -5,25 +5,6 @@ import Pages.Company.CompanyPageModel exposing (Model)
 import Api.General.CompanyUtil as CompanyUtil
 
 
-updateAddress : Model -> Model
-updateAddress model =
-    if
-        not (String.isEmpty model.contentStreet)
-            && not (String.isEmpty model.contentPostalCode)
-            && not (String.isEmpty model.contentCity)
-            && not (String.isEmpty model.contentCountry)
-    then
-        { model | company = CompanyUtil.updateAddress model.company (makeAddressString model) }
-
-    else
-        model
-
-
-makeAddressString : Model -> String
-makeAddressString model =
-    String.concat [ model.contentStreet, ", ", model.contentPostalCode, " ", model.contentCity, ", ", model.contentCountry ]
-
-
 insertData : Model -> Model
 insertData model =
     case model.selectedValue of
@@ -37,11 +18,7 @@ insertData model =
                     case List.head companyCandidate of
                         Just company ->
                             { model
-                                | contentStreet = ""
-                                , contentPostalCode = ""
-                                , contentCity = ""
-                                , contentCountry = ""
-                                , company = company
+                                | company = company
                                 , editViewActivated = True
                             }
 
@@ -57,11 +34,7 @@ insertData model =
 reset : Model -> Model
 reset model =
     { model
-        | contentStreet = ""
-        , contentPostalCode = ""
-        , contentCity = ""
-        , contentCountry = ""
-        , company = CompanyUtil.empty
+        | company = CompanyUtil.empty
         , error = ""
         , validationFeedback = ""
         , selectedValue = Nothing
