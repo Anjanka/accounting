@@ -183,7 +183,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [class "page"]
+    div [class "page", class "accountInputArea"]
         [ backToEntryPage model.companyId model.accountingYear
         , p [] []
         , viewEditOrCreate model
@@ -199,7 +199,7 @@ viewEditOrCreate : Model -> Html Msg
 viewEditOrCreate model =
     if model.editViewActive then
         div []
-            [ label [] [ text model.contentId ]
+            [ label [] [ text (model.contentId ++ " - ") ]
             , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
             , div []
                 [ button
@@ -213,7 +213,7 @@ viewEditOrCreate model =
 
     else
         div []
-            [ input [ placeholder "Account ID", value model.contentId, onInput ChangeID ] []
+            [ input [ class "accountIdField", placeholder "Account ID", value model.contentId, onInput ChangeID ] []
             , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
             , viewCreateButton model
             , viewValidation model.validationFeedback
