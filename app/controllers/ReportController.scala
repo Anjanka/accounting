@@ -1,4 +1,6 @@
 package controllers
+import java.io.ByteArrayInputStream
+
 import akka.stream.scaladsl.StreamConverters
 import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
@@ -12,7 +14,7 @@ class ReportController @Inject() (val controllerComponents: ControllerComponents
 
   def test: Action[AnyContent] = Action {
     val reportCreator = ReportCreator()
-    val dataContent = StreamConverters.fromInputStream(() => reportCreator.createPdf(TestMe.xml).newInputStream())
+    val dataContent = StreamConverters.fromInputStream(() => new ByteArrayInputStream(reportCreator.createPdf(TestMe.xml).toByteArray))
     Ok.chunked(
       dataContent
     )

@@ -1,9 +1,8 @@
 package report
 
-import java.io.StringReader
+import java.io.{ByteArrayOutputStream, StringReader}
 
 import better.files._
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -16,8 +15,8 @@ case class ReportCreator() {
   private val fopFactory = FopFactory.newInstance()
   private val foUserAgent = fopFactory.newFOUserAgent()
 
-  def createPdf(xml: Elem): ByteOutputStream = {
-    val outputStream = new ByteOutputStream()
+  def createPdf(xml: Elem): ByteArrayOutputStream = {
+    val outputStream = new ByteArrayOutputStream()
     val fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, outputStream)
 
     val factory = TransformerFactory.newInstance()
