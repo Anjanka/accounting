@@ -8,7 +8,7 @@ import Api.Types.CompanyKey exposing (encoderCompanyKey)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, text)
-import Html.Attributes exposing (class, disabled, placeholder, style, value)
+import Html.Attributes exposing (class, disabled, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -174,7 +174,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [class "page"]
+    div [ class "page", class "companyInputArea" ]
         [ linkButton (fragmentUrl [ makeLinkPath StartPage ])
             [ class "backButton", value "Back" ]
             []
@@ -206,20 +206,16 @@ viewCreation model =
         , div []
             [ div [] [ text (CompanyUtil.show model.company) ]
             , div [ style "color" "red" ] [ text model.validationFeedback ]
-            , viewValidatedInput model
-            , Html.form []
-                [ p []
-                    [ label []
-                        [ Dropdown.dropdown
-                            (dropdownOptions model.allCompanies)
-                            []
-                            model.selectedValue
-                        ]
-                    ]
+            , viewValidatedInput model]
+        , div [id "companyEditArea"]
+                [ Dropdown.dropdown
+                    (dropdownOptions model.allCompanies)
+                    []
+                    model.selectedValue
+                , viewEditButton model.selectedValue
                 ]
-            , viewEditButton model.selectedValue
-            , div [] [ text model.error ]
-            ]
+        , div [] [ text model.error ]
+
         ]
 
 
@@ -253,10 +249,10 @@ viewEditButton : Maybe String -> Html Msg
 viewEditButton selectedValue =
     case selectedValue of
         Just _ ->
-            button [ class "editButton", disabled False, onClick ActivateEditView ] [ text "Edit" ]
+            button [ class "editCompanyButton", disabled False, onClick ActivateEditView ] [ text "Edit" ]
 
         Nothing ->
-            button [ class "editButton", disabled True, onClick ActivateEditView ] [ text "Edit" ]
+            button [ class "editCompanyButton", disabled True, onClick ActivateEditView ] [ text "Edit" ]
 
 
 companyForDropdown : Company -> Item

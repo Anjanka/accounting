@@ -201,7 +201,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [class "page"]
+    div [class "page", class "templateInputArea"]
         [ backToEntryPage model.companyId model.accountingYear
         , p [] []
         , viewEditOrCreate model
@@ -234,7 +234,7 @@ viewEditOrCreate model =
             [ div [] [ input [ placeholder "Description", value model.contentDescription, onInput ChangeDescription ] [] ]
             , viewCreditInput model
             , viewDebitInput model
-            , div [] [ input [ placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
+            , div [] [ input [ id "amountFieldTemplate", placeholder "Amount", value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
             , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , viewCreateButton model.aet (model.selectedCredit /= model.selectedDebit)
             ]
@@ -243,8 +243,8 @@ viewEditOrCreate model =
 viewCreditInput : Model -> Html Msg
 viewCreditInput model =
     div []
-        [ label [] [ text "Credit: " ]
-        , input [ placeholder "Credit Account ID", value model.contentCreditID, onInput ChangeCredit ] []
+        [ label [class "accountLabel"] [ text "Credit: " ]
+        , input [ class "accountIdField", placeholder "Account ID", value model.contentCreditID, onInput ChangeCredit ] []
         , Dropdown.dropdown
             (dropdownOptionsCredit (accountListForDropdown model.allAccounts model.selectedDebit))
             []
@@ -255,8 +255,8 @@ viewCreditInput model =
 viewDebitInput : Model -> Html Msg
 viewDebitInput model =
     div []
-        [ label [] [ text "Debit: " ]
-        , input [ placeholder "Debit Account ID", value model.contentDebitID, onInput ChangeDebit ] []
+        [ label [class "accountLabel"] [ text "Debit: " ]
+        , input [ class "accountIdField", placeholder "Account ID", value model.contentDebitID, onInput ChangeDebit ] []
         , Dropdown.dropdown
             (dropdownOptionsDebit (accountListForDropdown model.allAccounts model.selectedCredit))
             []
@@ -298,12 +298,12 @@ viewCreateButton aet validSelection =
     in
     if aetIsValid && not validSelection then
         div []
-            [ button [ class "saveButton", disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+            [ button [ class "saveButton", disabled True, onClick CreateAccountingEntryTemplate ] [ text "Create new Template" ]
             , div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
             ]
 
     else
-        button [ class "saveButton", disabled (not (aetIsValid && validSelection)), onClick CreateAccountingEntryTemplate ] [ text "Create new Accounting Entry Template" ]
+        button [ class "saveButton", disabled (not (aetIsValid && validSelection)), onClick CreateAccountingEntryTemplate ] [ text "Create new Template" ]
 
 
 viewUpdateButton : AccountingEntryTemplate -> Bool -> Html Msg
@@ -329,7 +329,7 @@ viewAccountingEntryTemplateList : Model -> Html Msg
 viewAccountingEntryTemplateList model =
     if model.buttonPressed then
         div []
-            [ div [] [ button [class "showButton", onClick HideAllAccountingEntryTemplates ] [ text "Hide Accounting Entry Templates" ] ]
+            [ div [] [ button [class "showButton", onClick HideAllAccountingEntryTemplates ] [ text "Hide Templates" ] ]
             , div [  ]
                 [ table
                     [id "allAccountingEntryTemplates"]
@@ -345,7 +345,7 @@ viewAccountingEntryTemplateList model =
             ]
 
     else
-        div [] [ button [ class "showButton", onClick ShowAllAccountingEntryTemplates ] [ text "Manage Accounts" ] ]
+        div [] [ button [ class "showButton", onClick ShowAllAccountingEntryTemplates ] [ text "Manage Templates" ] ]
 
 
 mkTableLine : AccountingEntryTemplate -> Html Msg

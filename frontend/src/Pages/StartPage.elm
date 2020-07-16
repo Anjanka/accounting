@@ -5,7 +5,7 @@ import Api.Types.Company exposing (Company, decoderCompany)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, text)
-import Html.Attributes exposing (class, disabled, value)
+import Html.Attributes exposing (class, disabled, id, value)
 import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -166,8 +166,8 @@ view model =
 
 viewLanguageSelection : Model -> Html Msg
 viewLanguageSelection model =
-    div []
-        [ Html.form []
+    div [ class "page", class "startInputArea" ]
+        [ Html.form [ class "startDropdown" ]
             [ Dropdown.dropdown
                 dropdownOptionsLanguage
                 []
@@ -180,8 +180,8 @@ viewLanguageSelection model =
 
 viewCompanySelection : Model -> Html Msg
 viewCompanySelection model =
-    div [class "page"]
-        [ Html.form []
+    div [ class "page", class "startInputArea" ]
+        [ Html.form [ class "startDropdown" ]
             [ Dropdown.dropdown
                 (dropdownOptionsCompany model.allCompanies)
                 []
@@ -189,7 +189,7 @@ viewCompanySelection model =
             ]
         , companyButton model.selectedCompany
         , linkButton (fragmentUrl [ makeLinkPath CompanyPage ])
-            [class "linkButton", value "Manage Companies" ]
+            [ class "linkButton", value "Manage Companies" ]
             []
         , button [ class "backButton", onClick BackToLanguageSelection ] [ text "Back" ]
         , div [] [ text model.error ]
@@ -198,8 +198,8 @@ viewCompanySelection model =
 
 viewAccountingYearSelection : Model -> Html Msg
 viewAccountingYearSelection model =
-    div []
-        [ Html.form []
+    div [ class "page", class "startInputArea" ]
+        [ Html.form [ class "startDropdown" ]
             [ Dropdown.dropdown
                 dropdownOptionsYear
                 []

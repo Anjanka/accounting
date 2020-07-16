@@ -404,8 +404,8 @@ viewEntryList model =
 viewCreditInput : Model -> Html Msg
 viewCreditInput model =
     div []
-        [ label [] [ text "Credit: " ]
-        , input [ placeholder "Credit Account ID", value model.content.creditId, onInput ChangeCredit ] []
+        [ label [class "accountLabel"] [ text "Credit: " ]
+        , input [ class "accountIdField", placeholder "Account ID", value model.content.creditId, onInput ChangeCredit ] []
         , Dropdown.dropdown
             (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedDebit) DropdownCreditChanged)
             []
@@ -417,8 +417,8 @@ viewCreditInput model =
 viewDebitInput : Model -> Html Msg
 viewDebitInput model =
     div []
-        [ label [] [ text "Debit: " ]
-        , input [ placeholder "Debit Account ID", value model.content.debitId, onInput ChangeDebit ] []
+        [ label [class "accountLabel"] [ text "Debit:  " ]
+        , input [ class "accountIdField", placeholder "Account ID", value model.content.debitId, onInput ChangeDebit ] []
         , Dropdown.dropdown
             (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedCredit) DropdownDebitChanged)
             []
