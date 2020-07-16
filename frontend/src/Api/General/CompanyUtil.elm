@@ -11,6 +11,9 @@ empty =
     { id = 0
      , name = ""
      , address = ""
+     , postalCode = ""
+     , city = ""
+     , country = ""
      , taxNumber = ""
      , revenueOffice = ""
     }
@@ -24,6 +27,15 @@ updateName company name = { company | name = name }
 updateAddress : Company -> String -> Company
 updateAddress company address = { company | address = address }
 
+updatePostalCode : Company -> String -> Company
+updatePostalCode company postalCode = { company | postalCode = postalCode }
+
+updateCity : Company -> String -> Company
+updateCity company city = { company | city = city }
+
+updateCountry : Company -> String -> Company
+updateCountry company country = { company | country = country }
+
 updateTaxNumber : Company -> String -> Company
 updateTaxNumber company taxNumber = { company | taxNumber = taxNumber }
 
@@ -32,16 +44,16 @@ updateRevenueOffice company revenueOffice = { company | revenueOffice = revenueO
 
 show : Company -> String
 show company =
-    String.concat [String.fromInt company.id, " - ", company.name, "\n", "Address: ", company.address, "\n", "Tax Number: ", company.taxNumber, "\n", "Revenue Office: ", company.revenueOffice]
+    String.concat [String.fromInt company.id, " - ", company.name, "\n", "Address: ", company.address, "\n", company.postalCode, " ", company.city, "\n", company.country, "\n", "Tax Number: ", company.taxNumber, "\n", "Revenue Office: ", company.revenueOffice]
 
 isValid : Company -> Bool
 isValid company =
        not (String.isEmpty company.name)
-       && not (String.isEmpty company.address)
-       && not (String.isEmpty company.taxNumber)
-       && not (String.isEmpty company.revenueOffice)
+     --  && not (String.isEmpty company.address)
+     --  && not (String.isEmpty company.taxNumber)
+     --  && not (String.isEmpty company.revenueOffice)
 
 
 
 getCreationParams : Company -> CompanyCreationParams
-getCreationParams company = { name = company.name, address= company.address, taxNumber = company.taxNumber, revenueOffice = company.revenueOffice }
+getCreationParams company = { name = company.name, address= company.address, postalCode = company.postalCode, city = company.city, country = company.country, taxNumber = company.taxNumber, revenueOffice = company.revenueOffice }

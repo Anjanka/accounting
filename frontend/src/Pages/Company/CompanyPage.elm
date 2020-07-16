@@ -1,19 +1,19 @@
 module Pages.Company.CompanyPage exposing (Msg, init, update, view)
 
-import Api.General.CompanyUtil as CompanyUtil
+import Api.General.CompanyUtil exposing (empty, getCreationParams, isValid, show, updateAddress, updateCity, updateCountry, updateName, updatePostalCode, updateRevenueOffice, updateTaxNumber)
 import Api.General.HttpUtil as HttpUtil
 import Api.Types.Company exposing (Company, decoderCompany, encoderCompany)
 import Api.Types.CompanyCreationParams exposing (encoderCompanyCreationParams)
 import Api.Types.CompanyKey exposing (encoderCompanyKey)
 import Browser
 import Dropdown exposing (Item)
-import Html exposing (Attribute, Html, button, div, input, label, p, text)
+import Html exposing (Attribute, Html, button, div, input, p, text)
 import Html.Attributes exposing (class, disabled, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.Company.CompanyPageModel exposing (Model)
-import Pages.Company.ParseAndUpdateUtil exposing (insertData, reset, updateAddress)
+import Pages.Company.ParseAndUpdateUtil exposing (insertData, reset)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkPath)
 import Pages.SharedViewComponents exposing (linkButton)
 
@@ -41,11 +41,7 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { contentStreet = ""
-      , contentPostalCode = ""
-      , contentCity = ""
-      , contentCountry = ""
-      , company = CompanyUtil.empty
+    ( { company = empty
       , allCompanies = []
       , error = ""
       , validationFeedback = ""
@@ -66,7 +62,6 @@ type Msg
     | GotResponseDelete (Result Error ())
     | ChangeName String
     | ChangeAddress String
-    | ChangeStreet String
     | ChangePostalCode String
     | ChangeCity String
     | ChangeCountry String
@@ -114,28 +109,25 @@ update msg model =
                     ( { model | error = HttpUtil.errorToString error, selectedValue = Nothing }, Cmd.none )
 
         ChangeName newContent ->
-            ( { model | company = CompanyUtil.updateName model.company newContent }, Cmd.none )
+            ( { model | company = updateName model.company newContent }, Cmd.none )
 
         ChangeAddress newContent ->
-            ( { model | company = CompanyUtil.updateAddress model.company newContent }, Cmd.none )
-
-        ChangeStreet newContent ->
-            ( updateAddress { model | contentStreet = newContent }, Cmd.none )
+            ( { model | company = updateAddress model.company newContent }, Cmd.none )
 
         ChangePostalCode newContent ->
-            ( updateAddress { model | contentPostalCode = newContent }, Cmd.none )
+            ( { model | company = updatePostalCode model.company newContent }, Cmd.none )
 
         ChangeCity newContent ->
-            ( updateAddress { model | contentCity = newContent }, Cmd.none )
+            ( { model | company = updateCity model.company newContent }, Cmd.none )
 
         ChangeCountry newContent ->
-            ( updateAddress { model | contentCountry = newContent }, Cmd.none )
+            ( { model | company = updateCountry model.company newContent }, Cmd.none )
 
         ChangeTaxNumber newContent ->
-            ( { model | company = CompanyUtil.updateTaxNumber model.company newContent }, Cmd.none )
+            ( { model | company = updateTaxNumber model.company newContent }, Cmd.none )
 
         ChangeRevenueOffice newContent ->
-            ( { model | company = CompanyUtil.updateRevenueOffice model.company newContent }, Cmd.none )
+            ( { model | company = updateRevenueOffice model.company newContent }, Cmd.none )
 
         CreateCompany ->
             ( model, createCompany model.company )
@@ -195,16 +187,16 @@ viewCreation model =
         [ div []
             [ input [ placeholder "Company Name", value model.company.name, onInput ChangeName ] []
             ]
-        , div [] [ input [ placeholder "Street", value model.contentStreet, onInput ChangeStreet ] [] ]
+        , div [] [ input [ placeholder "Address", value model.company.address, onInput ChangeAddress ] [] ]
         , div []
-            [ input [ placeholder "Postal Code", value model.contentPostalCode, onInput ChangePostalCode ] []
-            , input [ placeholder "City", value model.contentCity, onInput ChangeCity ] []
+            [ input [ placeholder "Postal Code", value model.company.postalCode, onInput ChangePostalCode ] []
+            , input [ placeholder "City", value model.company.city, onInput ChangeCity ] []
             ]
-        , div [] [ input [ placeholder "Country", value model.contentCountry, onInput ChangeCountry ] [] ]
+        , div [] [ input [ placeholder "Country", value model.company.country, onInput ChangeCountry ] [] ]
         , div [] [ input [ placeholder "Tax Number", value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
         , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
         , div []
-            [ div [] [ text (CompanyUtil.show model.company) ]
+            [ div [] [ text (show model.company) ]
             , div [ style "color" "red" ] [ text model.validationFeedback ]
             , viewValidatedInput model]
         , div [id "companyEditArea"]
@@ -224,9 +216,14 @@ viewEdit model =
     div []
         [ div [] [ input [ placeholder "Company Name", value model.company.name, onInput ChangeName ] [] ]
         , div [] [ input [ placeholder "Address", value model.company.address, onInput ChangeAddress ] [] ]
+        , div []
+            [ input [ placeholder "Postal Code", value model.company.postalCode, onInput ChangePostalCode ] []
+            , input [ placeholder "City", value model.company.city, onInput ChangeCity ] []
+            ]
+        , div [] [ input [ placeholder "Country", value model.company.country, onInput ChangeCountry ] [] ]
         , div [] [ input [ placeholder "Tax Number", value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
         , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
-        , div [] [ text (CompanyUtil.show model.company) ]
+        , div [] [ text (show model.company) ]
         , div []
             [ button [ class "saveButton", onClick UpdateCompany ] [ text "Save Changes" ]
             , button [ class "deleteButton", onClick DeleteCompany ] [ text "Delete Company" ]
@@ -238,7 +235,7 @@ viewEdit model =
 
 viewValidatedInput : Model -> Html Msg
 viewValidatedInput model =
-    if CompanyUtil.isValid model.company then
+    if isValid model.company then
         button [ class "saveButton", disabled False, onClick CreateCompany ] [ text "Create new Company" ]
 
     else
@@ -294,7 +291,7 @@ createCompany company =
     Http.post
         { url = "http://localhost:9000/company/insert"
         , expect = HttpUtil.expectJson GotResponseCreateOrUpdate decoderCompany
-        , body = Http.jsonBody (encoderCompanyCreationParams (CompanyUtil.getCreationParams company))
+        , body = Http.jsonBody (encoderCompanyCreationParams (getCreationParams company))
         }
 
 
