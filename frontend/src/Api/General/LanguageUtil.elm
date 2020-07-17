@@ -1,0 +1,57 @@
+module Api.General.LanguageUtil exposing (..)
+
+
+import Api.Types.Language exposing (Language(..), LanguageComponents)
+
+
+default : LanguageComponents
+default = {
+    language = En
+  , name = "Name"
+  , nameAsPart = "Name"
+  , description = "Description"
+  , save = "Save"
+  , delete= "Delete"
+  , back = "Back"
+  , cancel = "Cancel"
+  , edit = "Edit"
+  , account = "Account"
+  , debit = "Debit"
+  , credit = "Credit"
+  , accountingEntryTemplate = "Accounting Entry Template"
+  , template = "Template"
+  , accountingEntry = "Accounting Entry"
+  , company = "Company"
+  , select = "Select"
+  , please = "Please"
+  , manage = "Manage"
+  , accounts = "Accounts"
+  , templates = "Templates"
+  , companies = "Companies"
+  , create = "Create"
+  , accountingYear = "Accounting Year"
+  , bookingDate = "Booking Date"
+  , receiptNumber = "Receipt No."
+  , address = "Address"
+  , city = "City"
+  , postalCode = "Postal Code"
+  , country = "Country"
+  , taxNumber = "Tax Number"
+  , revenueOffice = "Revenue Office"
+  , commit = "Commit"
+  , amount = "Amount"
+  , id = "ID"
+  , changes = "Changes"
+  , hide = "Hide"
+  , show = "Show"
+  , number = "No."
+  , noValidAccount = "No valid account selected."
+  , list = "List"
+  , accountValidationMessageOk = "Account ID is valid."
+  , accountValidationMessageErr = "Account ID must be positive number with 3 to 5 digits. Leading 0s will be ignored"
+  , accountValidationMessageExisting = "An account with this Id already exists. Use edit to make changes to existing accounts."
+  , balance = "Balance"
+  , equalAccountsWarning = "Credit and Debit must not be equal."
+  , day = "dd"
+  , month = "mm"
+ }
