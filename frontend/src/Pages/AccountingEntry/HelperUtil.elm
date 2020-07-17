@@ -7,16 +7,16 @@ import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent, updateWithEntry, updateWithTemplate)
-
-
+import Pages.Amount exposing (Amount)
 
 
 insertForEdit : Model -> AccountingEntry -> Model
 insertForEdit model accountingEntry =
-    let newModel =
-             model.content
-               |> (\c -> updateWithEntry c accountingEntry)
-               |> updateContent model
+    let
+        newModel =
+            model.content
+                |> (\c -> updateWithEntry c accountingEntry)
+                |> updateContent model
     in
     { newModel
         | accountingEntry = accountingEntry
@@ -27,52 +27,51 @@ insertForEdit model accountingEntry =
     }
 
 
-
 handleSelection : (Model -> String -> Model) -> Model -> Maybe String -> Model
 handleSelection updateFunction model newSelection =
     case newSelection of
         Just selection ->
             updateFunction model selection
+
         Nothing ->
             model
 
+
 handleAccountSelection : (Model -> Int -> Model) -> Model -> Maybe String -> Model
 handleAccountSelection updateFunction model newSelection =
-     newSelection
-       |> Maybe.andThen String.toInt
-       |> Maybe.map (\id -> updateFunction model id)
-       |> Maybe.withDefault model
-
-
+    newSelection
+        |> Maybe.andThen String.toInt
+        |> Maybe.map (\id -> updateFunction model id)
+        |> Maybe.withDefault model
 
 
 insertTemplateData : Model -> String -> Model
 insertTemplateData model description =
+    let
+        selectedTemplate =
+            findEntry description model.allAccountingEntryTemplates
 
-            let
-                selectedTemplate =
-                    findEntry description model.allAccountingEntryTemplates
-                modelWithNewEntry =
-                    model.accountingEntry
-                      |> (\ae -> AccountingEntryUtil.updateWithTemplate ae selectedTemplate)
-                      |>  updateAccountingEntry model
-                modelWithNewContent =
-                    modelWithNewEntry.content
-                       |>(\c -> updateWithTemplate c selectedTemplate)
-                       |> updateContent modelWithNewEntry
+        modelWithNewEntry =
+            model.accountingEntry
+                |> (\ae -> AccountingEntryUtil.updateWithTemplate ae selectedTemplate)
+                |> updateAccountingEntry model
 
-            in
-            { modelWithNewContent
-                | selectedCredit = Just (String.fromInt selectedTemplate.credit)
-                , selectedDebit = Just (String.fromInt selectedTemplate.debit)
-            }
+        modelWithNewContent =
+            modelWithNewEntry.content
+                |> (\c -> updateWithTemplate c selectedTemplate)
+                |> updateContent modelWithNewEntry
+    in
+    { modelWithNewContent
+        | selectedCredit = Just (String.fromInt selectedTemplate.credit)
+        , selectedDebit = Just (String.fromInt selectedTemplate.debit)
+    }
 
 
 reset : Model -> Model
 reset model =
     { model
         | content = emptyInputContent
-        , accountingEntry = AccountingEntryUtil.emptyWith {companyId = model.companyId, accountingYear = model.accountingYear}
+        , accountingEntry = AccountingEntryUtil.emptyWith { companyId = model.companyId, accountingYear = model.accountingYear }
         , error = ""
         , editActive = False
         , selectedTemplate = Nothing
@@ -83,21 +82,19 @@ reset model =
 
 findEntry : String -> List AccountingEntryTemplate -> AccountingEntryTemplate
 findEntry description allAccountingEntryTemplates =
+    case List.Extra.find (\aet -> aet.description == description) allAccountingEntryTemplates of
+        Just value ->
+            value
 
-            case List.Extra.find (\aet -> aet.description == description) allAccountingEntryTemplates of
-                Just value ->
-                    value
-
-                Nothing ->
-                    AccountingEntryTemplateUtil.empty
-
+        Nothing ->
+            AccountingEntryTemplateUtil.empty
 
 
 getBalance : String -> List AccountingEntry -> String
 getBalance accountIdCandidate allEntries =
     case String.toInt accountIdCandidate of
         Just accountId ->
-            ("Balance: " ++ showBalance (getAmount accountId allEntries))
+            "Balance: " ++ showBalance (getAmount accountId allEntries)
 
         Nothing ->
             ""
@@ -118,11 +115,6 @@ getAmount accountId allEntries =
     in
     sumOf allEntriesCredit - sumOf allEntriesDebit
 
-
-type alias Amount =
-    { whole : Int
-    , change : Int
-    }
 
 
 amountOf : AccountingEntry -> Amount
@@ -162,32 +154,41 @@ showBalance amount =
         "0"
 
 
-
-
 unicodeToString : Int -> String
 unicodeToString symbol =
-  String.fromChar (Char.fromCode symbol)
+    String.fromChar (Char.fromCode symbol)
+
 
 type alias EntryWithListPosition =
-    { position : Position, accountingEntry : AccountingEntry }
+    { position : Position, index : Int, accountingEntry : AccountingEntry }
 
-type Position = OnlyOne
-              | First
-              | Middle
-              | Last
+
+type Position
+    = OnlyOne
+    | First
+    | Middle
+    | Last
 
 
 getListWithPosition : List AccountingEntry -> List EntryWithListPosition
 getListWithPosition allAccountingEntries =
     if List.length allAccountingEntries <= 1 then
-           case List.head allAccountingEntries of
-               Just first ->
-                   [{position = OnlyOne, accountingEntry = first}]
-               Nothing -> []
+        List.map (\ae -> { position = OnlyOne, index = 1, accountingEntry = ae }) allAccountingEntries
+
     else
-      List.indexedMap (\i ae -> if i == 0 then
-                                          {position = First, accountingEntry = ae}
-                                 else if i == List.length allAccountingEntries - 1 then
-                                      {position = Last, accountingEntry = ae}
-                                 else {position = Middle, accountingEntry = ae})
-                      allAccountingEntries
+        List.indexedMap
+            (\i ae ->
+                let
+                    pos =
+                        if i == 0 then
+                            First
+
+                        else if i == List.length allAccountingEntries - 1 then
+                            Last
+
+                        else
+                            Middle
+                in
+                { position = pos, index = i + 1, accountingEntry = ae }
+            )
+            allAccountingEntries
