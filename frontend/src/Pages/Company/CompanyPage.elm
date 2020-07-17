@@ -258,7 +258,7 @@ companyForDropdown company =
         id =
             String.fromInt company.id
     in
-    { value = id, text = id ++ " - " ++ company.name, enabled = True }
+    { value = id, text = company.name, enabled = True }
 
 
 dropdownOptions : List Company -> Dropdown.Options Msg
@@ -269,7 +269,7 @@ dropdownOptions allCompanies =
     in
     { defaultOptions
         | items =
-            List.sortBy .value (List.map companyForDropdown allCompanies)
+            List.sortBy .text (List.map companyForDropdown allCompanies)
         , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
     }
 
