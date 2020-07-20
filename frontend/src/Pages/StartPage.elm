@@ -14,6 +14,8 @@ import Json.Decode as Decode
 import List exposing (range)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (linkButton)
+import Task
+import Time exposing (..)
 
 
 
@@ -34,7 +36,9 @@ main =
 
 
 type alias Model =
-    { lang : LanguageComponents
+    { time : Posix
+    , zone : Zone
+    , lang : LanguageComponents
     , companyId : Int
     , accountingYear : Int
     , selectionState : State
@@ -60,7 +64,9 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { lang = default
+    ( { time = (Time.millisToPosix 0)
+      , zone = utc
+      , lang = default
       , companyId = 0
       , accountingYear = 0
       , selectionState = SelectLanguage
@@ -71,7 +77,9 @@ init _ =
       , selectedCompany = Nothing
       , selectedYear = Nothing
       }
-    , getCompanies
+    , Cmd.batch [
+      getCompanies
+     , Task.perform SetTime Time.now ]
     )
 
 
@@ -90,6 +98,7 @@ type Msg
     | LanguageDropdownChanged (Maybe String)
     | CompanyDropdownChanged (Maybe String)
     | YearDropdownChanged (Maybe String)
+    | SetTime Posix
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -138,6 +147,10 @@ update msg model =
 
         YearDropdownChanged selectedValue ->
             ( updateYear model selectedValue, Cmd.none )
+
+        SetTime time ->
+            ({model | time = time}, Cmd.none)
+
 
 
 
@@ -203,7 +216,7 @@ viewAccountingYearSelection model =
     div [ class "page", class "startInputArea" ]
         [ Html.form [ class "startDropdown" ]
             [ Dropdown.dropdown
-                (dropdownOptionsYear model.lang.pleaseSelectYear)
+                (dropdownOptionsYear model.time model.zone model.lang.pleaseSelectYear)
                 []
                 model.selectedYear
             ]
@@ -265,14 +278,14 @@ dropdownOptionsCompany text allCompanies =
     }
 
 
-dropdownOptionsYear : String -> Dropdown.Options Msg
-dropdownOptionsYear text =
+dropdownOptionsYear : Posix -> Zone -> String -> Dropdown.Options Msg
+dropdownOptionsYear time zone text =
     let
         defaultOptions =
             Dropdown.defaultOptions YearDropdownChanged
     in
     { defaultOptions
-        | items = List.map accountingYearForDropdown (range 2015 2040)
+        | items = List.map accountingYearForDropdown  (List.reverse(range 2015 (Time.toYear zone time)))
         , emptyItem = Just { value = "0", text = text, enabled = True }
     }
 
@@ -305,7 +318,6 @@ getCompanies =
         { url = "http://localhost:9000/company/getAll"
         , expect = HttpUtil.expectJson GotResponseForAllCompanies (Decode.list decoderCompany)
         }
-
 
 
 -- UTILITIES
@@ -361,3 +373,5 @@ setLanguage : Model -> Maybe String -> Model
 setLanguage model selectedLanguage =
     updateSelectedLanguage model selectedLanguage
           |>  (\md -> updateLang md (foldMaybe default (getLanguage ) selectedLanguage))
+
+
