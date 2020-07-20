@@ -90,11 +90,11 @@ findEntry description allAccountingEntryTemplates =
             AccountingEntryTemplateUtil.empty
 
 
-getBalance : String -> List AccountingEntry -> String
-getBalance accountIdCandidate allEntries =
+getBalance : String -> String -> List AccountingEntry -> String
+getBalance text accountIdCandidate allEntries =
     case String.toInt accountIdCandidate of
         Just accountId ->
-            "Balance: " ++ showBalance (getAmount accountId allEntries)
+            text ++ ": " ++ showBalance (getAmount accountId allEntries)
 
         Nothing ->
             ""

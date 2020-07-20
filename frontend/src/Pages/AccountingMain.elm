@@ -183,10 +183,10 @@ stepAccountingEntryTemplate model ( accountingEntryTemplate, cmd ) =
 
 type Route
     = StartRoute
-    | CompanyRoute
-    | AccountRoute Int
-    | AccountingEntryRoute Int Int
-    | AccountingEntryTemplateRoute Int
+    | CompanyRoute String
+    | AccountRoute Int String
+    | AccountingEntryRoute Int Int String
+    | AccountingEntryTemplateRoute Int String
 
 
 updateUrl : Url -> Model -> ( Model, Cmd Msg )
@@ -205,20 +205,20 @@ updateUrl url model =
             Start.init ()
                 |> stepStart model
 
-        Just CompanyRoute ->
-            Company.init ()
+        Just (CompanyRoute lang)->
+            Company.init { lang = lang}
                 |> stepCompany model
 
-        Just (AccountRoute companyId) ->
-            Account.init { companyId = companyId, accountingYear = yearFromEntryPage }
+        Just (AccountRoute companyId lang) ->
+            Account.init { companyId = companyId, accountingYear = yearFromEntryPage, lang = lang }
                 |> stepAccount model
 
-        Just (AccountingEntryRoute companyId accountingYear) ->
-            AccountingEntry.init { companyId = companyId, accountingYear = accountingYear }
+        Just (AccountingEntryRoute companyId accountingYear lang) ->
+            AccountingEntry.init { companyId = companyId, accountingYear = accountingYear, lang = lang }
                 |> stepAccountingEntry model
 
-        Just (AccountingEntryTemplateRoute companyId) ->
-            AccountingEntryTemplate.init { companyId = companyId, accountingYear = yearFromEntryPage }
+        Just (AccountingEntryTemplateRoute companyId lang) ->
+            AccountingEntryTemplate.init { companyId = companyId, accountingYear = yearFromEntryPage, lang = lang }
                 |> stepAccountingEntryTemplate model
 
         Nothing ->
@@ -233,13 +233,16 @@ parser =
 
         accountingYearParser =
             s "accountingYear" </> Parser.int
+
+        languageParser =
+            s "lang" </> Parser.string
     in
     Parser.oneOf
         [ Parser.map StartRoute Parser.top
-        , Parser.map CompanyRoute (s "Company")
-        , Parser.map AccountRoute (companyIdParser </> s "Accounts")
-        , Parser.map AccountingEntryTemplateRoute (companyIdParser </> s "Templates")
-        , Parser.map AccountingEntryRoute (companyIdParser </> s "Accounting" </> accountingYearParser)
+        , Parser.map CompanyRoute (s "Company" </> languageParser)
+        , Parser.map AccountRoute (companyIdParser </> s "Accounts" </> languageParser)
+        , Parser.map AccountingEntryTemplateRoute (companyIdParser </> s "Templates" </> languageParser)
+        , Parser.map AccountingEntryRoute (companyIdParser </> s "Accounting" </> accountingYearParser </> languageParser)
         ]
 
 
