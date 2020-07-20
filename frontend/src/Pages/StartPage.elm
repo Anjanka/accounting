@@ -1,7 +1,9 @@
 module Pages.StartPage exposing (Model, Msg, init, update, view)
 
 import Api.General.HttpUtil as HttpUtil
+import Api.General.LanguageUtil exposing (default, getLanguage)
 import Api.Types.Company exposing (Company, decoderCompany)
+import Api.Types.Language exposing (LanguageComponents, LanguageForList, languageList)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, text)
@@ -10,7 +12,7 @@ import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List exposing (range)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath, makeLinkYear)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (linkButton)
 
 
@@ -32,7 +34,7 @@ main =
 
 
 type alias Model =
-    { language : String
+    { lang : LanguageComponents
     , companyId : Int
     , accountingYear : Int
     , selectionState : State
@@ -43,6 +45,7 @@ type alias Model =
     , selectedCompany : Maybe String
     , selectedYear : Maybe String
     }
+
 
 
 type State
@@ -57,7 +60,7 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { language = ""
+    ( { lang = default
       , companyId = 0
       , accountingYear = 0
       , selectionState = SelectLanguage
@@ -118,7 +121,7 @@ update msg model =
             ( { model | selectionState = SelectYear }, Cmd.none )
 
         BackToLanguageSelection ->
-            ( { model | language = "", selectionState = SelectLanguage, selectedLanguage = Nothing, selectedCompany = Nothing }, Cmd.none )
+            ( { model | selectionState = SelectLanguage, selectedLanguage = Nothing, selectedCompany = Nothing }, Cmd.none )
 
         BackToCompanySelection ->
             ( { model | accountingYear = 0, selectionState = SelectCompany, selectedCompany = Nothing, selectedYear = Nothing }, Cmd.none )
@@ -126,10 +129,9 @@ update msg model =
         LanguageDropdownChanged selectedValue ->
             let
                 newModel =
-                    updateSelectedLanguage model selectedValue
-                        |> (\md -> foldMaybe md (updateLanguage md) selectedValue)
+                    setLanguage model selectedValue
             in
-            ( newModel, Cmd.none )
+                     ( newModel, Cmd.none )
 
         CompanyDropdownChanged selectedValue ->
             ( updateCompany model selectedValue, Cmd.none )
@@ -169,7 +171,7 @@ viewLanguageSelection model =
     div [ class "page", class "startInputArea" ]
         [ Html.form [ class "startDropdown" ]
             [ Dropdown.dropdown
-                dropdownOptionsLanguage
+                (dropdownOptionsLanguage languageList)
                 []
                 model.selectedLanguage
             ]
@@ -183,15 +185,15 @@ viewCompanySelection model =
     div [ class "page", class "startInputArea" ]
         [ Html.form [ class "startDropdown" ]
             [ Dropdown.dropdown
-                (dropdownOptionsCompany model.allCompanies)
+                (dropdownOptionsCompany model.lang.pleaseSelectCompany model.allCompanies)
                 []
                 model.selectedCompany
             ]
         , companyButton model.selectedCompany
-        , linkButton (fragmentUrl [ makeLinkPath CompanyPage ])
-            [ class "linkButton", value "Manage Companies" ]
+        , linkButton (fragmentUrl [ makeLinkPath CompanyPage, makeLinkLang model.lang.short ])
+            [ class "linkButton", value model.lang.manageCompanies ]
             []
-        , button [ class "backButton", onClick BackToLanguageSelection ] [ text "Back" ]
+        , button [ class "backButton", onClick BackToLanguageSelection ] [ text model.lang.back ]
         , div [] [ text model.error ]
         ]
 
@@ -201,12 +203,12 @@ viewAccountingYearSelection model =
     div [ class "page", class "startInputArea" ]
         [ Html.form [ class "startDropdown" ]
             [ Dropdown.dropdown
-                dropdownOptionsYear
+                (dropdownOptionsYear model.lang.pleaseSelectYear)
                 []
                 model.selectedYear
             ]
         , yearButton model
-        , button [ class "backButton", onClick BackToCompanySelection ] [ text "Back" ]
+        , button [ class "backButton", onClick BackToCompanySelection ] [ text model.lang.back ]
         , div [] [ text model.error ]
         ]
 
@@ -223,7 +225,7 @@ companyButton selectedValue =
 
 yearButton : Model -> Html Msg
 yearButton model =
-    linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear ])
+    linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ])
         [ class "saveButton", disabled (isNothing model.selectedYear), value "Ok" ]
         []
 
@@ -238,20 +240,20 @@ isNothing maybe =
             True
 
 
-dropdownOptionsLanguage : Dropdown.Options Msg
-dropdownOptionsLanguage =
+dropdownOptionsLanguage : List LanguageForList -> Dropdown.Options Msg
+dropdownOptionsLanguage languages =
     let
         defaultOptions =
             Dropdown.defaultOptions LanguageDropdownChanged
     in
     { defaultOptions
-        | items = [ { value = "en", text = "English", enabled = True } ]
+        | items =  List.map (\lang -> { value = lang.short, text = lang.name, enabled = True }) languages
         , emptyItem = Just { value = "0", text = "[Please Select Language]", enabled = True }
     }
 
 
-dropdownOptionsCompany : List Company -> Dropdown.Options Msg
-dropdownOptionsCompany allCompanies =
+dropdownOptionsCompany : String -> List Company -> Dropdown.Options Msg
+dropdownOptionsCompany text allCompanies =
     let
         defaultOptions =
             Dropdown.defaultOptions CompanyDropdownChanged
@@ -259,19 +261,19 @@ dropdownOptionsCompany allCompanies =
     { defaultOptions
         | items =
             List.sortBy .text (List.map companyForDropdown allCompanies)
-        , emptyItem = Just { value = "0", text = "[Please Select Company]", enabled = True }
+        , emptyItem = Just { value = "0", text = text, enabled = True }
     }
 
 
-dropdownOptionsYear : Dropdown.Options Msg
-dropdownOptionsYear =
+dropdownOptionsYear : String -> Dropdown.Options Msg
+dropdownOptionsYear text =
     let
         defaultOptions =
             Dropdown.defaultOptions YearDropdownChanged
     in
     { defaultOptions
         | items = List.map accountingYearForDropdown (range 2015 2040)
-        , emptyItem = Just { value = "0", text = "[Please Select Accounting Year]", enabled = True }
+        , emptyItem = Just { value = "0", text = text, enabled = True }
     }
 
 
@@ -308,10 +310,6 @@ getCompanies =
 
 -- UTILITIES
 
-
-updateLanguage : Model -> String -> Model
-updateLanguage model language =
-    { model | language = language }
 
 
 updateSelectedLanguage : Model -> Maybe String -> Model
@@ -353,3 +351,13 @@ foldMaybe b f ma =
     ma
         |> Maybe.map f
         |> Maybe.withDefault b
+
+
+updateLang : Model -> LanguageComponents -> Model
+updateLang model lang =
+    {model | lang = lang}
+
+setLanguage : Model -> Maybe String -> Model
+setLanguage model selectedLanguage =
+    updateSelectedLanguage model selectedLanguage
+          |>  (\md -> updateLang md (foldMaybe default (getLanguage ) selectedLanguage))

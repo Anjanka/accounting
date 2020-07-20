@@ -2,8 +2,10 @@ module Pages.AccountPage exposing (Model, Msg, init, update, view)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.General.HttpUtil as HttpUtil
+import Api.General.LanguageUtil exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountKey exposing (encoderAccountKey)
+import Api.Types.Language exposing (LanguageComponents)
 import Browser
 import Html exposing (Attribute, Html, button, div, input, label, p, table, td, text, th, tr)
 import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
@@ -32,7 +34,8 @@ main =
 
 
 type alias Model =
-    { companyId : Int
+    { lang : LanguageComponents
+    , companyId : Int
     , accountingYear : Maybe Int
     , contentId : String
     , account : Account
@@ -60,18 +63,20 @@ type alias Model =
 type alias Flags =
     { companyId : Int
     , accountingYear : Maybe Int
+    , lang : String
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { companyId = flags.companyId
+    ( { lang = getLanguage flags.lang
+      , companyId = flags.companyId
       , accountingYear = flags.accountingYear
       , contentId = ""
       , account = AccountUtil.updateCompanyID AccountUtil.empty flags.companyId
       , allAccounts = []
       , error = ""
-      , validationFeedback = "Account ID must be positive number with 3 to 5 digits. Leading 0s will be ignored"
+      , validationFeedback = ""
       , buttonPressed = False
       , editViewActive = False
       }
@@ -114,12 +119,14 @@ update msg model =
                     ( { model
                         | allAccounts = List.sortBy .id value
                         , error = ""
+                        , validationFeedback = model.lang.accountValidationMessageErr
+
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
+                    ( { model | error = HttpUtil.errorToString error, validationFeedback = model.lang.accountValidationMessageErr }, Cmd.none )
 
         GotResponseCreateOrReplace result ->
             case result of
@@ -184,7 +191,7 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [class "page", class "accountInputArea"]
-        [ backToEntryPage model.companyId model.accountingYear
+        [ backToEntryPage model.lang.back model.companyId model.accountingYear model.lang.short
         , p [] []
         , viewEditOrCreate model
         , label [] [ text (AccountUtil.show model.account) ]
@@ -200,30 +207,30 @@ viewEditOrCreate model =
     if model.editViewActive then
         div []
             [ label [] [ text (model.contentId ++ " - ") ]
-            , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
+            , input [ placeholder model.lang.accountId, value model.account.title, onInput ChangeName ] []
             , div []
                 [ button
                     [ class "saveButton",  onClick ReplaceAccount
                     ]
-                    [ text "Save Changes" ]
-                , button [ class "deleteButton", onClick DeleteAccount ] [ text "Delete" ]
-                , button [ class "cancelButton", onClick DeactivateEditView ] [ text "Cancel" ]
+                    [ text model.lang.saveChanges ]
+                , button [ class "deleteButton", onClick DeleteAccount ] [ text model.lang.delete ]
+                , button [ class "cancelButton", onClick DeactivateEditView ] [ text model.lang.cancel ]
                 ]
             ]
 
     else
         div []
-            [ input [ class "accountIdField", placeholder "Account ID", value model.contentId, onInput ChangeID ] []
-            , input [ placeholder "Account Name", value model.account.title, onInput ChangeName ] []
+            [ input [ class "accountIdField", placeholder model.lang.accountId, value model.contentId, onInput ChangeID ] []
+            , input [ placeholder model.lang.accountName, value model.account.title, onInput ChangeName ] []
             , viewCreateButton model
-            , viewValidation model.validationFeedback
+            , viewValidation model.lang.accountValidationMessageOk model.validationFeedback
             ]
 
 
-viewValidation : String -> Html Msg
-viewValidation error =
+viewValidation : String -> String -> Html Msg
+viewValidation txt error =
     if String.isEmpty error then
-        div [ style "color" "green" ] [ text "Account ID is valid." ]
+        div [ style "color" "green" ] [ text txt ]
 
     else
         div [ style "color" "red" ] [ text error ]
@@ -232,39 +239,39 @@ viewValidation error =
 viewCreateButton : Model -> Html Msg
 viewCreateButton model =
     if not (String.isEmpty model.validationFeedback) || String.isEmpty model.account.title then
-        button [ class "saveButton", disabled True, onClick CreateAccount ] [ text "Create new Account" ]
+        button [ class "saveButton", disabled True, onClick CreateAccount ] [ text model.lang.create ]
 
     else
-        button [ class "saveButton", disabled False, onClick CreateAccount ] [ text "Create new Account" ]
+        button [ class "saveButton", disabled False, onClick CreateAccount ] [ text model.lang.create ]
 
 
 viewAccountList : Model -> Html Msg
 viewAccountList model =
     if model.buttonPressed then
         div []
-            [ div [] [ button [ class "showButton", onClick HideAllAccounts ] [ text "Hide Accounts" ] ]
+            [ div [] [ button [ class "showButton", onClick HideAllAccounts ] [ text model.lang.hideAccountList ] ]
             , div [ id "allAccounts" ]
                 [ table
                     []
                     (tr [ class "tableHeader" ]
-                        [ th [] [ label [ for "id" ] [ text "id" ] ]
-                        , th [] [ label [ for "name" ] [ text "name" ] ]
+                        [ th [] [ label [ for "id" ] [ text model.lang.id ] ]
+                        , th [] [ label [ for "name" ] [ text model.lang.name ] ]
                         ]
-                        :: List.map mkTableLine model.allAccounts
+                        :: List.map (mkTableLine model.lang.edit) model.allAccounts
                     )
                 ]
             ]
 
     else
-        div [] [ button [ class "showButton", onClick ShowAllAccounts ] [ text "Manage Accounts" ] ]
+        div [] [ button [ class "showButton", onClick ShowAllAccounts ] [ text model.lang.manageAccounts ] ]
 
 
-mkTableLine : Account -> Html Msg
-mkTableLine account =
+mkTableLine : String -> Account -> Html Msg
+mkTableLine txt account =
     tr []
         [ td [class "numberColumn"] [ text (String.fromInt account.id) ]
         , td [class "textColumn"] [ text account.title ]
-        , td [class "buttonColumn"] [button [ class "editButton", onClick (ActivateEditView account) ] [ text "Edit" ]]
+        , td [class "buttonColumn"] [button [ class "editButton", onClick (ActivateEditView account) ] [ text txt ]]
         ]
 
 
@@ -315,10 +322,10 @@ parseAndUpdateAccount : Model -> String -> Model
 parseAndUpdateAccount model idCandidate =
     let
         idNotValid =
-            "Account ID must be positive number with 3 to 5 digits. Leading 0s will be ignored"
+            model.lang.accountValidationMessageErr
 
         existingAccount =
-            "An account with this Id already exists. Use edit to make changes to existing accounts."
+            model.lang.accountValidationMessageExisting
     in
     if not (String.isEmpty idCandidate) then
         case String.toInt idCandidate of
@@ -367,6 +374,6 @@ reset model =
         | contentId = ""
         , account = AccountUtil.updateCompanyID AccountUtil.empty model.companyId
         , error = ""
-        , validationFeedback = "Account ID must be positive number with 3 to 5 digits."
+        , validationFeedback = model.lang.accountValidationMessageErr
         , editViewActive = False
     }

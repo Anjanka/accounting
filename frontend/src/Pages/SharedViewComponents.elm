@@ -4,7 +4,7 @@ import Api.Types.Account exposing (Account)
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, div, form, input)
 import Html.Attributes exposing (action, class, type_, value)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath, makeLinkYear)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 
 
 accountListForDropdown : List Account -> Maybe String -> List Account
@@ -30,12 +30,12 @@ linkButton link attrs children =
         [ input (type_ "submit" :: attrs) children ]
 
 
-backToEntryPage : Int -> Maybe Int -> Html msg
-backToEntryPage companyId yearCandidate =
+backToEntryPage : String -> Int -> Maybe Int -> String -> Html msg
+backToEntryPage text companyId yearCandidate language =
     case yearCandidate of
         Just accountingYear ->
-            linkButton (fragmentUrl [ makeLinkId companyId, makeLinkPath AccountingEntryPage, makeLinkYear accountingYear ])
-                [ class "backButton", value "Back" ]
+            linkButton (fragmentUrl [ makeLinkId companyId, makeLinkPath AccountingEntryPage, makeLinkYear accountingYear , makeLinkLang language])
+                [ class "backButton", value text ]
                 []
 
         Nothing ->
