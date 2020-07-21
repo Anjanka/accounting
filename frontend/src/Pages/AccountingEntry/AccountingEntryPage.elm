@@ -253,11 +253,11 @@ view : Model -> Html Msg
 view model =
     div [ class "page" ]
         [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage , makeLinkLang model.lang.short])
-            [ class "pageButton", id "accountPageButton", value model.lang.manageAccounts ]
-            []
+            [ class "pageButton", id "accountPageButton"][ text model.lang.manageAccounts ]
+
         , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage,  makeLinkLang model.lang.short])
-            [ class "pageButton", id "templatePageButton", value model.lang.manageTemplates]
-            []
+            [ class "pageButton", id "templatePageButton"] [ text model.lang.manageTemplates]
+
         , viewAccountListButton model.lang model.accountViewActive
         , p [ id "freeP" ] []
         , viewAccountList model

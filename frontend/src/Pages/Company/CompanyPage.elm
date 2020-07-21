@@ -170,8 +170,8 @@ view : Model -> Html Msg
 view model =
     div [ class "page", class "companyInputArea" ]
         [ linkButton (fragmentUrl [ makeLinkPath StartPage ])
-            [ class "backButton", value model.lang.back ]
-            []
+            [ class "backButton"][text model.lang.back ]
+
         , p [] []
         , div []
             [ if model.editViewActivated then
