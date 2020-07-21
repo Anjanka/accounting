@@ -314,7 +314,7 @@ viewInputArea model =
             , input [ id "dayField", placeholder model.lang.day, value model.content.day, onInput ChangeDay ] []
             , label [] [ text "." ]
             , input [ id "monthField", placeholder model.lang.month, value model.content.month, onInput ChangeMonth ] []
-            , label [] [ text (String.fromInt model.accountingYear) ]
+            , label [] [ text ("." ++ String.fromInt model.accountingYear) ]
             , input [ id "receiptNumberField", placeholder model.lang.receiptNumber, value model.content.receiptNumber, onInput ChangeReceiptNumber ] []
             ]
         , div []

@@ -16,7 +16,6 @@ type alias LanguageComponents =
     , account : String
     , debit : String
     , credit : String
-    , accountingEntryTemplate : String
     , template : String
     , accountingEntry : String
     , company : String
@@ -65,4 +64,5 @@ languageList : List LanguageForList
 languageList = [
                 {short = "en", name = "English"}
               , {short = "de", name = "Deutsch"}
+              , {short = "fr", name = "Français"}
               ]

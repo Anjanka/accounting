@@ -9,6 +9,8 @@ getLanguage lang =
         english
     else if lang == "de" then
         german
+    else if lang == "fr" then
+        french
     else default
 
 
@@ -32,7 +34,6 @@ english =
     , account = "Account"
     , debit = "Debit"
     , credit = "Credit"
-    , accountingEntryTemplate = "Accounting Entry Template"
     , template = "Template"
     , accountingEntry = "Accounting Entry"
     , company = "Company"
@@ -86,7 +87,6 @@ german =
     , account = "Konto"
     , debit = "Soll"
     , credit = "Haben"
-    , accountingEntryTemplate = "Vorlage"
     , template = "Vorlage"
     , accountingEntry = "Buchungseintrag"
     , company = "Firma"
@@ -122,3 +122,56 @@ german =
     , day = "tt"
     , month = "mm"
     }
+
+
+french : LanguageComponents
+french =
+   { short = "fr"
+   , name = "nom"
+   , id = "ID"
+   , accountName = "nom du compte"
+   , companyName = "raison sociale"
+   , description = "désignation"
+   , saveChanges = "enregistrer les modifications"
+   , delete = "supprimer"
+   , back = "retour"
+   , cancel = "annuler"
+   , edit = "corriger"
+   , account = "compte"
+   , debit = "débit"
+   , credit = "crédit"
+   , template = "modèle"
+   , accountingEntry = "enregistrement comptable"
+   , company = "entreprise"
+   , pleaseSelectCompany = "[Veuillez sélectionner une entreprise]"
+   , pleaseSelectYear = "[Veuillez sélectionner l'année comptable]"
+   , selectTemplate = "[Sélectionnez un modèle]"
+   , manageAccounts = "gérer les comptes"
+   , manageTemplates = "gérer les modèles"
+   , manageCompanies = "gérer les entreprises"
+   , create = "créer"
+   , accountingYear = "exercice comptable"
+   , bookingDate = "date comptable"
+   , receiptNumber = "n° de reçu"
+   , address = "adresse"
+   , city = "ville"
+   , postalCode = "code postal"
+   , country = "pays"
+   , taxNumber = "numéro fiscal"
+   , revenueOffice = "fisc"
+   , commitNewEntry = "valider une nouvelle entrée"
+   , amount = "montant"
+   , accountId = "ID de compte"
+   , hideTemplateList = "masquer la liste des modèles"
+   , hideAccountList = "masquer la list des comptes"
+   , showAccountList = "afficher la list des comptes"
+   , number = "N°"
+   , noValidAccount = "[Aucun compte valide n'a été sélectionné.]"
+   , accountValidationMessageOk = "L'ID de compte est valide."
+   , accountValidationMessageErr = "L'ID de compte doit être un nombre positif de 3 à 5 chiffres. Les 0 en tête seront ignorés."
+   , accountValidationMessageExisting = "Un compte avec cet identifiant existe déjà. Utilisez la fonction d'édition pour apporter des modifications aux comptes existants."
+   , balance = "bilan"
+   , equalAccountsWarning = "Le crédit et le débit ne doivent pas être égaux."
+   , day = "jj"
+   , month = "mm"
+   }
