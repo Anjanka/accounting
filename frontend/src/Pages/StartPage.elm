@@ -239,8 +239,8 @@ companyButton selectedValue =
 yearButton : Model -> Html Msg
 yearButton model =
     linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ])
-        [ class "saveButton", disabled (isNothing model.selectedYear), value "Ok" ]
-        []
+        [ class "saveButton", disabled (isNothing model.selectedYear)][text "Ok" ]
+
 
 
 isNothing : Maybe a -> Bool
