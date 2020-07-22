@@ -1,12 +1,13 @@
 module Pages.AccountPage exposing (Model, Msg, init, update, view)
 
-import Api.General.AccountUtil as AccountUtil
+import Api.General.AccountUtil as AccountUtil exposing (AccountType, Category, updateAccountType, updateCategory)
 import Api.General.HttpUtil as HttpUtil
 import Api.General.LanguageUtil exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountKey exposing (encoderAccountKey)
 import Api.Types.Language exposing (LanguageComponents)
 import Browser
+import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, table, td, text, th, tr)
 import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
@@ -44,6 +45,8 @@ type alias Model =
     , validationFeedback : String
     , buttonPressed : Bool
     , editViewActive : Bool
+    , selectedCategory : Maybe String
+    , selectedAccountType : Maybe String
     }
 
 
@@ -79,6 +82,8 @@ init flags =
       , validationFeedback = ""
       , buttonPressed = False
       , editViewActive = False
+      , selectedCategory = Nothing
+      , selectedAccountType = Nothing
       }
     , getAccounts flags.companyId
     )
@@ -96,6 +101,8 @@ type Msg
     | GotResponseDelete (Result Error ())
     | ChangeID String
     | ChangeName String
+    | DropdownCategoryChanged (Maybe String)
+    | DropdownAccountTypeChanged (Maybe String)
     | ReplaceAccount
     | CreateAccount
     | DeleteAccount
@@ -120,7 +127,6 @@ update msg model =
                         | allAccounts = List.sortBy .id value
                         , error = ""
                         , validationFeedback = model.lang.accountValidationMessageErr
-
                       }
                     , Cmd.none
                     )
@@ -156,6 +162,24 @@ update msg model =
             in
             ( newModel, Cmd.none )
 
+        DropdownCategoryChanged selectedValue ->
+            let
+                newModel =
+                    model.account
+                        |> (\acc -> handleCategorySelection acc selectedValue)
+                        |> updateAccount model
+            in
+            ( updateSelectedCategory newModel selectedValue, Cmd.none )
+
+        DropdownAccountTypeChanged selectedValue ->
+            let
+                newModel =
+                    model.account
+                        |> (\acc -> handleAccountTypeSelection acc selectedValue)
+                        |> updateAccount model
+            in
+            ( updateSelectedAccountType newModel selectedValue, Cmd.none )
+
         ReplaceAccount ->
             ( model, replaceAccount model.account )
 
@@ -190,7 +214,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [class "page", class "accountInputArea"]
+    div [ class "page", class "accountInputArea" ]
         [ backToEntryPage model.lang.back model.companyId model.accountingYear model.lang.short
         , p [] []
         , viewEditOrCreate model
@@ -208,9 +232,11 @@ viewEditOrCreate model =
         div []
             [ label [] [ text (model.contentId ++ " - ") ]
             , input [ placeholder model.lang.accountId, value model.account.title, onInput ChangeName ] []
+            , viewDropdowns model
             , div []
                 [ button
-                    [ class "saveButton",  onClick ReplaceAccount
+                    [ class "saveButton"
+                    , onClick ReplaceAccount
                     ]
                     [ text model.lang.saveChanges ]
                 , button [ class "deleteButton", onClick DeleteAccount ] [ text model.lang.delete ]
@@ -222,9 +248,23 @@ viewEditOrCreate model =
         div []
             [ input [ class "accountIdField", placeholder model.lang.accountId, value model.contentId, onInput ChangeID ] []
             , input [ placeholder model.lang.accountName, value model.account.title, onInput ChangeName ] []
+            , viewDropdowns model
             , viewCreateButton model
             , viewValidation model.lang.accountValidationMessageOk model.validationFeedback
             ]
+
+
+viewDropdowns : Model -> Html Msg
+viewDropdowns model =
+    div [] [Dropdown.dropdown
+               (dropdownOptionsAccountCategory model.lang.pleaseSelectCategory model.lang.accountCategories)
+                       []
+                       model.selectedCategory
+          , Dropdown.dropdown
+                (dropdownOptionsAccountType model.lang.pleaseSelectAccountType (getSelectableTypes model.selectedCategory model.lang.accountTypes ))
+                []
+                model.selectedAccountType]
+
 
 
 viewValidation : String -> String -> Html Msg
@@ -269,10 +309,53 @@ viewAccountList model =
 mkTableLine : String -> Account -> Html Msg
 mkTableLine txt account =
     tr []
-        [ td [class "numberColumn"] [ text (String.fromInt account.id) ]
-        , td [class "textColumn"] [ text account.title ]
-        , td [class "buttonColumn"] [button [ class "editButton", onClick (ActivateEditView account) ] [ text txt ]]
+        [ td [ class "numberColumn" ] [ text (String.fromInt account.id) ]
+        , td [ class "textColumn" ] [ text account.title ]
+        , td [ class "buttonColumn" ] [ button [ class "editButton", onClick (ActivateEditView account) ] [ text txt ] ]
         ]
+
+
+dropdownOptionsAccountCategory : String -> List Category -> Dropdown.Options Msg
+dropdownOptionsAccountCategory text allCategories =
+    let
+        defaultOptions =
+            Dropdown.defaultOptions DropdownCategoryChanged
+    in
+    { defaultOptions
+        | items =
+            List.map (\cat -> categoryForDropdown cat) allCategories
+        , emptyItem = Just { value = "0", text = text, enabled = True }
+    }
+
+
+categoryForDropdown : Category -> Item
+categoryForDropdown cat =
+    let
+        id =
+            String.fromInt cat.id
+    in
+    { value = id ++ cat.name, text = cat.name, enabled = True }
+
+
+dropdownOptionsAccountType : String -> List AccountType -> Dropdown.Options Msg
+dropdownOptionsAccountType text selectableTypes =
+    let
+        defaultOptions =
+            Dropdown.defaultOptions DropdownAccountTypeChanged
+    in
+    { defaultOptions
+        | items =
+            List.map (\at -> { value = at.name, text = at.name, enabled = not (List.isEmpty selectableTypes) }) selectableTypes
+        , emptyItem = Just { value = "0", text = text, enabled = not (List.isEmpty selectableTypes) }
+    }
+
+
+getSelectableTypes : Maybe String -> List AccountType -> List AccountType
+getSelectableTypes selectedCategory allTypes =
+    selectedCategory
+        |> Maybe.andThen (String.left 1 >> String.toInt)
+        |> Maybe.map (\id -> List.filter (\at -> List.member id at.categoryIds) allTypes)
+        |> Maybe.withDefault []
 
 
 
@@ -368,6 +451,16 @@ updateAccount model account =
     { model | account = account }
 
 
+updateSelectedCategory : Model -> Maybe String -> Model
+updateSelectedCategory model selectedCategory =
+    { model | selectedCategory = selectedCategory }
+
+
+updateSelectedAccountType : Model -> Maybe String -> Model
+updateSelectedAccountType model selectedType =
+    { model | selectedAccountType = selectedType }
+
+
 reset : Model -> Model
 reset model =
     { model
@@ -377,3 +470,23 @@ reset model =
         , validationFeedback = model.lang.accountValidationMessageErr
         , editViewActive = False
     }
+
+
+handleCategorySelection : Account -> Maybe String -> Account
+handleCategorySelection account selectedCategory =
+    case selectedCategory of
+        Just category ->
+            updateCategory account (String.dropLeft 1 category)
+
+        Nothing ->
+            account
+
+
+handleAccountTypeSelection : Account -> Maybe String -> Account
+handleAccountTypeSelection account selectedType =
+    case selectedType of
+        Just t ->
+            updateAccountType account t
+
+        Nothing ->
+            account

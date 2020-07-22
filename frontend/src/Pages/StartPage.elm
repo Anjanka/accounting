@@ -51,7 +51,6 @@ type alias Model =
     }
 
 
-
 type State
     = SelectLanguage
     | SelectCompany
@@ -64,7 +63,7 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { time = (Time.millisToPosix 0)
+    ( { time = Time.millisToPosix 0
       , zone = utc
       , lang = default
       , companyId = 0
@@ -77,9 +76,10 @@ init _ =
       , selectedCompany = Nothing
       , selectedYear = Nothing
       }
-    , Cmd.batch [
-      getCompanies
-     , Task.perform SetTime Time.now ]
+    , Cmd.batch
+        [ getCompanies
+        , Task.perform SetTime Time.now
+        ]
     )
 
 
@@ -140,7 +140,7 @@ update msg model =
                 newModel =
                     setLanguage model selectedValue
             in
-                     ( newModel, Cmd.none )
+            ( newModel, Cmd.none )
 
         CompanyDropdownChanged selectedValue ->
             ( updateCompany model selectedValue, Cmd.none )
@@ -149,8 +149,7 @@ update msg model =
             ( updateYear model selectedValue, Cmd.none )
 
         SetTime time ->
-            ({model | time = time}, Cmd.none)
-
+            ( { model | time = time }, Cmd.none )
 
 
 
@@ -203,10 +202,12 @@ viewCompanySelection model =
                 model.selectedCompany
             ]
         , companyButton model.selectedCompany
-        , linkButton (fragmentUrl [ makeLinkPath CompanyPage, makeLinkLang model.lang.short ])
-            [ class "linkButton", value model.lang.manageCompanies ]
-            []
-        , button [ class "backButton", onClick BackToLanguageSelection ] [ text model.lang.back ]
+        , div []
+            [ linkButton (fragmentUrl [ makeLinkPath CompanyPage, makeLinkLang model.lang.short ])
+                [ class "linkButton" ]
+                [ text model.lang.manageCompanies ]
+            , button [ class "backButton", onClick BackToLanguageSelection ] [ text model.lang.back ]
+            ]
         , div [] [ text model.error ]
         ]
 
@@ -239,8 +240,8 @@ companyButton selectedValue =
 yearButton : Model -> Html Msg
 yearButton model =
     linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ])
-        [ class "saveButton", disabled (isNothing model.selectedYear)][text "Ok" ]
-
+        [ class "linkButton", disabled (isNothing model.selectedYear) ]
+        [ text "Ok" ]
 
 
 isNothing : Maybe a -> Bool
@@ -260,7 +261,7 @@ dropdownOptionsLanguage languages =
             Dropdown.defaultOptions LanguageDropdownChanged
     in
     { defaultOptions
-        | items =  List.map (\lang -> { value = lang.short, text = lang.name, enabled = True }) languages
+        | items = List.map (\lang -> { value = lang.short, text = lang.name, enabled = True }) languages
         , emptyItem = Just { value = "0", text = "[Please Select Language]", enabled = True }
     }
 
@@ -285,7 +286,7 @@ dropdownOptionsYear time zone text =
             Dropdown.defaultOptions YearDropdownChanged
     in
     { defaultOptions
-        | items = List.map accountingYearForDropdown  (List.reverse(range 2015 (Time.toYear zone time)))
+        | items = List.map accountingYearForDropdown (List.reverse (range 2015 (Time.toYear zone time)))
         , emptyItem = Just { value = "0", text = text, enabled = True }
     }
 
@@ -320,8 +321,8 @@ getCompanies =
         }
 
 
--- UTILITIES
 
+-- UTILITIES
 
 
 updateSelectedLanguage : Model -> Maybe String -> Model
@@ -367,11 +368,10 @@ foldMaybe b f ma =
 
 updateLang : Model -> LanguageComponents -> Model
 updateLang model lang =
-    {model | lang = lang}
+    { model | lang = lang }
+
 
 setLanguage : Model -> Maybe String -> Model
 setLanguage model selectedLanguage =
     updateSelectedLanguage model selectedLanguage
-          |>  (\md -> updateLang md (foldMaybe default (getLanguage ) selectedLanguage))
-
-
+        |> (\md -> updateLang md (foldMaybe default getLanguage selectedLanguage))

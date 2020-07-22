@@ -1,6 +1,7 @@
 module Api.Types.Language exposing (..)
 
 
+import Api.General.AccountUtil exposing (AccountType, Category)
 type alias LanguageComponents =
     { short : String
     , name : String
@@ -22,6 +23,8 @@ type alias LanguageComponents =
     , pleaseSelectCompany : String
     , pleaseSelectYear : String
     , selectTemplate : String
+    , pleaseSelectCategory : String
+    , pleaseSelectAccountType : String
     , manageAccounts : String
     , manageTemplates : String
     , manageCompanies : String
@@ -50,6 +53,8 @@ type alias LanguageComponents =
     , equalAccountsWarning : String
     , day : String
     , month : String
+    , accountCategories : List Category
+    , accountTypes : List AccountType
     }
 
 
