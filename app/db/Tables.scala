@@ -102,13 +102,13 @@ trait Tables {
   /** GetResult implicit for fetching Account objects using plain SQL queries */
   implicit def GetResultAccount(implicit e0: GR[Int], e1: GR[String]): GR[Account] = GR{
     prs => import prs._
-    (Account.apply _).tupled((<<[Int], <<[String], <<[Int]))
+    (Account.apply _).tupled((<<[Int], <<[String], <<[Int], <<[String], <<[String]))
   }
   /** Table description of table account. Objects of this class serve as prototypes for rows in queries. */
   class AccountTable(_tableTag: Tag) extends profile.api.Table[Account](_tableTag, "account") {
-    def * = (id, title, companyId) <> ((Account.apply _).tupled, Account.unapply)
+    def * = (id, title, companyId, category, accountType) <> ((Account.apply _).tupled, Account.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = ((Rep.Some(id), Rep.Some(title), Rep.Some(companyId))).shaped.<>({r=>import r._; _1.map(_=> (Account.apply _).tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = ((Rep.Some(id), Rep.Some(title), Rep.Some(companyId), Rep.Some(category), Rep.Some(accountType))).shaped.<>({r=>import r._; _1.map(_=> (Account.apply _).tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column id SqlType(int4) */
     val id: Rep[Int] = column[Int]("id")
@@ -116,6 +116,10 @@ trait Tables {
     val title: Rep[String] = column[String]("title")
     /** Database column company_id SqlType(int4) */
     val companyId: Rep[Int] = column[Int]("company_id")
+    /** Database column category SqlType(text) */
+    val category: Rep[String] = column[String]("category")
+    /** Database column account_type SqlType(text) */
+    val accountType: Rep[String] = column[String]("account_type")
 
     /** Primary key of accountTable (database name account_pkey) */
     val pk = primaryKey("account_pkey", (companyId, id))
