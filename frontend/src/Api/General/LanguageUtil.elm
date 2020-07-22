@@ -40,6 +40,8 @@ english =
     , pleaseSelectCompany = "[Please Select Company]"
     , pleaseSelectYear = "[Please Select Accounting Year]"
     , selectTemplate = "[Select Template]"
+    , pleaseSelectCategory ="[Please Select Category]"
+    , pleaseSelectAccountType = "[Please Select Account Type]"
     , manageAccounts = "Manage Accounts"
     , manageTemplates = "Manage Templates"
     , manageCompanies = "Manage Companies"
@@ -68,6 +70,17 @@ english =
     , equalAccountsWarning = "Credit and Debit must not be equal."
     , day = "dd"
     , month = "mm"
+    , accountCategories = [{ id = 0 , name = "fixed assets"}
+                                , {id = 1, name ="financial account"}
+                                , {id = 3, name = "business expenses"}
+                                , {id = 8, name = "resources"}
+                                , {id = 9, name ="balance carried foward"}]
+    , accountTypes = [{categoryIds = [0], name = "inferior assets"}
+                            , {categoryIds = [1], name = "cash account"}
+                            , {categoryIds = [0,1,2,3,4,5,6,7,8,9], name = "other"}
+                            , {categoryIds = [8], name ="interest income"}
+                            , {categoryIds = [9], name = "nominal account"}
+                            , {categoryIds = [8], name = "sales revenue"}]
     }
 
 
@@ -93,6 +106,8 @@ german =
     , pleaseSelectCompany = "[Bitte Firma Auswählen]"
     , pleaseSelectYear = "[Bitte Buchungsjahr Auswählen]"
     , selectTemplate = "[Vorlage Auswählen]"
+    , pleaseSelectCategory = "[Bitte Kategorie Auswählen]"
+    , pleaseSelectAccountType = "[Bitte Kontotyp Auswählen]"
     , manageAccounts = "Konten Bearbeiten"
     , manageTemplates = "Vorlagen Bearbeiten"
     , manageCompanies = "Firmen Bearbeiten"
@@ -121,6 +136,17 @@ german =
     , equalAccountsWarning = "Soll und Haben dürfen nicht gleich sein."
     , day = "tt"
     , month = "mm"
+    , accountCategories = [{ id = 0 , name = "Anlagevermögen"}
+                          , {id = 1, name ="Finanzkonto"}
+                          , {id = 3, name = "Betriebsausgaben"}
+                          , {id = 8, name = "Einnahmen"}
+                          , {id = 9, name ="Saldovortrag"}]
+    , accountTypes = [{categoryIds = [0], name = "Geringwertige WG"}
+                      , {categoryIds = [1], name = "Kassenkonto"}
+                      , {categoryIds = [0,1,2,3,4,5,6,7,8,9], name = "Sonstige"}
+                      , {categoryIds = [8], name ="Zinserträge"}
+                      , {categoryIds = [9], name = "Sachkonten"}
+                      , {categoryIds = [8], name = "Umsatzerlöse"}]
     }
 
 
@@ -146,6 +172,8 @@ french =
    , pleaseSelectCompany = "[Veuillez sélectionner une entreprise]"
    , pleaseSelectYear = "[Veuillez sélectionner l'année comptable]"
    , selectTemplate = "[Sélectionnez un modèle]"
+   , pleaseSelectCategory = ""
+   , pleaseSelectAccountType = ""
    , manageAccounts = "gérer les comptes"
    , manageTemplates = "gérer les modèles"
    , manageCompanies = "gérer les entreprises"
@@ -174,4 +202,6 @@ french =
    , equalAccountsWarning = "Le crédit et le débit ne doivent pas être égaux."
    , day = "jj"
    , month = "mm"
+   , accountCategories  = []
+   , accountTypes = []
    }
