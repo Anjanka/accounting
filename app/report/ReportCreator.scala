@@ -1,12 +1,13 @@
 package report
 
-import java.io.{ByteArrayOutputStream, StringReader}
+import java.io.{ ByteArrayOutputStream, StringReader }
 
 import better.files._
+import db.AccountingEntry
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
-import org.apache.fop.apps.{FopFactory, MimeConstants}
+import org.apache.fop.apps.{ FopFactory, MimeConstants }
 
 import scala.xml.Elem
 
@@ -34,11 +35,32 @@ case class ReportCreator() {
 
 object TestMe {
 
-  val xml: Elem =
-    <example
-      name="name"
-      description="description">
-    </example>
+  val xml: Elem = {
+    <report
+      name="Anja"
+      description="best friend"
+      complany="Bisinez">
+      {}
+    </report>
+  }
+
+  def mkReport(accountingEntries: Seq[AccountingEntry]): Elem =
+    <report
+    name="Anja"
+    description="best friend"
+    complany="Bisinez">
+      {accountingEntries.map(mkAccountingEntryData)}
+    </report>
+
+  def mkAccountingEntryData(accountingEntry: AccountingEntry): Elem =
+    <accountingEntry
+      number={accountingEntry.id.toString}
+      receiptNumber={accountingEntry.receiptNumber}
+      description={accountingEntry.description}
+      debit={accountingEntry.debit.toString}
+      credit={accountingEntry.credit.toString}
+      amount={(accountingEntry.amountWhole + 0.01 * accountingEntry.amountChange).toString}
+      />
 
   def main(args: Array[String]): Unit = {
     val reportCreator = ReportCreator()
