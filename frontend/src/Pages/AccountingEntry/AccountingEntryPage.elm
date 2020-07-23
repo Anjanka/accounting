@@ -151,7 +151,7 @@ update msg model =
         GotResponseAllAccounts result ->
             case result of
                 Ok value ->
-                    ( { model | allAccounts = List.sortBy .title value }, Cmd.none )
+                    ( { model | allAccounts = List.sortBy .id value }, Cmd.none )
 
                 Err error ->
                     ( { model | allAccounts = [], error = HttpUtil.errorToString error }, Cmd.none )
