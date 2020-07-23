@@ -16,7 +16,6 @@ type alias Model =
     , allAccountingEntries : List AccountingEntry
     , allAccounts : List Account
     , allAccountingEntryTemplates : List AccountingEntryTemplate
-    , response : String
     , feedback : String
     , error : String
     , editActive : Bool
@@ -35,10 +34,6 @@ updateContent model content =
 updateAccountingEntry : Model -> AccountingEntry -> Model
 updateAccountingEntry model accountingEntry =
     { model | accountingEntry = accountingEntry }
-
-updateResponse : Model -> String -> Model
-updateResponse model response =
-    {model | response = response}
 
 updateFeedback : Model -> String -> Model
 updateFeedback model feedback =

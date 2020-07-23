@@ -68,7 +68,6 @@ init flags =
       , allAccountingEntries = []
       , allAccounts = []
       , allAccountingEntryTemplates = []
-      , response = ""
       , feedback = ""
       , error = ""
       , editActive = False
@@ -138,8 +137,7 @@ update msg model =
             case result of
                 Ok value ->
                     ( { model
-                        | allAccountingEntryTemplates = value
-                        , response = value |> List.sortBy .description |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
+                        | allAccountingEntryTemplates = value |> List.sortBy .description
                         , feedback = ""
                       }
                     , Cmd.none

@@ -113,7 +113,7 @@ getAmount accountId allEntries =
         sumOf entries =
             List.sum (List.map (amountOf >> toCents) entries)
     in
-    sumOf allEntriesCredit - sumOf allEntriesDebit
+     abs (sumOf allEntriesCredit - sumOf allEntriesDebit)
 
 
 
