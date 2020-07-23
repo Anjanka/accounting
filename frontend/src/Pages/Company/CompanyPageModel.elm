@@ -2,12 +2,10 @@ module Pages.Company.CompanyPageModel exposing (..)
 
 
 import Api.Types.Company exposing (Company)
+import Api.Types.Language exposing (LanguageComponents)
 
 type alias Model =
-    { contentStreet : String
-    , contentPostalCode : String
-    , contentCity : String
-    , contentCountry : String
+    { lang : LanguageComponents
     , company : Company
     , allCompanies : List Company
     , error : String

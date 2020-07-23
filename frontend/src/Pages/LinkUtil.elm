@@ -44,6 +44,10 @@ makeLinkYear : Int -> String
 makeLinkYear year =
     "accountingYear/" ++ String.fromInt year
 
+makeLinkLang : String -> String
+makeLinkLang lang =
+    "lang/" ++ lang
+
 
 fragmentUrl : List String -> String
 fragmentUrl parts =
