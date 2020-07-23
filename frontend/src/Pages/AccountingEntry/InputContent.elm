@@ -90,7 +90,7 @@ updateWithTemplate : InputContent -> AccountingEntryTemplate -> InputContent
 updateWithTemplate inputContent aet =
     let
         newAmountText =
-            if aet.amountWhole /= 0 && aet.amountChange /= 0 then
+            if aet.amountWhole /= 0 || aet.amountChange /= 0 then
                 AccountingEntryTemplateUtil.showAmount aet
 
             else
