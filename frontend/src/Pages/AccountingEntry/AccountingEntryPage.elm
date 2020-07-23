@@ -4,15 +4,17 @@ import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams, getKey)
 import Api.General.DateUtil as DateUtil
 import Api.General.HttpUtil as HttpUtil
+import Api.General.LanguageUtil exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEntry, encoderAccountingEntry)
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams, encoderAccountingEntryCreationParams)
 import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
+import Api.Types.Language exposing (LanguageComponents)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
-import Html.Attributes exposing (action, class, disabled, for, id, placeholder, style, value)
+import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -20,7 +22,7 @@ import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
 import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset, unicodeToString)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
 
 
@@ -52,19 +54,20 @@ main =
 type alias Flags =
     { companyId : Int
     , accountingYear : Int
+    , lang : String
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { companyId = flags.companyId
+    ( { lang = getLanguage flags.lang
+      , companyId = flags.companyId
       , accountingYear = flags.accountingYear
       , content = emptyInputContent
-      , accountingEntry = AccountingEntryUtil.emptyWith flags
+      , accountingEntry = AccountingEntryUtil.emptyWith {companyId = flags.companyId, accountingYear = flags.accountingYear}
       , allAccountingEntries = []
       , allAccounts = []
       , allAccountingEntryTemplates = []
-      , response = ""
       , feedback = ""
       , error = ""
       , editActive = False
@@ -134,8 +137,7 @@ update msg model =
             case result of
                 Ok value ->
                     ( { model
-                        | allAccountingEntryTemplates = value
-                        , response = value |> List.sortBy .description |> List.map AccountingEntryTemplateUtil.show |> String.join ",\n"
+                        | allAccountingEntryTemplates = value |> List.sortBy .description
                         , feedback = ""
                       }
                     , Cmd.none
@@ -147,7 +149,7 @@ update msg model =
         GotResponseAllAccounts result ->
             case result of
                 Ok value ->
-                    ( { model | allAccounts = List.sortBy .title value }, Cmd.none )
+                    ( { model | allAccounts = List.sortBy .id value }, Cmd.none )
 
                 Err error ->
                     ( { model | allAccounts = [], error = HttpUtil.errorToString error }, Cmd.none )
@@ -247,20 +249,20 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [class "page"]
-        [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage ])
-            [ class "pageButton", id "accountPageButton", value "Manage Accounts" ]
-            []
-        , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage ])
-            [ class "pageButton", id "templatePageButton", value "Manage Templates" ]
-            []
-        , viewAccountListButton model.accountViewActive
+    div [ class "page" ]
+        [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage , makeLinkLang model.lang.short])
+            [ class "pageButton", id "accountPageButton"][ text model.lang.manageAccounts ]
+
+        , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage,  makeLinkLang model.lang.short])
+            [ class "pageButton", id "templatePageButton"] [ text model.lang.manageTemplates]
+
+        , viewAccountListButton model.lang model.accountViewActive
         , p [ id "freeP" ] []
         , viewAccountList model
         , viewInputArea model
 
         --, div [] [ text (AccountingEntryUtil.show model.accountingEntry) ]
-        , viewValidatedInput model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
+        , viewValidatedInput model.lang model.accountingEntry model.editActive (model.selectedDebit /= model.selectedCredit)
         , div [] [ text model.error ]
         , p [] []
         , viewEntryList model
@@ -274,8 +276,8 @@ viewAccountList model =
             [ table
                 []
                 (tr [ class "tableHeader" ]
-                    [ th [] [ label [ for "id" ] [ text "id" ] ]
-                    , th [] [ label [ for "name" ] [ text "name" ] ]
+                    [ th [] [ label [ for "id" ] [ text model.lang.id ] ]
+                    , th [] [ label [ for "name" ] [ text model.lang.name ] ]
                     ]
                     :: List.map mkAccountTableLine model.allAccounts
                 )
@@ -285,13 +287,13 @@ viewAccountList model =
         div [] []
 
 
-viewAccountListButton : Bool -> Html Msg
-viewAccountListButton accountViewActive =
+viewAccountListButton : LanguageComponents -> Bool -> Html Msg
+viewAccountListButton lang accountViewActive =
     if accountViewActive then
-        div [] [ button [ class "showButton", id "AccountListButton", onClick HideAccountList ] [ text "Hide Account List" ] ]
+        div [] [ button [ class "showButton", id "AccountListButton", onClick HideAccountList ] [ text lang.hideAccountList ] ]
 
     else
-        div [] [ button [ class "showButton", id "AccountListButton", onClick ShowAccountList ] [ text "Show Account List" ] ]
+        div [] [ button [ class "showButton", id "AccountListButton", onClick ShowAccountList ] [ text lang.showAccountList ] ]
 
 
 mkAccountTableLine : Account -> Html Msg
@@ -306,43 +308,43 @@ viewInputArea : Model -> Html Msg
 viewInputArea model =
     div [ class "inputArea" ]
         [ div []
-            [ label [] [ text "Booking Date: " ]
-            , input [ id "dayField", placeholder "dd", value model.content.day, onInput ChangeDay ] []
+            [ label [] [ text (model.lang.bookingDate ++ ": ") ]
+            , input [ id "dayField", placeholder model.lang.day, value model.content.day, onInput ChangeDay ] []
             , label [] [ text "." ]
-            , input [ id "monthField", placeholder "mm", value model.content.month, onInput ChangeMonth ] []
-            , label [] [ text (String.fromInt model.accountingYear) ]
-            , input [ id "receiptNumberField", placeholder "Receipt No.", value model.content.receiptNumber, onInput ChangeReceiptNumber ] []
+            , input [ id "monthField", placeholder model.lang.month, value model.content.month, onInput ChangeMonth ] []
+            , label [] [ text ("." ++ String.fromInt model.accountingYear) ]
+            , input [ id "receiptNumberField", placeholder model.lang.receiptNumber, value model.content.receiptNumber, onInput ChangeReceiptNumber ] []
             ]
         , div []
-            [ input [ id "descriptionField", placeholder "Description", value model.content.description, onInput ChangeDescription ] []
+            [ input [ id "descriptionField", placeholder model.lang.description, value model.content.description, onInput ChangeDescription ] []
             , viewTemplateSelection model
-            , input [ id "amountField", placeholder "Amount", value model.content.amount.text, onInput ChangeAmount ] []
+            , input [ id "amountField", placeholder model.lang.amount, value model.content.amount.text, onInput ChangeAmount ] []
             ]
         , viewCreditInput model
         , viewDebitInput model
         ]
 
 
-viewValidatedInput : AccountingEntry -> Bool -> Bool -> Html Msg
-viewValidatedInput accountingEntry editActive validSelection =
+viewValidatedInput : LanguageComponents -> AccountingEntry -> Bool -> Bool -> Html Msg
+viewValidatedInput lang accountingEntry editActive validSelection =
     let
         validEntry =
             AccountingEntryUtil.isValid accountingEntry
 
         accountWarning =
-            div [ style "color" "red" ] [ text "Credit and Debit must not be equal." ]
+            div [ style "color" "red" ] [ text lang.accountValidationMessageExisting ]
     in
     if editActive then
         let
             deleteButton =
-                button [ class "deleteButton", onClick DeleteAccountingEntry ] [ text "Delete" ]
+                button [ class "deleteButton", onClick DeleteAccountingEntry ] [ text lang.delete ]
 
             cancelButton =
-                button [ class "cancelButton", onClick LeaveEditView ] [ text "Cancel" ]
+                button [ class "cancelButton", onClick LeaveEditView ] [ text lang.cancel ]
 
             makeSaveButton : Bool -> Html Msg
             makeSaveButton isDisabled =
-                button [ class "saveButton", disabled isDisabled, onClick ReplaceAccountingEntry ] [ text "Save Changes" ]
+                button [ class "saveButton", disabled isDisabled, onClick ReplaceAccountingEntry ] [ text lang.saveChanges ]
         in
         if not validSelection && validEntry then
             div [ class "inputArea" ]
@@ -370,7 +372,7 @@ viewValidatedInput accountingEntry editActive validSelection =
         let
             makeCreateButton : Bool -> Html Msg
             makeCreateButton isDisabled =
-                button [ class "saveButton", disabled isDisabled, onClick CreateAccountingEntry ] [ text "Commit New Entry" ]
+                button [ class "saveButton", disabled isDisabled, onClick CreateAccountingEntry ] [ text lang.commitNewEntry ]
         in
         if not validSelection && validEntry then
             div [ class "inputArea" ]
@@ -388,15 +390,15 @@ viewEntryList model =
         [ table
             [ id "allAccountingEntriesTable" ]
             (tr [ class "tableHeader" ]
-                [ th [ class "numberColumn" ] [ label [ for "id" ] [ text "id" ] ]
-                , th [ class "numberColumn" ] [ label [ for "receipt number" ] [ text "no." ] ]
-                , th [ class "numberColumn" ] [ label [ for "booking date" ] [ text "booking date" ] ]
-                , th [ class "textColumn", id "descriptionColumn" ] [ label [ for "description" ] [ text "description" ] ]
-                , th [ class "numberColumn" ] [ label [ for "amount" ] [ text "amount" ] ]
-                , th [ class "numberColumn" ] [ label [ for "credit account" ] [ text "credit" ] ]
-                , th [ class "numberColumn" ] [ label [ for "debit account" ] [ text "debit" ] ]
+                [ th [ class "numberColumn" ] [ label [ for "id" ] [] ]
+                , th [ class "numberColumn" ] [ label [ for "receipt number" ] [ text model.lang.number ] ]
+                , th [ class "numberColumn" ] [ label [ for "booking date" ] [ text model.lang.bookingDate ] ]
+                , th [ class "textColumn", id "descriptionColumn" ] [ label [ for "description" ] [ text model.lang.description ] ]
+                , th [ class "numberColumn" ] [ label [ for "amount" ] [ text model.lang.amount ] ]
+                , th [ class "numberColumn" ] [ label [ for "credit account" ] [ text model.lang.credit ] ]
+                , th [ class "numberColumn" ] [ label [ for "debit account" ] [ text model.lang.debit ] ]
                 ]
-                :: List.map (mkTableLine model.editActive) (getListWithPosition model.allAccountingEntries)
+                :: List.map (mkTableLine model.lang model.editActive) (getListWithPosition model.allAccountingEntries)
             )
         ]
 
@@ -404,39 +406,39 @@ viewEntryList model =
 viewCreditInput : Model -> Html Msg
 viewCreditInput model =
     div []
-        [ label [class "accountLabel"] [ text "Credit: " ]
-        , input [ class "accountIdField", placeholder "Account ID", value model.content.creditId, onInput ChangeCredit ] []
+        [ label [ class "accountLabel" ] [ text (model.lang.credit ++ ": ") ]
+        , input [ class "accountIdField", placeholder model.lang.accountId, value model.content.creditId, onInput ChangeCredit ] []
         , Dropdown.dropdown
-            (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedDebit) DropdownCreditChanged)
+            (dropdownOptionsAccount model.lang.noValidAccount (accountListForDropdown model.allAccounts model.selectedDebit) DropdownCreditChanged)
             []
             model.selectedCredit
-        , label [class "balance"] [ text (getBalance model.content.creditId model.allAccountingEntries) ]
+        , label [ class "balance" ] [ text (getBalance model.lang.balance model.content.creditId model.allAccountingEntries) ]
         ]
 
 
 viewDebitInput : Model -> Html Msg
 viewDebitInput model =
     div []
-        [ label [class "accountLabel"] [ text "Debit:  " ]
-        , input [ class "accountIdField", placeholder "Account ID", value model.content.debitId, onInput ChangeDebit ] []
+        [ label [ class "accountLabel" ] [ text (model.lang.debit ++ ": ") ]
+        , input [ class "accountIdField", placeholder model.lang.accountId, value model.content.debitId, onInput ChangeDebit ] []
         , Dropdown.dropdown
-            (dropdownOptionsAccount (accountListForDropdown model.allAccounts model.selectedCredit) DropdownDebitChanged)
+            (dropdownOptionsAccount model.lang.noValidAccount (accountListForDropdown model.allAccounts model.selectedCredit) DropdownDebitChanged)
             []
             model.selectedDebit
-        , label [class "balance"] [ text (getBalance model.content.debitId model.allAccountingEntries) ]
+        , label [ class "balance" ] [ text (getBalance model.lang.balance model.content.debitId model.allAccountingEntries) ]
         ]
 
 
 viewTemplateSelection : Model -> Html Msg
 viewTemplateSelection model =
     Dropdown.dropdown
-        (dropdownOptionsTemplate model.allAccountingEntryTemplates)
+        (dropdownOptionsTemplate model.lang.selectTemplate model.allAccountingEntryTemplates)
         []
         model.selectedTemplate
 
 
-mkTableLine : Bool -> EntryWithListPosition -> Html Msg
-mkTableLine editInactive entryWithPosition =
+mkTableLine : LanguageComponents -> Bool -> EntryWithListPosition -> Html Msg
+mkTableLine lang editInactive entryWithPosition =
     let
         upButton =
             case entryWithPosition.position of
@@ -461,7 +463,7 @@ mkTableLine editInactive entryWithPosition =
                     td [ class "buttonColumn" ] [ button [ class "arrowButton", onClick (MoveEntryDown entryWithPosition.accountingEntry) ] [ text (unicodeToString 129047) ] ]
     in
     tr []
-        [ td [ class "numberColumn" ] [ text (String.fromInt entryWithPosition.accountingEntry.id) ]
+        [ td [ class "numberColumn" ] [ text (String.fromInt entryWithPosition.index) ]
         , td [ class "numberColumn" ] [ text entryWithPosition.accountingEntry.receiptNumber ]
         , td [ class "numberColumn" ] [ text (DateUtil.show entryWithPosition.accountingEntry.bookingDate) ]
         , td [ class "textColumn" ] [ text entryWithPosition.accountingEntry.description ]
@@ -470,7 +472,7 @@ mkTableLine editInactive entryWithPosition =
         , td [ class "numberColumn" ] [ text (String.fromInt entryWithPosition.accountingEntry.debit) ]
         , upButton
         , downButton
-        , td [ class "buttonColumn" ] [ button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry entryWithPosition.accountingEntry) ] [ text "Edit" ] ]
+        , td [ class "buttonColumn" ] [ button [ class "editButton", disabled editInactive, onClick (EditAccountingEntry entryWithPosition.accountingEntry) ] [ text lang.edit ] ]
         ]
 
 
@@ -478,8 +480,8 @@ mkTableLine editInactive entryWithPosition =
 -- List.map g (List.map f xs) = List,map (\x -> g (f x)) xs
 
 
-dropdownOptionsTemplate : List AccountingEntryTemplate -> Dropdown.Options Msg
-dropdownOptionsTemplate allAccountingEntryTemplates =
+dropdownOptionsTemplate : String -> List AccountingEntryTemplate -> Dropdown.Options Msg
+dropdownOptionsTemplate text allAccountingEntryTemplates =
     let
         defaultOptions =
             Dropdown.defaultOptions DropdownTemplateChanged
@@ -487,12 +489,12 @@ dropdownOptionsTemplate allAccountingEntryTemplates =
     { defaultOptions
         | items =
             List.map (\aet -> { value = aet.description, text = aet.description, enabled = True }) allAccountingEntryTemplates
-        , emptyItem = Just { value = "0", text = "[Select Template]", enabled = True }
+        , emptyItem = Just { value = "0", text = text, enabled = True }
     }
 
 
-dropdownOptionsAccount : List Account -> (Maybe String -> Msg) -> Dropdown.Options Msg
-dropdownOptionsAccount allAccounts dropdownAccountChanged =
+dropdownOptionsAccount : String -> List Account -> (Maybe String -> Msg) -> Dropdown.Options Msg
+dropdownOptionsAccount text allAccounts dropdownAccountChanged =
     let
         defaultOptions =
             Dropdown.defaultOptions dropdownAccountChanged
@@ -500,7 +502,7 @@ dropdownOptionsAccount allAccounts dropdownAccountChanged =
     { defaultOptions
         | items =
             List.map (\acc -> accountForDropdown acc) allAccounts
-        , emptyItem = Just { value = "0", text = "no valid account selected", enabled = True }
+        , emptyItem = Just { value = "0", text = text, enabled = True }
     }
 
 

@@ -1,10 +1,11 @@
 module Pages.SharedViewComponents exposing (..)
 
 import Api.Types.Account exposing (Account)
+import Bootstrap.Button
 import Dropdown exposing (Item)
-import Html exposing (Attribute, Html, div, form, input)
-import Html.Attributes exposing (action, class, type_, value)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkPath, makeLinkYear)
+import Html exposing (Attribute, Html, div, text)
+import Html.Attributes exposing (class, href, value)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 
 
 accountListForDropdown : List Account -> Maybe String -> List Account
@@ -26,17 +27,20 @@ accountForDropdown acc =
 
 linkButton : String -> List (Attribute msg) -> List (Html msg) -> Html msg
 linkButton link attrs children =
-    form [ action link ]
-        [ input (type_ "submit" :: attrs) children ]
+        Bootstrap.Button.linkButton
+            [ Bootstrap.Button.primary
+            , Bootstrap.Button.attrs (href link :: attrs)
+            ]
+            children
 
 
-backToEntryPage : Int -> Maybe Int -> Html msg
-backToEntryPage companyId yearCandidate =
+backToEntryPage : String -> Int -> Maybe Int -> String -> Html msg
+backToEntryPage txt companyId yearCandidate language =
     case yearCandidate of
         Just accountingYear ->
-            linkButton (fragmentUrl [ makeLinkId companyId, makeLinkPath AccountingEntryPage, makeLinkYear accountingYear ])
-                [ class "backButton", value "Back" ]
-                []
+            linkButton (fragmentUrl [ makeLinkId companyId, makeLinkPath AccountingEntryPage, makeLinkYear accountingYear , makeLinkLang language])
+                [ class "backButton"][text txt ]
+
 
         Nothing ->
             div [] []

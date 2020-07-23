@@ -1,19 +1,20 @@
 module Pages.Company.CompanyPage exposing (Msg, init, update, view)
 
-import Api.General.CompanyUtil as CompanyUtil
+import Api.General.CompanyUtil exposing (empty, getCreationParams, isValid, show, updateAddress, updateCity, updateCountry, updateName, updatePostalCode, updateRevenueOffice, updateTaxNumber)
 import Api.General.HttpUtil as HttpUtil
+import Api.General.LanguageUtil exposing (getLanguage)
 import Api.Types.Company exposing (Company, decoderCompany, encoderCompany)
 import Api.Types.CompanyCreationParams exposing (encoderCompanyCreationParams)
 import Api.Types.CompanyKey exposing (encoderCompanyKey)
 import Browser
 import Dropdown exposing (Item)
-import Html exposing (Attribute, Html, button, div, input, label, p, text)
+import Html exposing (Attribute, Html, button, div, input, p, text)
 import Html.Attributes exposing (class, disabled, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.Company.CompanyPageModel exposing (Model)
-import Pages.Company.ParseAndUpdateUtil exposing (insertData, reset, updateAddress)
+import Pages.Company.ParseAndUpdateUtil exposing (insertData, reset)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkPath)
 import Pages.SharedViewComponents exposing (linkButton)
 
@@ -36,16 +37,13 @@ main =
 
 
 type alias Flags =
-    ()
+    {lang : String}
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
-    ( { contentStreet = ""
-      , contentPostalCode = ""
-      , contentCity = ""
-      , contentCountry = ""
-      , company = CompanyUtil.empty
+init flags =
+    ( { lang = getLanguage flags.lang
+      , company = empty
       , allCompanies = []
       , error = ""
       , validationFeedback = ""
@@ -66,7 +64,6 @@ type Msg
     | GotResponseDelete (Result Error ())
     | ChangeName String
     | ChangeAddress String
-    | ChangeStreet String
     | ChangePostalCode String
     | ChangeCity String
     | ChangeCountry String
@@ -114,28 +111,25 @@ update msg model =
                     ( { model | error = HttpUtil.errorToString error, selectedValue = Nothing }, Cmd.none )
 
         ChangeName newContent ->
-            ( { model | company = CompanyUtil.updateName model.company newContent }, Cmd.none )
+            ( { model | company = updateName model.company newContent }, Cmd.none )
 
         ChangeAddress newContent ->
-            ( { model | company = CompanyUtil.updateAddress model.company newContent }, Cmd.none )
-
-        ChangeStreet newContent ->
-            ( updateAddress { model | contentStreet = newContent }, Cmd.none )
+            ( { model | company = updateAddress model.company newContent }, Cmd.none )
 
         ChangePostalCode newContent ->
-            ( updateAddress { model | contentPostalCode = newContent }, Cmd.none )
+            ( { model | company = updatePostalCode model.company newContent }, Cmd.none )
 
         ChangeCity newContent ->
-            ( updateAddress { model | contentCity = newContent }, Cmd.none )
+            ( { model | company = updateCity model.company newContent }, Cmd.none )
 
         ChangeCountry newContent ->
-            ( updateAddress { model | contentCountry = newContent }, Cmd.none )
+            ( { model | company = updateCountry model.company newContent }, Cmd.none )
 
         ChangeTaxNumber newContent ->
-            ( { model | company = CompanyUtil.updateTaxNumber model.company newContent }, Cmd.none )
+            ( { model | company = updateTaxNumber model.company newContent }, Cmd.none )
 
         ChangeRevenueOffice newContent ->
-            ( { model | company = CompanyUtil.updateRevenueOffice model.company newContent }, Cmd.none )
+            ( { model | company = updateRevenueOffice model.company newContent }, Cmd.none )
 
         CreateCompany ->
             ( model, createCompany model.company )
@@ -176,8 +170,8 @@ view : Model -> Html Msg
 view model =
     div [ class "page", class "companyInputArea" ]
         [ linkButton (fragmentUrl [ makeLinkPath StartPage ])
-            [ class "backButton", value "Back" ]
-            []
+            [ class "backButton"][text model.lang.back ]
+
         , p [] []
         , div []
             [ if model.editViewActivated then
@@ -193,44 +187,51 @@ viewCreation : Model -> Html Msg
 viewCreation model =
     div []
         [ div []
-            [ input [ placeholder "Company Name", value model.company.name, onInput ChangeName ] []
+            [ input [ placeholder model.lang.companyName, value model.company.name, onInput ChangeName ] []
             ]
-        , div [] [ input [ placeholder "Street", value model.contentStreet, onInput ChangeStreet ] [] ]
+        , div [] [ input [ placeholder model.lang.address, value model.company.address, onInput ChangeAddress ] [] ]
         , div []
-            [ input [ placeholder "Postal Code", value model.contentPostalCode, onInput ChangePostalCode ] []
-            , input [ placeholder "City", value model.contentCity, onInput ChangeCity ] []
+            [ input [ placeholder model.lang.postalCode, value model.company.postalCode, onInput ChangePostalCode ] []
+            , input [ placeholder model.lang.city, value model.company.city, onInput ChangeCity ] []
             ]
-        , div [] [ input [ placeholder "Country", value model.contentCountry, onInput ChangeCountry ] [] ]
-        , div [] [ input [ placeholder "Tax Number", value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
-        , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
+        , div [] [ input [ placeholder model.lang.country, value model.company.country, onInput ChangeCountry ] [] ]
+        , div [] [ input [ placeholder model.lang.taxNumber, value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
+        , div [] [ input [ placeholder model.lang.revenueOffice, value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
         , div []
-            [ div [] [ text (CompanyUtil.show model.company) ]
+            [ div [] [ text (show model.company) ]
             , div [ style "color" "red" ] [ text model.validationFeedback ]
-            , viewValidatedInput model]
-        , div [id "companyEditArea"]
-                [ Dropdown.dropdown
-                    (dropdownOptions model.allCompanies)
-                    []
-                    model.selectedValue
-                , viewEditButton model.selectedValue
-                ]
+            , viewValidatedInput model
+            ]
+        , div [ id "companyEditArea" ]
+            [ Dropdown.dropdown
+                (dropdownOptions model.lang.pleaseSelectCompany model.allCompanies)
+                []
+                model.selectedValue
+            , viewEditButton model.lang.edit model.selectedValue
+            ]
         , div [] [ text model.error ]
-
         ]
 
 
 viewEdit : Model -> Html Msg
 viewEdit model =
     div []
-        [ div [] [ input [ placeholder "Company Name", value model.company.name, onInput ChangeName ] [] ]
-        , div [] [ input [ placeholder "Address", value model.company.address, onInput ChangeAddress ] [] ]
-        , div [] [ input [ placeholder "Tax Number", value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
-        , div [] [ input [ placeholder "Revenue Office", value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
-        , div [] [ text (CompanyUtil.show model.company) ]
+        [ div []
+            [ input [ placeholder model.lang.companyName, value model.company.name, onInput ChangeName ] []
+            ]
+        , div [] [ input [ placeholder model.lang.address, value model.company.address, onInput ChangeAddress ] [] ]
         , div []
-            [ button [ class "saveButton", onClick UpdateCompany ] [ text "Save Changes" ]
-            , button [ class "deleteButton", onClick DeleteCompany ] [ text "Delete Company" ]
-            , button [ class "cancelButton", onClick DeactivateEditView ] [ text "Cancel" ]
+            [ input [ placeholder model.lang.postalCode, value model.company.postalCode, onInput ChangePostalCode ] []
+            , input [ placeholder model.lang.city, value model.company.city, onInput ChangeCity ] []
+            ]
+        , div [] [ input [ placeholder model.lang.country, value model.company.country, onInput ChangeCountry ] [] ]
+        , div [] [ input [ placeholder model.lang.taxNumber, value model.company.taxNumber, onInput ChangeTaxNumber ] [] ]
+        , div [] [ input [ placeholder model.lang.revenueOffice, value model.company.revenueOffice, onInput ChangeRevenueOffice ] [] ]
+        , div [] [ text (show model.company) ]
+        , div []
+            [ button [ class "saveButton", onClick UpdateCompany ] [ text model.lang.saveChanges ]
+            , button [ class "deleteButton", onClick DeleteCompany ] [ text model.lang.delete ]
+            , button [ class "cancelButton", onClick DeactivateEditView ] [ text model.lang.cancel ]
             ]
         , div [] [ text model.error ]
         ]
@@ -238,21 +239,21 @@ viewEdit model =
 
 viewValidatedInput : Model -> Html Msg
 viewValidatedInput model =
-    if CompanyUtil.isValid model.company then
-        button [ class "saveButton", disabled False, onClick CreateCompany ] [ text "Create new Company" ]
+    if isValid model.company then
+        button [ class "saveButton", disabled False, onClick CreateCompany ] [ text model.lang.create ]
 
     else
-        button [ class "saveButton", disabled True, onClick CreateCompany ] [ text "Create new Company" ]
+        button [ class "saveButton", disabled True, onClick CreateCompany ] [ text model.lang.create ]
 
 
-viewEditButton : Maybe String -> Html Msg
-viewEditButton selectedValue =
+viewEditButton : String -> Maybe String -> Html Msg
+viewEditButton txt selectedValue =
     case selectedValue of
         Just _ ->
-            button [ class "editCompanyButton", disabled False, onClick ActivateEditView ] [ text "Edit" ]
+            button [ class "editCompanyButton", disabled False, onClick ActivateEditView ] [ text txt ]
 
         Nothing ->
-            button [ class "editCompanyButton", disabled True, onClick ActivateEditView ] [ text "Edit" ]
+            button [ class "editCompanyButton", disabled True, onClick ActivateEditView ] [ text txt ]
 
 
 companyForDropdown : Company -> Item
@@ -261,19 +262,19 @@ companyForDropdown company =
         id =
             String.fromInt company.id
     in
-    { value = id, text = id ++ " - " ++ company.name, enabled = True }
+    { value = id, text = company.name, enabled = True }
 
 
-dropdownOptions : List Company -> Dropdown.Options Msg
-dropdownOptions allCompanies =
+dropdownOptions : String -> List Company -> Dropdown.Options Msg
+dropdownOptions text allCompanies =
     let
         defaultOptions =
             Dropdown.defaultOptions DropdownChanged
     in
     { defaultOptions
         | items =
-            List.sortBy .value (List.map companyForDropdown allCompanies)
-        , emptyItem = Just { value = "0", text = "[Please Select]", enabled = True }
+            List.sortBy .text (List.map companyForDropdown allCompanies)
+        , emptyItem = Just { value = "0", text = text, enabled = True }
     }
 
 
@@ -294,7 +295,7 @@ createCompany company =
     Http.post
         { url = "http://localhost:9000/company/insert"
         , expect = HttpUtil.expectJson GotResponseCreateOrUpdate decoderCompany
-        , body = Http.jsonBody (encoderCompanyCreationParams (CompanyUtil.getCreationParams company))
+        , body = Http.jsonBody (encoderCompanyCreationParams (getCreationParams company))
         }
 
 
