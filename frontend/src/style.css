@@ -39,7 +39,7 @@ clear:both;}
 .inputArea, #allAccountingEntries{
 margin-left: 5%;
 display: block;
-width: 40%;}
+width: 45%;}
 
 .startInputArea, .companyInputArea, .accountInputArea, .templateInputArea {
 margin-top: 1%;
@@ -187,5 +187,3 @@ text-align: right;
 text-align: left;
 }
 
-#descriptionColumn{
-width: 10%;}
