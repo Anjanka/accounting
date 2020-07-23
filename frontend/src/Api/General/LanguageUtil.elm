@@ -74,9 +74,12 @@ english =
                                 , {id = 1, name ="financial account"}
                                 , {id = 3, name = "business expenses"}
                                 , {id = 8, name = "resources"}
-                                , {id = 9, name ="balance carried foward"}]
+                                , {id = 9, name ="balance carried forward"}]
     , accountTypes = [{categoryIds = [0], name = "inferior assets"}
                             , {categoryIds = [1], name = "cash account"}
+                            , {categoryIds = [3], name = "purchased goods"}
+                            , {categoryIds = [3], name = "telephone costs"}
+                            , {categoryIds = [3], name = "travel expenses"}
                             , {categoryIds = [0,1,2,3,4,5,6,7,8,9], name = "other"}
                             , {categoryIds = [8], name ="interest income"}
                             , {categoryIds = [9], name = "nominal account"}
@@ -143,6 +146,9 @@ german =
                           , {id = 9, name ="Saldovortrag"}]
     , accountTypes = [{categoryIds = [0], name = "Geringwertige WG"}
                       , {categoryIds = [1], name = "Kassenkonto"}
+                      , {categoryIds = [3], name = "Wareneinkauf"}
+                      , {categoryIds = [3], name = "Telefonkosten"}
+                      , {categoryIds = [3], name = "Reisekosten"}
                       , {categoryIds = [0,1,2,3,4,5,6,7,8,9], name = "Sonstige"}
                       , {categoryIds = [8], name ="Zinserträge"}
                       , {categoryIds = [9], name = "Sachkonten"}

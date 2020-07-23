@@ -190,7 +190,7 @@ update msg model =
             ( model, deleteAccount model.account )
 
         ActivateEditView account ->
-            ( { model | contentId = String.fromInt account.id, account = account, editViewActive = True }, Cmd.none )
+            ( updateForEdit model account, Cmd.none )
 
         DeactivateEditView ->
             ( reset model, Cmd.none )
@@ -256,15 +256,16 @@ viewEditOrCreate model =
 
 viewDropdowns : Model -> Html Msg
 viewDropdowns model =
-    div [] [Dropdown.dropdown
-               (dropdownOptionsAccountCategory model.lang.pleaseSelectCategory model.lang.accountCategories)
-                       []
-                       model.selectedCategory
-          , Dropdown.dropdown
-                (dropdownOptionsAccountType model.lang.pleaseSelectAccountType (getSelectableTypes model.selectedCategory model.lang.accountTypes ))
-                []
-                model.selectedAccountType]
-
+    div []
+        [ Dropdown.dropdown
+            (dropdownOptionsAccountCategory model.lang.pleaseSelectCategory model.lang.accountCategories)
+            []
+            model.selectedCategory
+        , Dropdown.dropdown
+            (dropdownOptionsAccountType model.lang.pleaseSelectAccountType (getSelectableTypes (getCategoryId model.selectedCategory model.lang.accountCategories) model.lang.accountTypes))
+            []
+            model.selectedAccountType
+        ]
 
 
 viewValidation : String -> String -> Html Msg
@@ -330,11 +331,7 @@ dropdownOptionsAccountCategory text allCategories =
 
 categoryForDropdown : Category -> Item
 categoryForDropdown cat =
-    let
-        id =
-            String.fromInt cat.id
-    in
-    { value = id ++ cat.name, text = cat.name, enabled = True }
+    { value = cat.name, text = cat.name, enabled = True }
 
 
 dropdownOptionsAccountType : String -> List AccountType -> Dropdown.Options Msg
@@ -346,16 +343,22 @@ dropdownOptionsAccountType text selectableTypes =
     { defaultOptions
         | items =
             List.map (\at -> { value = at.name, text = at.name, enabled = not (List.isEmpty selectableTypes) }) selectableTypes
-        , emptyItem = Just { value = "0", text = text, enabled = not (List.isEmpty selectableTypes) }
+        , emptyItem = Just { value = "0", text = text, enabled = True }
     }
 
 
-getSelectableTypes : Maybe String -> List AccountType -> List AccountType
+getSelectableTypes : Maybe Int -> List AccountType -> List AccountType
 getSelectableTypes selectedCategory allTypes =
     selectedCategory
-        |> Maybe.andThen (String.left 1 >> String.toInt)
         |> Maybe.map (\id -> List.filter (\at -> List.member id at.categoryIds) allTypes)
         |> Maybe.withDefault []
+
+
+getCategoryId : Maybe String -> List Category -> Maybe Int
+getCategoryId selectedCategory allCategories =
+    selectedCategory
+        |> Maybe.map (\sc -> List.head (List.map (\c -> c.id) (List.filter (\c -> c.name == sc) allCategories)))
+        |> Maybe.withDefault Nothing
 
 
 
@@ -469,6 +472,19 @@ reset model =
         , error = ""
         , validationFeedback = model.lang.accountValidationMessageErr
         , editViewActive = False
+        , selectedCategory = Nothing
+        , selectedAccountType = Nothing
+    }
+
+
+updateForEdit : Model -> Account -> Model
+updateForEdit model account =
+    { model
+        | contentId = String.fromInt account.id
+        , account = account
+        , selectedCategory = Just account.category
+        , selectedAccountType = Just account.accountType
+        , editViewActive = True
     }
 
 
@@ -476,7 +492,7 @@ handleCategorySelection : Account -> Maybe String -> Account
 handleCategorySelection account selectedCategory =
     case selectedCategory of
         Just category ->
-            updateCategory account (String.dropLeft 1 category)
+            updateCategory account category
 
         Nothing ->
             account
