@@ -36,10 +36,15 @@ clear:both;}
 
   }
 
-.inputArea, #allAccountingEntries{
+.inputArea{
 margin-left: 5%;
 display: block;
-width: 45%;}
+width: 40%;}
+
+#allAccountingEntries{
+ margin-left: 5%;
+  display: block;
+   width: 50%;}
 
 .startInputArea, .companyInputArea, .accountInputArea, .templateInputArea {
 margin-top: 1%;
