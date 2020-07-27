@@ -14,7 +14,7 @@ import org.apache.fop.apps.{FopFactory, MimeConstants}
 import scala.xml.Elem
 
 case class ReportCreator() {
-  private val xsltStyleFile = "conf" / "xslt" / "test.xsl"
+  private val xsltStyleFile = "conf" / "xslt" / "journal.xsl"
   private val fopFactory = FopFactory.newInstance()
   private val foUserAgent = fopFactory.newFOUserAgent()
 
