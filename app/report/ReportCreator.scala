@@ -1,7 +1,9 @@
 package report
 
 import java.io.{ByteArrayOutputStream, StringReader}
+import java.sql.Date
 
+import base.MonetaryValue
 import better.files._
 import db.{AccountingEntry, Company}
 import javax.xml.transform.TransformerFactory
@@ -56,13 +58,14 @@ object TestMe {
   def mkAccountingEntryData(accountingEntry: AccountingEntry): Elem =
     <accountingEntry
       number={accountingEntry.id.toString}
-      date={accountingEntry.bookingDate.toString}
+      date={showDate(accountingEntry.bookingDate)}
       receiptNumber={accountingEntry.receiptNumber}
       description={accountingEntry.description}
       debit={accountingEntry.debit.toString}
       credit={accountingEntry.credit.toString}
-      amount={(accountingEntry.amountWhole + 0.01 * accountingEntry.amountChange).toString}
+      amount={MonetaryValue.show(MonetaryValue.fromAllCents(100 * accountingEntry.amountWhole + accountingEntry.amountChange))}
       />
+
 
   def mkCompanyData(company: Company): Elem =
     <company
@@ -74,6 +77,13 @@ object TestMe {
       city={company.city}
       country={company.country}
       />
+
+  def showDate(date: Date): String = {
+    val localDate = date.toLocalDate
+    def pad(dateComponent: Int): String = if (dateComponent < 10) s"0$dateComponent" else dateComponent.toString
+    List(pad(localDate.getDayOfMonth), pad(localDate.getMonthValue), localDate.getYear).mkString(".")
+
+  }
 
   def main(args: Array[String]): Unit = {
     val reportCreator = ReportCreator()
