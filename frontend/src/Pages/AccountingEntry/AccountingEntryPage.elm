@@ -1,6 +1,5 @@
 module Pages.AccountingEntry.AccountingEntryPage exposing (Msg, init, update, view)
 
-import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams, getKey)
 import Api.General.DateUtil as DateUtil
 import Api.General.HttpUtil as HttpUtil
@@ -115,8 +114,6 @@ type Msg
     | LeaveEditView
     | ShowAccountList
     | HideAccountList
-    | GoToAccountPage
-    | GoToAccountingTemplatePage
     | NoOp
 
 
@@ -229,12 +226,6 @@ update msg model =
 
         HideAccountList ->
             ( { model | accountViewActive = False }, Cmd.none )
-
-        GoToAccountPage ->
-            ( model, Cmd.none )
-
-        GoToAccountingTemplatePage ->
-            ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
