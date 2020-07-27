@@ -12,6 +12,7 @@ import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
 import Api.Types.Language exposing (LanguageComponents)
 import Browser
+import Browser.Dom as Dom
 import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
 import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
@@ -24,6 +25,7 @@ import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
+import Task
 
 
 
@@ -115,6 +117,7 @@ type Msg
     | HideAccountList
     | GoToAccountPage
     | GoToAccountingTemplatePage
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -210,7 +213,7 @@ update msg model =
             ( reset model, deleteAccountingEntry model.accountingEntry )
 
         EditAccountingEntry accountingEntry ->
-            ( insertForEdit model accountingEntry, Cmd.none )
+            ( insertForEdit model accountingEntry, resetViewport)
 
         MoveEntryUp accountingEntry ->
             ( model, moveAccountingEntryUp accountingEntry )
@@ -231,6 +234,9 @@ update msg model =
             ( model, Cmd.none )
 
         GoToAccountingTemplatePage ->
+            ( model, Cmd.none )
+
+        NoOp ->
             ( model, Cmd.none )
 
 
@@ -506,6 +512,11 @@ dropdownOptionsAccount text allAccounts dropdownAccountChanged =
     }
 
 
+
+
+resetViewport : Cmd Msg
+resetViewport =
+    Task.perform (\_ -> NoOp) (Dom.setViewport 0 0)
 
 -- COMMUNICATION
 
