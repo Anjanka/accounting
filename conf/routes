@@ -32,4 +32,4 @@ POST    /company/replace                                                        
 POST    /company/insert                                                            controllers.CompanyController.insert
 POST    /company/delete                                                            controllers.CompanyController.delete
 
-GET /reports/test controllers.ReportController.test
+GET /reports/test/companyId/*companyId/accountingYear/*accountingYear  controllers.ReportController.test(companyId: Int, accountingYear: Int)

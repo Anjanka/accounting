@@ -46,7 +46,7 @@ object TestMe {
 
   def mkReport(company: Company, accountingYear: Int, accountingEntries: Seq[AccountingEntry]): Elem =
     <report
-      name="Tabular report"
+      pageName="Journal"
       accountingYear={accountingYear.toString}>
       {mkCompanyData(company)}
       {accountingEntries.map(mkAccountingEntryData)}
@@ -56,6 +56,7 @@ object TestMe {
   def mkAccountingEntryData(accountingEntry: AccountingEntry): Elem =
     <accountingEntry
       number={accountingEntry.id.toString}
+      date={accountingEntry.bookingDate.toString}
       receiptNumber={accountingEntry.receiptNumber}
       description={accountingEntry.description}
       debit={accountingEntry.debit.toString}
