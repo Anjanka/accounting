@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream
 
 import akka.stream.scaladsl.StreamConverters
 import base.Id.CompanyKey
+import db.AccountingEntryDAO.CompanyYearKey
 import db.{AccountingEntryDAO, CompanyDAO}
 import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
@@ -20,13 +21,12 @@ class ReportController @Inject() (
     ec: ExecutionContext
 ) extends BaseController {
 
-  def test: Action[AnyContent] =
+  def test(companyId: Int, accountingYear: Int): Action[AnyContent] =
     Action {
       val reportCreator = ReportCreator()
       // TODO: Use proper values here
-      val allEntries = Await.result(accountingEntryDAO.dao.all, Duration.Inf)
-      val accountingYear = 2020
-      val company = Await.result(companyDAO.dao.find(CompanyKey(1)), Duration.Inf).get
+      val allEntries = Await.result(accountingEntryDAO.dao.findPartial(CompanyYearKey(companyId, accountingYear))(AccountingEntryDAO.compareCompanyYearKey), Duration.Inf)
+      val company = Await.result(companyDAO.dao.find(CompanyKey(companyId)), Duration.Inf).get
       val dataContent = StreamConverters.fromInputStream(() =>
         new ByteArrayInputStream(reportCreator.createPdf(TestMe.mkReport(company, accountingYear, allEntries)).toByteArray)
       )
