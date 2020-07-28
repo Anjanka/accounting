@@ -34,7 +34,7 @@ class ReportController @Inject() (
         dataContent,
         contentLength = None,
         inline = false,
-        fileName = Some("journal.pdf")
+        fileName = Some(s"journal $accountingYear.pdf")
       ).withHeaders(("Content-Type", "pdf"))
 
     }
