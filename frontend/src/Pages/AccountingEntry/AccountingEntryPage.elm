@@ -116,6 +116,7 @@ type Msg
     | ShowAccountList
     | HideAccountList
     | NoOp
+    | GetJournal
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -231,6 +232,10 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        GetJournal ->
+            (model, getJournal model.companyId model.accountingYear)
+
+
 
 
 -- SUBSCRIPTIONS
@@ -254,9 +259,9 @@ view model =
         , linkButton (fragmentUrl  [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage, makeLinkLang model.lang.short ])
             [ class "pageButton", id "templatePageButton" ]
             [ text model.lang.manageTemplates ]
-        , linkButton (Url.Builder.custom (CrossOrigin "localhost:9000") [ "reports", "journal", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
+        , linkButton (Url.Builder.custom (CrossOrigin "http://localhost:9000") [ "reports", "journal", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
             [ class "pageButton", id "journalButton" ]
-            [ text "Journal" ]
+            [ text model.lang.printJournal ]
         , viewAccountListButton model.lang model.accountViewActive
         , p [ id "freeP" ] []
         , viewAccountList model
@@ -585,10 +590,9 @@ moveAccountingEntryDown accountingEntry =
         }
 
 
---getJournal : Int -> Int -> Cmd Msg
---getJournal companyId year =
---    Http.get
---        { url = "http://localhost:9000/reports/journal/companyId/" ++ String.fromInt companyId ++ "/accountingYear/" ++ String.fromInt year
---        , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
---        }
---
+getJournal : Int -> Int -> Cmd Msg
+getJournal companyId year =
+    Http.get
+        { url = "http://localhost:9000/reports/journal/companyId/" ++ String.fromInt companyId ++ "/accountingYear/" ++ String.fromInt year
+        , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
+        }

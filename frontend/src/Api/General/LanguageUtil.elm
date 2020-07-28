@@ -70,6 +70,8 @@ english =
     , equalAccountsWarning = "Credit and Debit must not be equal."
     , day = "dd"
     , month = "mm"
+    , printJournal = "Print Journal"
+    , printNominalAccounts = "Print Nominal Accounts"
     , accountCategories = [{ id = 0 , name = "fixed assets"}
                                 , {id = 1, name ="financial account"}
                                 , {id = 3, name = "business expenses"}
@@ -139,6 +141,8 @@ german =
     , equalAccountsWarning = "Soll und Haben dürfen nicht gleich sein."
     , day = "tt"
     , month = "mm"
+    , printJournal = "Journal drucken"
+    , printNominalAccounts = "Sachkonten drucken"
     , accountCategories = [{ id = 0 , name = "Anlagevermögen"}
                           , {id = 1, name ="Finanzkonto"}
                           , {id = 3, name = "Betriebsausgaben"}
@@ -208,6 +212,8 @@ french =
    , equalAccountsWarning = "Le crédit et le débit ne doivent pas être égaux."
    , day = "jj"
    , month = "mm"
+   , printJournal = "Imprimer le journal"
+   , printNominalAccounts = "Imprimer les comptes du grand livre"
    , accountCategories  = []
    , accountTypes = []
    }

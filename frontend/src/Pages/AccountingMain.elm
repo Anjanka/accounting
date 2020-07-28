@@ -109,8 +109,8 @@ update msg model =
                 Browser.Internal url ->
                     ( model, Nav.pushUrl model.key (Url.toString url) )
 
-                Browser.External _ ->
-                    ( model, Cmd.none )
+                Browser.External href ->
+                    ( model, Nav.load href )
 
         ChangedUrl url ->
             updateUrl url model

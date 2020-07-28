@@ -53,6 +53,8 @@ type alias LanguageComponents =
     , equalAccountsWarning : String
     , day : String
     , month : String
+    , printJournal: String
+    , printNominalAccounts : String
     , accountCategories : List Category
     , accountTypes : List AccountType
     }
