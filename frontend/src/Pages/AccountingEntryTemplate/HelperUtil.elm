@@ -1,10 +1,10 @@
-module Pages.AccountingEntryTemplatePage.HelperUtil exposing (..)
+module Pages.AccountingEntryTemplate.HelperUtil exposing (..)
 
 
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
-import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel exposing (Model)
+import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel exposing (Model)
 
 
 

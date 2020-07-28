@@ -1,10 +1,10 @@
-module Pages.AccountingEntryTemplatePage.ParseAndUpdateUtil exposing (..)
+module Pages.AccountingEntryTemplate.ParseAndUpdateUtil exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.Types.Account exposing (Account)
 import List.Extra
-import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel exposing (Model)
+import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel exposing (Model)
 
 
 

@@ -1,4 +1,4 @@
-module Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePage exposing (Msg, init, update, view)
+module Pages.AccountingEntryTemplate.AccountingEntryTemplatePage exposing (Msg, init, update, view)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.HttpUtil as HttpUtil
@@ -15,9 +15,9 @@ import Html.Attributes exposing (class, disabled, for, id, placeholder, style, v
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
-import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel exposing (Model)
-import Pages.AccountingEntryTemplatePage.HelperUtil exposing (insertData, reset, updateAccountingEntryTemplate)
-import Pages.AccountingEntryTemplatePage.ParseAndUpdateUtil exposing (handleSelection, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
+import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel exposing (Model)
+import Pages.AccountingEntryTemplate.HelperUtil exposing (insertData, reset, updateAccountingEntryTemplate)
+import Pages.AccountingEntryTemplate.ParseAndUpdateUtil exposing (handleSelection, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, backToEntryPage)
 
 

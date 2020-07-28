@@ -1,4 +1,4 @@
-module Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel exposing (..)
+module Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel exposing (..)
 
 import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)

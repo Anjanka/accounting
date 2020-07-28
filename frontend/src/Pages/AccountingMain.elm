@@ -6,8 +6,8 @@ import Html exposing (Html, div, text)
 import Pages.AccountPage as Account
 import Pages.AccountingEntry.AccountingEntryPage as AccountingEntry
 import Pages.AccountingEntry.AccountingEntryPageModel as AccountingEntryModel
-import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePage as AccountingEntryTemplate
-import Pages.AccountingEntryTemplatePage.AccountingEntryTemplatePageModel as AccountingEntryTemplateModel
+import Pages.AccountingEntryTemplate.AccountingEntryTemplatePage as AccountingEntryTemplate
+import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel as AccountingEntryTemplateModel
 import Pages.Company.CompanyPage as Company
 import Pages.Company.CompanyPageModel as CompanyModel
 import Pages.StartPage as Start
