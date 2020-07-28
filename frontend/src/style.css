@@ -3,7 +3,7 @@ font-family: Helvetica, Arial, sans-serif;
 font-size: 16px;}
 
 
-#templatePageButton, #accountPageButton, #accountListButton{
+#templatePageButton, #accountPageButton, #accountListButton, #journalButton{
 margin-top: 1%;
 margin-right: 1%;
 margin-bottom: 3%;
@@ -13,12 +13,12 @@ float: left;
 #accountPageButton{
 margin-left: 5%;}
 
-#templatePageButton#accountListButton{
-margin-left: 1%;
+#templatePageButton, #accountListButton, #journalButton{
+margin-left: 0.5%;
 }
 
 #accountListButton{
-margin-left: 2%;
+margin-left: 1.5%;
 clear: right;
 }
 

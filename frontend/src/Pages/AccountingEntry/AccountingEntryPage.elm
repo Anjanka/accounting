@@ -22,9 +22,10 @@ import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
 import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset, unicodeToString)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
 import Task
+import Url.Builder exposing (Root(..))
 
 
 
@@ -65,7 +66,7 @@ init flags =
       , companyId = flags.companyId
       , accountingYear = flags.accountingYear
       , content = emptyInputContent
-      , accountingEntry = AccountingEntryUtil.emptyWith {companyId = flags.companyId, accountingYear = flags.accountingYear}
+      , accountingEntry = AccountingEntryUtil.emptyWith { companyId = flags.companyId, accountingYear = flags.accountingYear }
       , allAccountingEntries = []
       , allAccounts = []
       , allAccountingEntryTemplates = []
@@ -210,7 +211,7 @@ update msg model =
             ( reset model, deleteAccountingEntry model.accountingEntry )
 
         EditAccountingEntry accountingEntry ->
-            ( insertForEdit model accountingEntry, resetViewport)
+            ( insertForEdit model accountingEntry, resetViewport )
 
         MoveEntryUp accountingEntry ->
             ( model, moveAccountingEntryUp accountingEntry )
@@ -247,12 +248,15 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ class "page" ]
-        [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage , makeLinkLang model.lang.short])
-            [ class "pageButton", id "accountPageButton"][ text model.lang.manageAccounts ]
-
-        , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage,  makeLinkLang model.lang.short])
-            [ class "pageButton", id "templatePageButton"] [ text model.lang.manageTemplates]
-
+        [ linkButton (fragmentUrl  [ makeLinkId model.companyId, makeLinkPath AccountPage, makeLinkLang model.lang.short ])
+            [ class "pageButton", id "accountPageButton" ]
+            [ text model.lang.manageAccounts ]
+        , linkButton (fragmentUrl  [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage, makeLinkLang model.lang.short ])
+            [ class "pageButton", id "templatePageButton" ]
+            [ text model.lang.manageTemplates ]
+        , linkButton (Url.Builder.custom (CrossOrigin "localhost:9000") [ "reports", "journal", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
+            [ class "pageButton", id "journalButton" ]
+            [ text "Journal" ]
         , viewAccountListButton model.lang model.accountViewActive
         , p [ id "freeP" ] []
         , viewAccountList model
@@ -503,11 +507,11 @@ dropdownOptionsAccount text allAccounts dropdownAccountChanged =
     }
 
 
-
-
 resetViewport : Cmd Msg
 resetViewport =
     Task.perform (\_ -> NoOp) (Dom.setViewport 0 0)
+
+
 
 -- COMMUNICATION
 
@@ -579,3 +583,12 @@ moveAccountingEntryDown accountingEntry =
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
         , body = Http.jsonBody (encoderAccountingEntryKey (getKey accountingEntry))
         }
+
+
+--getJournal : Int -> Int -> Cmd Msg
+--getJournal companyId year =
+--    Http.get
+--        { url = "http://localhost:9000/reports/journal/companyId/" ++ String.fromInt companyId ++ "/accountingYear/" ++ String.fromInt year
+--        , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
+--        }
+--
