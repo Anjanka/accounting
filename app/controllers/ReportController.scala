@@ -21,7 +21,7 @@ class ReportController @Inject() (
     ec: ExecutionContext
 ) extends BaseController {
 
-  def test(companyId: Int, accountingYear: Int): Action[AnyContent] =
+  def journal(companyId: Int, accountingYear: Int): Action[AnyContent] =
     Action {
       val reportCreator = ReportCreator()
       // TODO: Use proper values here
@@ -34,7 +34,7 @@ class ReportController @Inject() (
         dataContent,
         contentLength = None,
         inline = false,
-        fileName = Some("test.pdf")
+        fileName = Some("journal.pdf")
       ).withHeaders(("Content-Type", "pdf"))
 
     }
