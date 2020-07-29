@@ -2,31 +2,42 @@ package report
 
 import java.sql.Date
 
+import abstraction.NominalAccountEntry.{Credit, Debit}
+import abstraction.{NominalAccount, NominalAccountEntry}
 import base.MonetaryValue
-import db.{AccountingEntry, Company}
+import db.Company
 
 import scala.xml.Elem
 
 
 object NominalAccountsCreator {
 
-  def mkNominalAccounts(company: Company, accountingYear: Int, accountingEntries: Seq[AccountingEntry]): Elem =
+  def mkNominalAccounts(company: Company, accountingYear: Int, nominalAccounts: Seq[NominalAccount]): Elem =
     <nominalAccounts
     pageName="Nominal Accounts"
     accountingYear={accountingYear.toString}>
       {mkCompanyData(company)}
-      {accountingEntries.map(mkAccountingEntryData)}
+      {nominalAccounts.map(mkNominalAccountData)}
     </nominalAccounts>
 
-  def mkAccountingEntryData(accountingEntry: AccountingEntry): Elem =
-      <accountingEntry
-      number={accountingEntry.id.toString}
-      date={showDate(accountingEntry.bookingDate)}
-      receiptNumber={accountingEntry.receiptNumber}
-      description={accountingEntry.description}
-      debit={accountingEntry.debit.toString}
-      credit={accountingEntry.credit.toString}
-      amount={MonetaryValue.show(MonetaryValue.fromAllCents(100 * accountingEntry.amountWhole + accountingEntry.amountChange))}
+
+
+  def mkNominalAccountData(nominalAccount : NominalAccount) : Elem =
+    <nominalAccount
+    accountId={nominalAccount.accountId.toString}
+    accountName={nominalAccount.accountName}
+    balance={MonetaryValue.show(nominalAccount.balance)}>
+      {nominalAccount.entries.map(mkNominalAccountEntriesData)}
+    </nominalAccount>
+
+
+  def mkNominalAccountEntriesData(nominalAccountEntry: NominalAccountEntry): Elem =
+      <nominalAccountEntry
+      offsetAccount={nominalAccountEntry.offsetAccount.toString}
+      date={showDate(nominalAccountEntry.bookingDate)}
+      description={nominalAccountEntry.description}
+      debitAmount={nominalAccountEntry.amount match {case Debit (value) => MonetaryValue.show(value) case _ => ""}}
+      creditAmount={nominalAccountEntry.amount match {case Credit (value) => MonetaryValue.show(value) case _ => ""}}
       />
 
   def mkCompanyData(company: Company): Elem =
