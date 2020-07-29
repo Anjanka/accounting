@@ -32,4 +32,5 @@ POST    /company/replace                                                        
 POST    /company/insert                                                            controllers.CompanyController.insert
 POST    /company/delete                                                            controllers.CompanyController.delete
 
-GET /reports/journal/companyId/*companyId/accountingYear/*accountingYear  controllers.ReportController.journal(companyId: Int, accountingYear: Int)
+GET /reports/journal/companyId/*companyId/accountingYear/*accountingYear           controllers.ReportController.journal(companyId: Int, accountingYear: Int)
+GET /reports/nominalAccounts/companyId/*companyId/accountingYear/*accountingYear   controllers.ReportController.nominalAccounts(companyId: Int, accountingYear: Int)
