@@ -1,7 +1,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:fo="http://www.w3.org/1999/XSL/Format">
 
-    <xsl:template match="report">
+    <xsl:template match="journal">
         <fo:root>
             <fo:layout-master-set>
                 <fo:simple-page-master master-name="simpleA4"
