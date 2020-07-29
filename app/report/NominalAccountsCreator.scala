@@ -26,7 +26,9 @@ object NominalAccountsCreator {
     <nominalAccount
     accountId={nominalAccount.accountId.toString}
     accountName={nominalAccount.accountName}
-    balance={MonetaryValue.show(nominalAccount.balance)}>
+    balance={MonetaryValue.show(nominalAccount.balance)}
+    creditBalance={MonetaryValue.show(nominalAccount.creditBalance)}
+    debitBalance={MonetaryValue.show(nominalAccount.debitBalance)}>
       {nominalAccount.entries.map(mkNominalAccountEntriesData)}
     </nominalAccount>
 
