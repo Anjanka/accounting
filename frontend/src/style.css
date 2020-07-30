@@ -3,7 +3,7 @@ font-family: Helvetica, Arial, sans-serif;
 font-size: 16px;}
 
 
-#templatePageButton, #accountPageButton, #accountListButton, #journalButton{
+#templatePageButton, #accountPageButton, #accountListButton, #journalButton, #nominalAccountsButton{
 margin-top: 1%;
 margin-right: 1%;
 margin-bottom: 3%;
@@ -13,7 +13,7 @@ float: left;
 #accountPageButton{
 margin-left: 5%;}
 
-#templatePageButton, #accountListButton, #journalButton{
+#templatePageButton, #journalButton, #nominalAccountsButton{
 margin-left: 0.5%;
 }
 
@@ -22,8 +22,7 @@ margin-left: 1.5%;
 clear: right;
 }
 
-#freeP{
-clear:both;}
+
 
 #accountList{
   margin: 5%;
@@ -100,7 +99,7 @@ width: 100px;}
 
 
 
-.button, .linkButton, .pageButton, .showButton, .saveButton, .deleteButton, .backButton, .cancelButton, .editCompanyButton {
+.button, .linkButton, .navButton, .showButton, .saveButton, .deleteButton, .backButton, .cancelButton, .editCompanyButton {
   border: none;
   border-radius: 4px;
   color: white;
@@ -142,7 +141,7 @@ width: 100px;}
   background-color: rgb(153, 0, 0);
 }
 
-.showButton, .linkButton, .pageButton {
+.showButton, .linkButton, .navButton {
   background-color: rgb(0, 76, 153);
 }
 

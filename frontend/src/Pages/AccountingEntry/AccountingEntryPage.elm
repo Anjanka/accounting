@@ -254,14 +254,17 @@ view : Model -> Html Msg
 view model =
     div [ class "page" ]
         [ linkButton (fragmentUrl  [ makeLinkId model.companyId, makeLinkPath AccountPage, makeLinkLang model.lang.short ])
-            [ class "pageButton", id "accountPageButton" ]
+            [ class "navButton", id "accountPageButton" ]
             [ text model.lang.manageAccounts ]
         , linkButton (fragmentUrl  [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage, makeLinkLang model.lang.short ])
-            [ class "pageButton", id "templatePageButton" ]
+            [ class "navButton", id "templatePageButton" ]
             [ text model.lang.manageTemplates ]
         , linkButton (Url.Builder.custom (CrossOrigin "http://localhost:9000") [ "reports", "journal", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
-            [ class "pageButton", id "journalButton" ]
+            [ class "navButton", id "journalButton" ]
             [ text model.lang.printJournal ]
+        , linkButton (Url.Builder.custom (CrossOrigin "http://localhost:9000") [ "reports", "nominalAccounts", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
+                    [ class "navButton", id "nominalAccountsButton" ]
+                    [ text model.lang.printNominalAccounts ]
         , viewAccountListButton model.lang model.accountViewActive
         , p [ id "freeP" ] []
         , viewAccountList model
