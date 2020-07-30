@@ -19,7 +19,7 @@ case class NominalAccount(accountId: Int, accountName: String, entries: Seq[Nomi
       .sum
 
   val balance: MonetaryValue = {
-    creditBalance - debitBalance
+    (creditBalance - debitBalance).abs
   }
 
 }

@@ -54,7 +54,7 @@
     </xsl:template>
 
     <xsl:template match="nominalAccount">
-        <fo:block margin-top="20pt" text-align="left" font-weight="bold" >
+        <fo:block margin-top="20pt" text-align="left" font-weight="bold" font-size="13pt" >
             <xsl:text> Konto:  </xsl:text>
             <xsl:value-of select="@accountId"/>
             <xsl:text>  </xsl:text>
@@ -70,44 +70,44 @@
             <fo:table-column column-width="11%"/>
 
             <fo:table-header font-weight="bold" >
-                <fo:table-row border-bottom="1px solid black">
-                    <fo:table-cell>
-                        <fo:block text-align="center" margin-right="5pt">
+                <fo:table-row >
+                    <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
+                        <fo:block text-align="center" >
                                            <xsl:text>
                                                Datum
                                            </xsl:text>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell >
-                        <fo:block text-align="center" margin-right="5pt">
+                    <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
+                        <fo:block text-align="center" >
                                              <xsl:text>
-                                               Belegnr.
+                                               Beleg- nr.
                                              </xsl:text>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell number-columns-spanned="2">
-                        <fo:block text-align="left" margin-right="5pt">
+                    <fo:table-cell number-columns-spanned="2" border-bottom="1px solid black" border-right="1px solid black">
+                        <fo:block text-align="left" margin-left="5pt">
                                             <xsl:text>
                                                Buchungstext
                                             </xsl:text>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="right" margin-right="5pt">
+                    <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
+                        <fo:block text-align="center" >
                                             <xsl:text>
-                                               Gegenkonto
+                                               Gegen- konto
                                             </xsl:text>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="right" margin-right="5pt">
+                    <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
+                        <fo:block text-align="center" >
                                              <xsl:text>
                                                SOLL
                                              </xsl:text>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="right" margin-right="5pt">
+                    <fo:table-cell border-bottom="1px solid black">
+                        <fo:block text-align="center" >
                                              <xsl:text>
                                                HABEN
                                              </xsl:text>
@@ -117,52 +117,52 @@
             </fo:table-header>
             <fo:table-body>
                 <xsl:apply-templates select="nominalAccountEntry"/>
-                <fo:table-row border-top="1px solid black" border-bottom="1px solid black">
-                    <fo:table-cell number-columns-spanned="5">
-                        <fo:block text-align="left" font-weight="bold">
+                <fo:table-row>
+                    <fo:table-cell number-columns-spanned="5" border-bottom="2px solid black" border-top="1pt solid black" border-right="1pt solid black" >
+                        <fo:block text-align="left" font-weight="bold" margin-right="5pt" margin-left="5pt">
                             Summe
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="right">
+                    <fo:table-cell border-bottom="2px solid black" border-top="1pt solid black" border-right="1pt solid black">
+                        <fo:block text-align="right" margin-right="5pt">
                             <xsl:value-of  select="@debitBalance"/>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="right">
+                    <fo:table-cell border-bottom="2px solid black" border-top="1pt solid black"  >
+                        <fo:block text-align="right" margin-right="5pt">
                             <xsl:value-of  select="@creditBalance"/>
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>
 
                 <fo:table-row>
-                    <fo:table-cell number-columns-spanned="2">
-                        <fo:block>
+                    <fo:table-cell number-columns-spanned="2"  border-right="1pt solid black">
+                        <fo:block margin-right="5pt" margin-left="5pt">
                             gebucht bis
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="left">
+                    <fo:table-cell border-right="1pt solid black">
+                        <fo:block text-align="left" margin-left="5pt">
                             EB-Wert:
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="left">
+                    <fo:table-cell >
+                        <fo:block text-align="left" margin-left="5pt">
                             Saldo-Neu:
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="right">
+                    <fo:table-cell border-right="1pt solid black">
+                        <fo:block text-align="right" margin-right="5pt">
                             <xsl:value-of  select="@balance"/>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="right">
+                    <fo:table-cell border-right="1pt solid black">
+                        <fo:block text-align="right" margin-right="5pt">
                             <xsl:value-of  select="@debitBalance"/>
                         </fo:block>
                     </fo:table-cell>
                     <fo:table-cell>
-                        <fo:block text-align="right">
+                        <fo:block text-align="right" margin-right="5pt">
                             <xsl:value-of  select="@creditBalance"/>
                         </fo:block>
                     </fo:table-cell>
@@ -175,32 +175,32 @@
 
     <xsl:template match="nominalAccountEntry">
         <fo:table-row>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@date"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell >
+            <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
                 <fo:block text-align="right" margin-right="5pt" >
                     <xsl:value-of select="@receiptNumber"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell number-columns-spanned="2">
-                <fo:block text-align="left" margin-right="5pt">
+            <fo:table-cell number-columns-spanned="2" border-bottom="1px solid black" border-right="1px solid black">
+                <fo:block text-align="left" margin-left="5pt">
                     <xsl:value-of select="@description"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@offsetAccount"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@debitAmount"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1px solid black">
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@creditAmount"/>
                 </fo:block>
