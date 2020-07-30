@@ -4,7 +4,9 @@ import io.circe.generic.JsonCodec
 
 @JsonCodec
 case class MonetaryValue(whole: BigInt, change: Change) {
-  def toAllCents: BigInt = 100 * whole + change.toCents
+  lazy val toAllCents: BigInt = {
+    100 * whole + whole.signum * change.toCents
+  }
 
 }
 
@@ -16,7 +18,7 @@ object MonetaryValue {
     val tens = rem / 10
     val ones = rem % 10
     //todo guarantee proper usage?
-    val change = Change(Digit(tens), Digit(ones))
+    val change = Change(Digit(tens.abs), Digit(ones.abs))
     MonetaryValue(whole, change)
   }
 
