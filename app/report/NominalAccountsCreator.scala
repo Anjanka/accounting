@@ -14,7 +14,7 @@ object NominalAccountsCreator {
 
   def mkNominalAccounts(company: Company, accountingYear: Int, nominalAccounts: Seq[NominalAccount]): Elem =
     <nominalAccounts
-    pageName="Nominal Accounts"
+    pageName="Sachkonten"
     accountingYear={accountingYear.toString}>
       {mkCompanyData(company)}
       {nominalAccounts.map(mkNominalAccountData)}
@@ -35,6 +35,7 @@ object NominalAccountsCreator {
 
   def mkNominalAccountEntriesData(nominalAccountEntry: NominalAccountEntry): Elem =
       <nominalAccountEntry
+      receiptNumber={nominalAccountEntry.receiptNumber}
       offsetAccount={nominalAccountEntry.offsetAccount.toString}
       date={showDate(nominalAccountEntry.bookingDate)}
       description={nominalAccountEntry.description}
