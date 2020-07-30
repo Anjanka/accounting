@@ -29,12 +29,12 @@ class ReportController @Inject() (
     Action {
       val reportCreator = ReportCreator()
       // TODO: Use proper values here
-      val allEntries = Await.result(
+      val allEntries = (Await.result(
         accountingEntryDAO.dao.findPartial(CompanyYearKey(companyId, accountingYear))(
           AccountingEntryDAO.compareCompanyYearKey
         ),
         Duration.Inf
-      )
+      )).sortBy(_.id)
       val company = Await.result(companyDAO.dao.find(CompanyKey(companyId)), Duration.Inf).get
       val dataContent = StreamConverters.fromInputStream(() =>
         new ByteArrayInputStream(
