@@ -2,27 +2,24 @@ package abstraction
 
 import abstraction.NominalAccountEntry.{ Credit, Debit }
 import base.MonetaryValue
+import Numeric.Implicits._
 
 case class NominalAccount(accountId: Int, accountName: String, entries: Seq[NominalAccountEntry]) {
 
   val debitBalance: MonetaryValue =
-    MonetaryValue.fromAllCents(
-      entries
-        .map(entry => entry.amount)
-        .collect { case Debit(monetaryValue) => monetaryValue.toAllCents }
-        .sum
-    )
+    entries
+      .map(entry => entry.amount)
+      .collect { case Debit(monetaryValue) => monetaryValue }
+      .sum
 
   val creditBalance: MonetaryValue =
-    MonetaryValue.fromAllCents(
-      entries
-        .map(entry => entry.amount)
-        .collect { case Credit(value) => value.toAllCents }
-        .sum
-    )
+    entries
+      .map(entry => entry.amount)
+      .collect { case Credit(value) => value }
+      .sum
 
   val balance: MonetaryValue = {
-    MonetaryValue.fromAllCents(creditBalance.toAllCents - debitBalance.toAllCents)
+    creditBalance - debitBalance
   }
 
 }
