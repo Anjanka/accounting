@@ -7,18 +7,22 @@ case class NominalAccount(accountId: Int, accountName: String, entries: Seq[Nomi
 
   val debitBalance: MonetaryValue =
     MonetaryValue.fromAllCents(
-      entries.map(entry => entry.amount match {case Credit (value) => value.toAllCents})
+      entries
+        .map(entry => entry.amount)
+        .collect { case Debit(monetaryValue) => monetaryValue.toAllCents }
         .sum
     )
+
   val creditBalance: MonetaryValue =
     MonetaryValue.fromAllCents(
-      entries.map(entry => entry.amount match {case Debit (value) => value.toAllCents})
+      entries
+        .map(entry => entry.amount)
+        .collect { case Credit(value) => value.toAllCents }
         .sum
     )
 
   val balance: MonetaryValue = {
-    MonetaryValue.fromAllCents(
-      creditBalance.toAllCents - debitBalance.toAllCents)
+    MonetaryValue.fromAllCents(creditBalance.toAllCents - debitBalance.toAllCents)
   }
 
 }
