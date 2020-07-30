@@ -24,7 +24,7 @@
                 </fo:static-content>
                 <fo:flow flow-name="xsl-region-body">
                     <fo:block font-family="Helvetica" font-size="12pt">
-                        <fo:table width="100%" column-gap="5pt">
+                        <fo:table width="100%" column-gap="5pt" border-left ="1px solid black">
                             <fo:table-column column-width="14%" />
                             <fo:table-column column-width="5%" />
                             <fo:table-column column-width="10%" />
@@ -35,50 +35,50 @@
 
                             <fo:table-header font-weight="bold" >
                                 <fo:table-row>
-                                    <fo:table-cell>
-                                        <fo:block text-align="center" margin-right="5pt" border="1px solid black">
+                                    <fo:table-cell border-top="1pt solid black" border-bottom="1pt solid black" border-right="1pt solid black">
+                                        <fo:block text-align="center"  >
                                            <xsl:text>
-                                               Belegdatum
+                                               Datum
                                            </xsl:text>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block text-align="right" margin-right="5pt" >
+                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
+                                        <fo:block text-align="center"  >
                                              <xsl:text>
                                                Nr.
                                              </xsl:text>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell >
-                                        <fo:block text-align="center" margin-right="5pt">
+                                    <fo:table-cell  border-top="1pt solid black" border-bottom="1pt solid black" border-right="1pt solid black">
+                                        <fo:block text-align="center" >
                                              <xsl:text>
-                                               Belegnr.
+                                               Beleg- nr.
                                              </xsl:text>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block text-align="left" margin-right="5pt">
+                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
+                                        <fo:block text-align="left" margin-left="5pt">
                                             <xsl:text>
                                                Buchungstext
                                             </xsl:text>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block text-align="right" margin-right="5pt">
+                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
+                                        <fo:block text-align="center" >
                                             <xsl:text>
                                                Betrag
                                             </xsl:text>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block text-align="right" margin-right="5pt">
+                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
+                                        <fo:block text-align="center" >
                                              <xsl:text>
                                                SOLL
                                              </xsl:text>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block text-align="right" margin-right="5pt">
+                                    <fo:table-cell  border-top="1pt solid black" border-bottom="1pt solid black" border-right="1pt solid black">>
+                                        <fo:block text-align="center" >
                                              <xsl:text>
                                                HABEN
                                              </xsl:text>
@@ -88,6 +88,20 @@
                             </fo:table-header>
                             <fo:table-body>
                                 <xsl:apply-templates select="accountingEntry"/>
+                                <fo:table-row>
+                                    <fo:table-cell number-columns-spanned="5" border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
+                                        <fo:block text-align="left" margin-left="5pt" font-weight="bold">
+                                            Summe:
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
+                                           <fo:block />
+                                    </fo:table-cell>
+                                    <fo:table-cell border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
+                                        <fo:block />
+                                    </fo:table-cell>
+
+                                </fo:table-row>
                             </fo:table-body>
                         </fo:table>
                     </fo:block>
@@ -119,37 +133,37 @@
 
     <xsl:template match="accountingEntry">
         <fo:table-row>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1pt solid black" border-right="1pt solid black">
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@date"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1pt solid black" border-right="1pt solid black">
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@number"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell >
+            <fo:table-cell border-bottom="1pt solid black" border-right="1pt solid black" >
                 <fo:block text-align="right" margin-right="5pt" >
                     <xsl:value-of select="@receiptNumber"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell>
-                <fo:block text-align="left" margin-right="5pt">
+            <fo:table-cell border-bottom="1pt solid black" border-right="1pt solid black">
+                <fo:block text-align="left" margin-left="5pt">
                     <xsl:value-of select="@description"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1pt solid black" border-right="1pt solid black">
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@amount"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1pt solid black" border-right="1pt solid black">
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@debit"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell>
+            <fo:table-cell border-bottom="1pt solid black" border-right="1pt solid black" >
                 <fo:block text-align="right" margin-right="5pt">
                     <xsl:value-of select="@credit"/>
                 </fo:block>
