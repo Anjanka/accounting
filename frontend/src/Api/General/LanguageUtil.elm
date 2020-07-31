@@ -9,8 +9,8 @@ getLanguage lang =
         english
     else if lang == "de" then
         german
-    else if lang == "fr" then
-        french
+--    else if lang == "fr" then
+--        french
     else default
 
 
@@ -72,20 +72,30 @@ english =
     , month = "mm"
     , printJournal = "Print Journal"
     , printNominalAccounts = "Print Nominal Accounts"
-    , accountCategories = [{ id = 0 , name = "fixed assets"}
-                                , {id = 1, name ="financial account"}
-                                , {id = 3, name = "business expenses"}
-                                , {id = 8, name = "resources"}
-                                , {id = 9, name ="balance carried forward"}]
-    , accountTypes = [{categoryIds = [0], name = "inferior assets"}
-                            , {categoryIds = [1], name = "cash account"}
-                            , {categoryIds = [3], name = "purchased goods"}
-                            , {categoryIds = [3], name = "telephone costs"}
-                            , {categoryIds = [3], name = "travel expenses"}
-                            , {categoryIds = [0,1,2,3,4,5,6,7,8,9], name = "other"}
-                            , {categoryIds = [8], name ="interest income"}
-                            , {categoryIds = [9], name = "nominal account"}
-                            , {categoryIds = [8], name = "sales revenue"}]
+    , accountCategories = [ {id = 0, name ="financial account"}
+                              , {id = 1 , name = "fixed assets"}
+                              , {id = 2, name = "resources"}
+                              , {id = 3, name = "business expenses"}
+                              , {id = 4, name = "borrowed capital"}
+                              , {id = 5, name = "tax account"}
+                              , {id = 8, name = "revenues"}
+                              , {id = 9, name ="balance carried forward"}]
+        , accountTypes = [ {id = 11, categoryIds = [1], name = "inferior assets"}
+                          , {id = 1, categoryIds = [0], name = "cash account"}
+                          , {id = 31, categoryIds = [3], name = "purchased goods"}
+                          , {id = 32, categoryIds = [3], name = "telephone costs"}
+                          , {id = 33, categoryIds = [3], name = "travel expenses"}
+                          , {id = 0, categoryIds = [7,1,2,3,4,5,6,7,8,9,0], name = "other"}
+                          , {id = 81, categoryIds = [8], name ="interest income"}
+                          , {id = 91, categoryIds = [9], name = "opening balance"}
+                          , {id = 82, categoryIds = [8], name = "sales revenue"}
+                          , {id = 34, categoryIds = [3], name = "personnel costs"}
+                          , {id = 35, categoryIds = [3], name = "postal charges"}
+                          , {id = 36, categoryIds = [3], name = "lease expenses"}
+                          , {id = 41, categoryIds = [4], name = "loans"}
+                          , {id = 42, categoryIds = [4], name = "debts"}
+                          , {id = 51, categoryIds = [5], name = "prepaid tax"}
+                          , {id = 52, categoryIds = [5], name = "sales taxes"}]
     }
 
 
@@ -143,77 +153,87 @@ german =
     , month = "mm"
     , printJournal = "Journal drucken"
     , printNominalAccounts = "Sachkonten drucken"
-    , accountCategories = [{ id = 0 , name = "Anlagevermögen"}
-                          , {id = 1, name ="Finanzkonto"}
+    , accountCategories = [ {id = 0, name ="Finanzkonto"}
+                          , {id = 1 , name = "Anlagevermögen"}
+                          , {id = 2, name = "Eigenkapital"}
                           , {id = 3, name = "Betriebsausgaben"}
+                          , {id = 4, name = "Fremdkapital"}
+                          , {id = 5, name = "Steuerkonto"}
                           , {id = 8, name = "Einnahmen"}
                           , {id = 9, name ="Saldovortrag"}]
-    , accountTypes = [{categoryIds = [0], name = "Geringwertige WG"}
-                      , {categoryIds = [1], name = "Kassenkonto"}
-                      , {categoryIds = [3], name = "Wareneinkauf"}
-                      , {categoryIds = [3], name = "Telefonkosten"}
-                      , {categoryIds = [3], name = "Reisekosten"}
-                      , {categoryIds = [0,1,2,3,4,5,6,7,8,9], name = "Sonstige"}
-                      , {categoryIds = [8], name ="Zinserträge"}
-                      , {categoryIds = [9], name = "Sachkonten"}
-                      , {categoryIds = [8], name = "Umsatzerlöse"}]
+    , accountTypes = [ {id = 11, categoryIds = [1], name = "Geringwertige WG"}
+                      , {id = 1, categoryIds = [0], name = "Kassenkonto"}
+                      , {id = 31, categoryIds = [3], name = "Wareneinkauf"}
+                      , {id = 32, categoryIds = [3], name = "Telefonkosten"}
+                      , {id = 33, categoryIds = [3], name = "Reisekosten"}
+                      , {id = 0, categoryIds = [7,1,2,3,4,5,6,7,8,9,0], name = "Sonstige"}
+                      , {id = 81, categoryIds = [8], name ="Zinserträge"}
+                      , {id = 91, categoryIds = [9], name = "Eröffungsbilanz"}
+                      , {id = 82, categoryIds = [8], name = "Umsatzerlöse"}
+                      , {id = 34, categoryIds = [3], name = "Personalkosten"}
+                      , {id = 35, categoryIds = [3], name = "Portokosten"}
+                      , {id = 36, categoryIds = [3], name = "Miete"}
+                      , {id = 41, categoryIds = [4], name = "Darlehen"}
+                      , {id = 42, categoryIds = [4], name = "Verbindlichkeiten"}
+                      , {id = 51, categoryIds = [5], name = "Vorsteuer"}
+                      , {id = 52, categoryIds = [5], name = "Umsatzsteuer"}]
     }
 
 
-french : LanguageComponents
-french =
-   { short = "fr"
-   , name = "nom"
-   , id = "ID"
-   , accountName = "nom du compte"
-   , companyName = "raison sociale"
-   , description = "désignation"
-   , saveChanges = "enregistrer les modifications"
-   , delete = "supprimer"
-   , back = "retour"
-   , cancel = "annuler"
-   , edit = "corriger"
-   , account = "compte"
-   , debit = "débit"
-   , credit = "crédit"
-   , template = "modèle"
-   , accountingEntry = "enregistrement comptable"
-   , company = "entreprise"
-   , pleaseSelectCompany = "[Veuillez sélectionner une entreprise]"
-   , pleaseSelectYear = "[Veuillez sélectionner l'année comptable]"
-   , selectTemplate = "[Sélectionnez un modèle]"
-   , pleaseSelectCategory = ""
-   , pleaseSelectAccountType = ""
-   , manageAccounts = "gérer les comptes"
-   , manageTemplates = "gérer les modèles"
-   , manageCompanies = "gérer les entreprises"
-   , create = "créer"
-   , accountingYear = "exercice comptable"
-   , bookingDate = "date comptable"
-   , receiptNumber = "n° de reçu"
-   , address = "adresse"
-   , city = "ville"
-   , postalCode = "code postal"
-   , country = "pays"
-   , taxNumber = "numéro fiscal"
-   , revenueOffice = "fisc"
-   , commitNewEntry = "valider une nouvelle entrée"
-   , amount = "montant"
-   , accountId = "ID de compte"
-   , hideTemplateList = "masquer la liste des modèles"
-   , hideAccountList = "masquer la list des comptes"
-   , showAccountList = "afficher la list des comptes"
-   , number = "N°"
-   , noValidAccount = "[Aucun compte valide n'a été sélectionné.]"
-   , accountValidationMessageOk = "L'ID de compte est valide."
-   , accountValidationMessageErr = "L'ID de compte doit être un nombre positif de 3 à 5 chiffres. Les 0 en tête seront ignorés."
-   , accountValidationMessageExisting = "Un compte avec cet identifiant existe déjà. Utilisez la fonction d'édition pour apporter des modifications aux comptes existants."
-   , balance = "bilan"
-   , equalAccountsWarning = "Le crédit et le débit ne doivent pas être égaux."
-   , day = "jj"
-   , month = "mm"
-   , printJournal = "Imprimer le journal"
-   , printNominalAccounts = "Imprimer les comptes du grand livre"
-   , accountCategories  = []
-   , accountTypes = []
-   }
+--french : LanguageComponents
+--french =
+--   { short = "fr"
+--   , name = "nom"
+--   , id = "ID"
+--   , accountName = "nom du compte"
+--   , companyName = "raison sociale"
+--   , description = "désignation"
+--   , saveChanges = "enregistrer les modifications"
+--   , delete = "supprimer"
+--   , back = "retour"
+--   , cancel = "annuler"
+--   , edit = "corriger"
+--   , account = "compte"
+--   , debit = "débit"
+--   , credit = "crédit"
+--   , template = "modèle"
+--   , accountingEntry = "enregistrement comptable"
+--   , company = "entreprise"
+--   , pleaseSelectCompany = "[Veuillez sélectionner une entreprise]"
+--   , pleaseSelectYear = "[Veuillez sélectionner l'année comptable]"
+--   , selectTemplate = "[Sélectionnez un modèle]"
+--   , pleaseSelectCategory = ""
+--   , pleaseSelectAccountType = ""
+--   , manageAccounts = "gérer les comptes"
+--   , manageTemplates = "gérer les modèles"
+--   , manageCompanies = "gérer les entreprises"
+--   , create = "créer"
+--   , accountingYear = "exercice comptable"
+--   , bookingDate = "date comptable"
+--   , receiptNumber = "n° de reçu"
+--   , address = "adresse"
+--   , city = "ville"
+--   , postalCode = "code postal"
+--   , country = "pays"
+--   , taxNumber = "numéro fiscal"
+--   , revenueOffice = "fisc"
+--   , commitNewEntry = "valider une nouvelle entrée"
+--   , amount = "montant"
+--   , accountId = "ID de compte"
+--   , hideTemplateList = "masquer la liste des modèles"
+--   , hideAccountList = "masquer la list des comptes"
+--   , showAccountList = "afficher la list des comptes"
+--   , number = "N°"
+--   , noValidAccount = "[Aucun compte valide n'a été sélectionné.]"
+--   , accountValidationMessageOk = "L'ID de compte est valide."
+--   , accountValidationMessageErr = "L'ID de compte doit être un nombre positif de 3 à 5 chiffres. Les 0 en tête seront ignorés."
+--   , accountValidationMessageExisting = "Un compte avec cet identifiant existe déjà. Utilisez la fonction d'édition pour apporter des modifications aux comptes existants."
+--   , balance = "bilan"
+--   , equalAccountsWarning = "Le crédit et le débit ne doivent pas être égaux."
+--   , day = "jj"
+--   , month = "mm"
+--   , printJournal = "Imprimer le journal"
+--   , printNominalAccounts = "Imprimer les comptes du grand livre"
+--   , accountCategories  = []
+--   , accountTypes = []
+--   }

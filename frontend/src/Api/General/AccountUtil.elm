@@ -21,10 +21,10 @@ updateId account id = { account | id = id }
 updateTitle : Account -> String -> Account
 updateTitle account title = { account | title = title }
 
-updateCategory : Account -> String -> Account
+updateCategory : Account -> Int -> Account
 updateCategory account category = { account | category = category }
 
-updateAccountType : Account -> String -> Account
+updateAccountType : Account -> Int -> Account
 updateAccountType account at = { account | accountType = at }
 
 
@@ -34,7 +34,7 @@ show account =
 
 isEmpty: Account -> Bool
 isEmpty account =
-    account.id == 0 && account.title == "" && account.companyId == 0 && account.category == "" && account.accountType == ""
+    account.id == 0 && account.title == "" && account.companyId == 0
 
 
 type alias Category = {

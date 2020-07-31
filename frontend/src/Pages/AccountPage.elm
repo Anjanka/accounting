@@ -262,7 +262,7 @@ viewDropdowns model =
             []
             model.selectedCategory
         , Dropdown.dropdown
-            (dropdownOptionsAccountType model.lang.pleaseSelectAccountType (getSelectableTypes (getCategoryId model.selectedCategory model.lang.accountCategories) model.lang.accountTypes))
+            (dropdownOptionsAccountType model.lang.pleaseSelectAccountType (getSelectableTypes model.selectedCategory model.lang.accountTypes))
             []
             model.selectedAccountType
         ]
@@ -325,13 +325,13 @@ dropdownOptionsAccountCategory text allCategories =
     { defaultOptions
         | items =
             List.map (\cat -> categoryForDropdown cat) allCategories
-        , emptyItem = Just { value = "0", text = text, enabled = True }
+        , emptyItem = Just { value = "e", text = text, enabled = True }
     }
 
 
 categoryForDropdown : Category -> Item
 categoryForDropdown cat =
-    { value = cat.name, text = cat.name, enabled = True }
+    { value = String.fromInt cat.id, text = cat.name, enabled = True }
 
 
 dropdownOptionsAccountType : String -> List AccountType -> Dropdown.Options Msg
@@ -342,23 +342,17 @@ dropdownOptionsAccountType text selectableTypes =
     in
     { defaultOptions
         | items =
-            List.map (\at -> { value = at.name, text = at.name, enabled = not (List.isEmpty selectableTypes) }) selectableTypes
-        , emptyItem = Just { value = "0", text = text, enabled = True }
+            List.map (\at -> { value = String.fromInt at.id, text = at.name, enabled = not (List.isEmpty selectableTypes) }) selectableTypes
+        , emptyItem = Just { value = "e", text = text, enabled = True }
     }
 
 
-getSelectableTypes : Maybe Int -> List AccountType -> List AccountType
+getSelectableTypes : Maybe String -> List AccountType -> List AccountType
 getSelectableTypes selectedCategory allTypes =
     selectedCategory
-        |> Maybe.map (\id -> List.filter (\at -> List.member id at.categoryIds) allTypes)
+        |> Maybe.andThen String.toInt
+        |> Maybe.map (\id -> List.sortBy (\a -> a.name) (List.filter (\at -> List.member id at.categoryIds) allTypes))
         |> Maybe.withDefault []
-
-
-getCategoryId : Maybe String -> List Category -> Maybe Int
-getCategoryId selectedCategory allCategories =
-    selectedCategory
-        |> Maybe.map (\sc -> List.head (List.map (\c -> c.id) (List.filter (\c -> c.name == sc) allCategories)))
-        |> Maybe.withDefault Nothing
 
 
 
@@ -482,27 +476,24 @@ updateForEdit model account =
     { model
         | contentId = String.fromInt account.id
         , account = account
-        , selectedCategory = Just account.category
-        , selectedAccountType = Just account.accountType
+        , selectedCategory = Just (String.fromInt account.category)
+        , selectedAccountType = Just (String.fromInt account.accountType)
         , editViewActive = True
     }
 
 
 handleCategorySelection : Account -> Maybe String -> Account
 handleCategorySelection account selectedCategory =
-    case selectedCategory of
-        Just category ->
-            updateCategory account category
-
-        Nothing ->
-            account
+    selectedCategory
+       |> Maybe.andThen String.toInt
+       |> Maybe.map (\c -> updateCategory account c)
+       |> Maybe.withDefault account
 
 
 handleAccountTypeSelection : Account -> Maybe String -> Account
 handleAccountTypeSelection account selectedType =
-    case selectedType of
-        Just t ->
-            updateAccountType account t
+    selectedType
+       |> Maybe.andThen String.toInt
+       |> Maybe.map (\v -> updateAccountType account  v)
+       |> Maybe.withDefault account
 
-        Nothing ->
-            account
