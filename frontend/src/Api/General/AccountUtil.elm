@@ -8,8 +8,8 @@ empty =
     { companyId = 0
     , id = 0
     , title = ""
-    , category = ""
-    , accountType = ""
+    , category = 0
+    , accountType = 0
     }
 
 updateCompanyID: Account -> Int -> Account
@@ -43,7 +43,8 @@ type alias Category = {
     }
 
 type alias AccountType = {
-   categoryIds : List Int
+     id : Int
+   , categoryIds : List Int
    , name : String
  }
 
