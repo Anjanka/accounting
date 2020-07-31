@@ -17,8 +17,6 @@ case class AccountingEntryTemplate(
 object AccountingEntryTemplate {
 
   def keyOf(accountingEntryTemplate: AccountingEntryTemplate): AccountingEntryTemplateKey =
-    AccountingEntryTemplateKey(
-      id = accountingEntryTemplate.id
-    )
+    AccountingEntryTemplateKey(id = accountingEntryTemplate.id)
 
 }
