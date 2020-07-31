@@ -102,7 +102,7 @@ trait Tables {
   /** GetResult implicit for fetching Account objects using plain SQL queries */
   implicit def GetResultAccount(implicit e0: GR[Int], e1: GR[String]): GR[Account] = GR{
     prs => import prs._
-    (Account.apply _).tupled((<<[Int], <<[String], <<[Int], <<[String], <<[String]))
+    (Account.apply _).tupled((<<[Int], <<[String], <<[Int], <<[Int], <<[Int]))
   }
   /** Table description of table account. Objects of this class serve as prototypes for rows in queries. */
   class AccountTable(_tableTag: Tag) extends profile.api.Table[Account](_tableTag, "account") {
@@ -116,10 +116,10 @@ trait Tables {
     val title: Rep[String] = column[String]("title")
     /** Database column company_id SqlType(int4) */
     val companyId: Rep[Int] = column[Int]("company_id")
-    /** Database column category SqlType(text) */
-    val category: Rep[String] = column[String]("category")
-    /** Database column account_type SqlType(text) */
-    val accountType: Rep[String] = column[String]("account_type")
+    /** Database column category SqlType(int4) */
+    val category: Rep[Int] = column[Int]("category")
+    /** Database column account_type SqlType(int4) */
+    val accountType: Rep[Int] = column[Int]("account_type")
 
     /** Primary key of accountTable (database name account_pkey) */
     val pk = primaryKey("account_pkey", (companyId, id))
