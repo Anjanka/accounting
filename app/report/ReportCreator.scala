@@ -1,11 +1,8 @@
 package report
 
 import java.io.{ByteArrayOutputStream, StringReader}
-import java.sql.Date
 
-import base.MonetaryValue
 import better.files._
-import db.{AccountingEntry, Company}
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource

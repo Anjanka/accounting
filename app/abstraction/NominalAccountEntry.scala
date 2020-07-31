@@ -6,7 +6,7 @@ import abstraction.NominalAccountEntry.CreditOrDebit
 import base.MonetaryValue
 
 
-case class NominalAccountEntry(receiptNumber: String, offsetAccount: Int, description: String, amount: CreditOrDebit, bookingDate: Date) {
+case class NominalAccountEntry(id : Int, receiptNumber: String, offsetAccount: Int, description: String, amount: CreditOrDebit, bookingDate: Date) {
 
 
 
@@ -16,6 +16,7 @@ object NominalAccountEntry {
 
   def mkCreditEntry(entry: db.AccountingEntry): NominalAccountEntry =
     NominalAccountEntry(
+      id = entry.id,
       receiptNumber = entry.receiptNumber,
       offsetAccount = entry.debit,
       description = entry.description,
@@ -25,6 +26,7 @@ object NominalAccountEntry {
 
   def mkDebitEntry(entry: db.AccountingEntry): NominalAccountEntry =
     NominalAccountEntry(
+      id = entry.id,
       receiptNumber = entry.receiptNumber,
       offsetAccount = entry.credit,
       description = entry.description,
