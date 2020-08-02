@@ -324,7 +324,7 @@ dropdownOptionsAccountCategory text allCategories =
     in
     { defaultOptions
         | items =
-            List.map (\cat -> categoryForDropdown cat) allCategories
+            List.map (\cat -> categoryForDropdown cat) (List.sortBy (\c -> c.name) allCategories)
         , emptyItem = Just { value = "e", text = text, enabled = True }
     }
 
