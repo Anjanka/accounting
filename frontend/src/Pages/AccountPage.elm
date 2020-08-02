@@ -7,6 +7,7 @@ import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountKey exposing (encoderAccountKey)
 import Api.Types.Language exposing (LanguageComponents)
 import Browser
+import Browser.Dom as Dom
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, table, td, text, th, tr)
 import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
@@ -15,6 +16,7 @@ import Http exposing (Error)
 import Json.Decode as Decode
 import List.Extra
 import Pages.SharedViewComponents exposing (backToEntryPage)
+import Task
 
 
 
@@ -109,6 +111,7 @@ type Msg
     | ActivateEditView Account
     | DeactivateEditView
     | BackToAccountingEntryPage
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -190,13 +193,17 @@ update msg model =
             ( model, deleteAccount model.account )
 
         ActivateEditView account ->
-            ( updateForEdit model account, Cmd.none )
+            ( updateForEdit model account, resetViewport )
 
         DeactivateEditView ->
             ( reset model, Cmd.none )
 
         BackToAccountingEntryPage ->
             ( model, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
+
 
 
 
@@ -355,6 +362,9 @@ getSelectableTypes selectedCategory allTypes =
         |> Maybe.withDefault []
 
 
+resetViewport : Cmd Msg
+resetViewport =
+    Task.perform (\_ -> NoOp) (Dom.setViewport 0 0)
 
 -- COMMUNICATION
 
