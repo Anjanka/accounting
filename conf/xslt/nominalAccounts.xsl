@@ -5,7 +5,7 @@
         <fo:root>
             <fo:layout-master-set>
                 <fo:simple-page-master master-name="simpleA4"
-                                       page-height="29.7cm" page-width="21.0cm" margin="1.5cm" margin-top="1cm">
+                                       page-height="29.7cm" page-width="21.0cm" margin="1.5cm" margin-top="1cm" margin-bottom="1cm">
                     <fo:region-body   margin-top="2cm" margin-bottom="0.5cm" region-name="xsl-region-body" />
                     <fo:region-before  region-name="xsl-region-before" display-align="after" extent="1cm"/>
                     <fo:region-after   region-name="xsl-region-after" display-align="before" extent="0.5cm"/>
