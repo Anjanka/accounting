@@ -18,8 +18,21 @@ case class NominalAccount(accountId: Int, accountName: String, entries: Seq[Nomi
       .collect { case Credit(value) => value }
       .sum
 
+  val openingBalance: MonetaryValue = {
+      entries
+        .filter(_.openingBalance)
+        .map(entry => entry.amount)
+        .collect { case Debit(monetaryValue) => monetaryValue }
+        .sum
+  }
+
+  val revenue : MonetaryValue = {
+    debitBalance - openingBalance
+  }
+
   val balance: MonetaryValue = {
     (creditBalance - debitBalance).abs
   }
+
 
 }

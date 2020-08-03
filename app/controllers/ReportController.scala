@@ -46,7 +46,10 @@ class ReportController @Inject() (
         contentLength = None,
         inline = false,
         fileName = Some(s"journal $accountingYear.pdf")
-      ).withHeaders(("Content-Type", "pdf"))
+      ).withHeaders(
+        CONTENT_TYPE -> "application/pdf",
+        CONTENT_DISPOSITION -> "attachment"
+      )
 
     }
 
@@ -77,7 +80,10 @@ class ReportController @Inject() (
         contentLength = None,
         inline = false,
         fileName = Some(s"nominalAccounts $accountingYear.pdf")
-      ).withHeaders(("Content-Type", "pdf"))
+      ).withHeaders(
+        CONTENT_TYPE -> "application/pdf",
+        CONTENT_DISPOSITION -> "attachment"
+        )
 
     }
 
@@ -106,11 +112,13 @@ class ReportController @Inject() (
 // }
 
   def getNominalAccounts(entries: Seq[AccountingEntry], accounts: Seq[Account]): Seq[NominalAccount] = {
+    val openingBalanceAccounts = accounts.filter(_.accountType == 91).map(_.id)
+
     entries
       .flatMap(entry =>
         List(
           entry.credit -> NominalAccountEntry.mkCreditEntry(entry),
-          entry.debit -> NominalAccountEntry.mkDebitEntry(entry)
+          entry.debit -> NominalAccountEntry.mkDebitEntry(entry, openingBalanceAccounts)
         )
       )
       .groupBy(pair => pair._1)

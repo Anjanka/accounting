@@ -63,9 +63,10 @@
         <fo:table width="100%" column-gap="5pt" border="1px solid black">
             <fo:table-column column-width="14%" />
             <fo:table-column column-width="10%" />
-            <fo:table-column column-width="28%"/>
             <fo:table-column column-width="15%"/>
-            <fo:table-column column-width="11%"/>
+            <fo:table-column column-width="12%"/>
+            <fo:table-column column-width="15%"/>
+            <fo:table-column column-width="12%"/>
             <fo:table-column column-width="11%"/>
             <fo:table-column column-width="11%"/>
 
@@ -85,7 +86,7 @@
                                              </xsl:text>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell number-columns-spanned="2" border-bottom="1px solid black" border-right="1px solid black">
+                    <fo:table-cell number-columns-spanned="3" border-bottom="1px solid black" border-right="1px solid black">
                         <fo:block text-align="left" margin-left="5pt">
                                             <xsl:text>
                                                Buchungstext
@@ -118,7 +119,7 @@
             <fo:table-body>
                 <xsl:apply-templates select="nominalAccountEntry"/>
                 <fo:table-row>
-                    <fo:table-cell number-columns-spanned="5" border-bottom="2px solid black" border-top="1pt solid black" border-right="1pt solid black" >
+                    <fo:table-cell number-columns-spanned="6" border-bottom="2px solid black" border-top="1pt solid black" border-right="1pt solid black" >
                         <fo:block text-align="left" font-weight="bold" margin-right="5pt" margin-left="5pt">
                             Summe
                         </fo:block>
@@ -141,9 +142,14 @@
                             gebucht bis
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell border-right="1pt solid black">
+                    <fo:table-cell>
                         <fo:block text-align="left" margin-left="5pt">
                             EB-Wert:
+                            </fo:block>
+                    </fo:table-cell>
+                    <fo:table-cell border-right="1pt solid black">
+                        <fo:block text-align="right" margin-right="5pt">
+                           <xsl:value-of  select="@openingBalance"/>
                         </fo:block>
                     </fo:table-cell>
                     <fo:table-cell >
@@ -158,7 +164,7 @@
                     </fo:table-cell>
                     <fo:table-cell border-right="1pt solid black">
                         <fo:block text-align="right" margin-right="5pt">
-                            <xsl:value-of  select="@debitBalance"/>
+                            <xsl:value-of  select="@revenue"/>
                         </fo:block>
                     </fo:table-cell>
                     <fo:table-cell>
@@ -185,13 +191,13 @@
                     <xsl:value-of select="@receiptNumber"/>
                 </fo:block>
             </fo:table-cell>
-            <fo:table-cell number-columns-spanned="2" border-bottom="1px solid black" border-right="1px solid black">
+            <fo:table-cell number-columns-spanned="3" border-bottom="1px solid black" border-right="1px solid black">
                 <fo:block text-align="left" margin-left="5pt">
                     <xsl:value-of select="@description"/>
                 </fo:block>
             </fo:table-cell>
             <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
-                <fo:block text-align="right" margin-right="5pt">
+                <fo:block text-align="center" >
                     <xsl:value-of select="@offsetAccount"/>
                 </fo:block>
             </fo:table-cell>
