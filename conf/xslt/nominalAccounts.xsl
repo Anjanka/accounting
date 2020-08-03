@@ -6,12 +6,14 @@
             <fo:layout-master-set>
                 <fo:simple-page-master master-name="simpleA4"
                                        page-height="29.7cm" page-width="21.0cm" margin="1.5cm" margin-top="1cm">
-                    <fo:region-body   margin-top="2cm" region-name="xsl-region-body" extent="1cm"/>
-                    <fo:region-before  region-name="xsl-region-before" display-align="after" />
+                    <fo:region-body   margin-top="2cm" margin-bottom="0.5cm" region-name="xsl-region-body" />
+                    <fo:region-before  region-name="xsl-region-before" display-align="after" extent="1cm"/>
+                    <fo:region-after   region-name="xsl-region-after" display-align="before" extent="0.5cm"/>
 
                 </fo:simple-page-master>
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
+
                 <fo:static-content flow-name="xsl-region-before"  font-family="Helvetica" >
                      <xsl:apply-templates select="company"/>
                      <fo:block margin-top="10pt" text-align="center" font-size="14pt" font-weight="bold" >
@@ -19,15 +21,30 @@
                          <xsl:text>   </xsl:text>
                          <xsl:value-of select="@accountingYear"/>
                      </fo:block>
-
-
                 </fo:static-content>
+
+                <fo:static-content flow-name="xsl-region-after"  font-family="Helvetica">
+                    <fo:block  text-align="right" font-size="12pt" >
+                        <fo:page-number />
+                    </fo:block>
+                </fo:static-content>
+
+
+
                 <fo:flow flow-name="xsl-region-body">
                     <fo:block font-family="Helvetica" font-size="12pt">
 
                         <xsl:apply-templates select="nominalAccount"/>
                     </fo:block>
                 </fo:flow>
+
+
+
+
+
+
+
+
             </fo:page-sequence>
         </fo:root>
     </xsl:template>
