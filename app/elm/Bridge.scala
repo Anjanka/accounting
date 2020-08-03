@@ -1,6 +1,6 @@
 package elm
 
-import base.Id
+import base.{Id, ReportLanguageComponents}
 import better.files._
 import bridges.core.Type.Ref
 import bridges.core._
@@ -68,6 +68,7 @@ object Bridge {
     mkAndWrite[AccountingEntryCreationParams]()
     mkAndWrite[AccountingEntryTemplateCreationParams]()
     mkAndWrite[CompanyCreationParams]()
+    mkAndWrite[ReportLanguageComponents]()
   }
 
 }
