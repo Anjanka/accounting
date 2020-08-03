@@ -2,9 +2,8 @@ package report
 
 import java.sql.Date
 
-import abstraction.NominalAccountEntry.{Credit, Debit}
-import abstraction.{NominalAccount, NominalAccountEntry}
-import base.MonetaryValue
+import base.NominalAccountEntry.{Credit, Debit}
+import base.{MonetaryValue, NominalAccount, NominalAccountEntry}
 import db.Company
 
 import scala.xml.Elem

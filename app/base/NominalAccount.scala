@@ -1,7 +1,6 @@
-package abstraction
+package base
 
-import abstraction.NominalAccountEntry.{ Credit, Debit }
-import base.MonetaryValue
+import base.NominalAccountEntry.{Credit, Debit}
 import Numeric.Implicits._
 
 case class NominalAccount(accountId: Int, accountName: String, entries: Seq[NominalAccountEntry]) {

@@ -3,16 +3,16 @@ package controllers
 import java.io.ByteArrayInputStream
 import java.sql.Date
 
-import abstraction.{NominalAccount, NominalAccountEntry}
 import akka.stream.scaladsl.StreamConverters
 import base.Id.CompanyKey
+import base.{NominalAccount, NominalAccountEntry}
 import db.AccountingEntryDAO.CompanyYearKey
 import db._
 import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import report.{JournalCreator, NominalAccountsCreator, ReportCreator}
-import Ordering.Implicits._
 
+import Ordering.Implicits._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
 

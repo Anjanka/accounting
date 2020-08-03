@@ -1,9 +1,8 @@
-package abstraction
+package base
 
 import java.sql.Date
 
-import abstraction.NominalAccountEntry.CreditOrDebit
-import base.MonetaryValue
+import base.NominalAccountEntry.CreditOrDebit
 
 
 case class NominalAccountEntry(openingBalance : Boolean, id : Int, receiptNumber: String, offsetAccount: Int, description: String, amount: CreditOrDebit, bookingDate: Date) {
@@ -15,7 +14,7 @@ case class NominalAccountEntry(openingBalance : Boolean, id : Int, receiptNumber
 object NominalAccountEntry {
 
   def mkCreditEntry(entry: db.AccountingEntry): NominalAccountEntry =
-    NominalAccountEntry(
+    base.NominalAccountEntry(
       openingBalance = false,
       id = entry.id,
       receiptNumber = entry.receiptNumber,
@@ -26,7 +25,7 @@ object NominalAccountEntry {
     )
 
   def mkDebitEntry(entry: db.AccountingEntry, openingBalanceAccounts : Seq[Int]): NominalAccountEntry =
-    NominalAccountEntry(
+    base.NominalAccountEntry(
       openingBalance= openingBalanceAccounts.contains(entry.credit),
       id = entry.id,
       receiptNumber = entry.receiptNumber,
