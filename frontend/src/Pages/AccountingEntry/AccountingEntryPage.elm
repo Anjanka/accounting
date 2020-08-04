@@ -254,7 +254,7 @@ update msg model =
             (model, getJournal model.companyId model.accountingYear model.lang.reportLanguageComponents)
 
         GetNominalAccounts ->
-            (model, getNominalAccounts model.companyId model.accountingYear)
+            (model, getNominalAccounts model.companyId model.accountingYear model.lang.reportLanguageComponents)
 
 
 
@@ -626,10 +626,11 @@ getJournal companyId year langComps =
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }
 
-getNominalAccounts : Int -> Int -> Cmd Msg
-getNominalAccounts companyId year =
-    Http.get
+getNominalAccounts : Int -> Int -> ReportLanguageComponents -> Cmd Msg
+getNominalAccounts companyId year langComps =
+    Http.post
         { url = "http://localhost:9000/reports/nominalAccounts/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
         , expect =  Http.expectBytesResponse GotNominalAccounts (resolve Ok)
+        , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }
 

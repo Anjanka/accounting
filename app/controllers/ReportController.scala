@@ -5,18 +5,18 @@ import java.sql.Date
 
 import akka.stream.scaladsl.StreamConverters
 import base.Id.CompanyKey
-import base.{NominalAccount, NominalAccountEntry, ReportLanguageComponents}
+import base.{ NominalAccount, NominalAccountEntry, ReportLanguageComponents }
 import db.AccountingEntryDAO.CompanyYearKey
 import db._
 import io.circe.Json
 import javax.inject.Inject
 import play.api.libs.circe.Circe
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
-import report.{JournalCreator, NominalAccountsCreator, ReportCreator}
+import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
+import report.{ JournalCreator, NominalAccountsCreator, ReportCreator }
 
 import Ordering.Implicits._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 class ReportController @Inject() (
     accountingEntryDAO: AccountingEntryDAO,
@@ -25,7 +25,8 @@ class ReportController @Inject() (
     val controllerComponents: ControllerComponents
 )(implicit
     ec: ExecutionContext
-) extends BaseController with Circe {
+) extends BaseController
+    with Circe {
 
   def journal(companyId: Int, accountingYear: Int): Action[Json] =
     Action.async(circe.json) { request =>
@@ -34,16 +35,21 @@ class ReportController @Inject() (
         case Left(decodingFailure) =>
           Future(BadRequest(s"Could not parse ${request.body} as valid report language component: $decodingFailure."))
         case Right(languageComponents) =>
-          println(languageComponents)
           val reportCreator = ReportCreator()
-          accountingEntryDAO.dao.findPartial(CompanyYearKey(companyId, accountingYear))(
-            AccountingEntryDAO.compareCompanyYearKey
-          ).map { entries =>
+          for {
+            entries <- accountingEntryDAO.dao.findPartial(CompanyYearKey(companyId, accountingYear))(
+              AccountingEntryDAO.compareCompanyYearKey
+            )
+            company <- companyDAO.dao.find(CompanyKey(companyId))
+          } yield {
             val allEntries = entries.sortBy(_.id)
-            val company = Await.result(companyDAO.dao.find(CompanyKey(companyId)), Duration.Inf).get
             val dataContent = StreamConverters.fromInputStream(() =>
               new ByteArrayInputStream(
-                reportCreator.createJournalPdf(JournalCreator.mkJournal(languageComponents, company, accountingYear, allEntries)).toByteArray
+                reportCreator
+                  .createJournalPdf(
+                    JournalCreator.mkJournal(languageComponents, company.get, accountingYear, allEntries)
+                  )
+                  .toByteArray
               )
             )
             Ok.streamed(
@@ -59,41 +65,46 @@ class ReportController @Inject() (
       }
     }
 
-  def nominalAccounts(companyId: Int, accountingYear: Int): Action[AnyContent] =
-    Action {
-      val reportCreator = ReportCreator()
-      // TODO: Use proper values here
-      val allEntries = Await.result(
-        accountingEntryDAO.dao.findPartial(CompanyYearKey(companyId, accountingYear))(
-          AccountingEntryDAO.compareCompanyYearKey
-        ),
-        Duration.Inf
-      )
-      val allAccounts = Await.result(accountDAO.dao.findPartial(companyId)(AccountDAO.compareByCompany), Duration.Inf)
-      val allNominalAccountEntries = getNominalAccounts(allEntries, allAccounts)
-      val company = Await.result(companyDAO.dao.find(CompanyKey(companyId)), Duration.Inf).get
-      val dataContent = StreamConverters.fromInputStream(() =>
-        new ByteArrayInputStream(
-          reportCreator
-            .createNominalAccountsPdf(
-              NominalAccountsCreator.mkNominalAccounts(company, accountingYear, allNominalAccountEntries)
+  def nominalAccounts(companyId: Int, accountingYear: Int): Action[Json] =
+    Action.async(circe.json) { request =>
+      val languageCandidate = request.body.as[ReportLanguageComponents]
+      languageCandidate match {
+        case Left(decodingFailure) =>
+          Future(BadRequest(s"Could not parse ${request.body} as valid report language component: $decodingFailure."))
+        case Right(languageComponents) =>
+          val reportCreator = ReportCreator()
+          for {
+            entries <- accountingEntryDAO.dao.findPartial(CompanyYearKey(companyId, accountingYear))(
+              AccountingEntryDAO.compareCompanyYearKey
             )
-            .toByteArray
-        )
-      )
-      Ok.streamed(
-        dataContent,
-        contentLength = None,
-        inline = false,
-        fileName = Some(s"nominalAccounts $accountingYear.pdf")
-      ).withHeaders(
-        CONTENT_TYPE -> "application/pdf",
-        CONTENT_DISPOSITION -> "attachment"
-        )
+            accounts <- accountDAO.dao.findPartial(companyId)(AccountDAO.compareByCompany)
+            company <- companyDAO.dao.find(CompanyKey(companyId))
+          } yield {
+            val allEntries = entries.sortBy(_.id)
+            val allNominalAccountEntries = getNominalAccounts(allEntries, accounts)
 
+            val dataContent = StreamConverters.fromInputStream(() =>
+              new ByteArrayInputStream(
+                reportCreator
+                  .createNominalAccountsPdf(
+                    NominalAccountsCreator.mkNominalAccounts(languageComponents, company.get, accountingYear, allNominalAccountEntries)
+                  )
+                  .toByteArray
+              )
+            )
+            Ok.streamed(
+              dataContent,
+              contentLength = None,
+              inline = false,
+              fileName = Some(s"nominalAccounts $accountingYear.pdf")
+            ).withHeaders(
+              CONTENT_TYPE -> "application/pdf",
+              CONTENT_DISPOSITION -> "attachment"
+            )
+
+          }
+      }
     }
-
-
 
 // case class DateReceiptNumberPair(date: Date, receiptNumber: String)
 
