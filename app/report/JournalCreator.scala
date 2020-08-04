@@ -2,17 +2,26 @@ package report
 
 import java.sql.Date
 
-import base.MonetaryValue
+import base.{MonetaryValue, ReportLanguageComponents}
 import db.{AccountingEntry, Company}
 
 import scala.xml.Elem
 
 object JournalCreator {
 
-  def mkJournal(company: Company, accountingYear: Int, accountingEntries: Seq[AccountingEntry]): Elem =
+  def mkJournal(languageComponents: ReportLanguageComponents, company: Company, accountingYear: Int, accountingEntries: Seq[AccountingEntry]): Elem =
   <journal
-  pageName="Journal"
-  accountingYear={accountingYear.toString}>
+  pageName={languageComponents.journal}
+  accountingYear={accountingYear.toString}
+  debit_l={languageComponents.debit}
+  credit_l={languageComponents.credit}
+  date_l={languageComponents.bookingDate}
+  description_l={languageComponents.description}
+  receiptNumber_l={languageComponents.receiptNumber}
+  number_l={languageComponents.number}
+  amount_l={languageComponents.amount}
+  sum_l={languageComponents.sum}
+  >
   {mkCompanyData(company)}
   {accountingEntries.map(mkAccountingEntryData)}
   </journal>

@@ -44,51 +44,37 @@
                                 <fo:table-row>
                                     <fo:table-cell border-top="1pt solid black" border-bottom="1pt solid black" border-right="1pt solid black">
                                         <fo:block text-align="center"  >
-                                           <xsl:text>
-                                               Datum
-                                           </xsl:text>
+                                            <xsl:value-of select="@date_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
                                         <fo:block text-align="center"  >
-                                             <xsl:text>
-                                               Nr.
-                                             </xsl:text>
+                                            <xsl:value-of select="@number_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell  border-top="1pt solid black" border-bottom="1pt solid black" border-right="1pt solid black">
                                         <fo:block text-align="center" >
-                                             <xsl:text>
-                                               Beleg- nr.
-                                             </xsl:text>
+                                             <xsl:value-of select="@receiptNumber_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
                                         <fo:block text-align="left" margin-left="5pt">
-                                            <xsl:text>
-                                               Buchungstext
-                                            </xsl:text>
+                                            <xsl:value-of select="@description_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
                                         <fo:block text-align="center" >
-                                            <xsl:text>
-                                               Betrag
-                                            </xsl:text>
+                                            <xsl:value-of select="@amount_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
                                         <fo:block text-align="center" >
-                                             <xsl:text>
-                                               SOLL
-                                             </xsl:text>
+                                            <xsl:value-of select="@debit_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell  border-top="1pt solid black" border-bottom="1pt solid black" border-right="1pt solid black">>
                                         <fo:block text-align="center" >
-                                             <xsl:text>
-                                               HABEN
-                                             </xsl:text>
+                                            <xsl:value-of select="@credit_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                 </fo:table-row>
@@ -98,7 +84,7 @@
                                 <fo:table-row>
                                     <fo:table-cell number-columns-spanned="5" border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
                                         <fo:block text-align="left" margin-left="5pt" font-weight="bold">
-                                            Summe:
+                                            <xsl:value-of select="@sum_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
