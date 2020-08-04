@@ -98,9 +98,9 @@ english =
                           , {id = 52, categoryIds = [5], name = "sales taxes"}]
     , reportLanguageComponents = { journal = "Journal"
                                      , nominalAccounts = "Nominal Accounts"
-                                     , bookingDate = "Date"
+                                     , bookingDate = "Receipt Date"
                                      , number = "No."
-                                     , receiptNumber = "Receipt. No."
+                                     , receiptNumber = "Receipt No."
                                      , description = "Posting Text"
                                      , debit = "DEBIT"
                                      , credit = "CREDIT"
@@ -110,7 +110,8 @@ english =
                                      , openingBalance = "OB value:"
                                      , balance = "Balance:"
                                      , offsetAccount = "Offset Account"
-                                     , bookedUntil = "booked until"}
+                                     , bookedUntil = "booked until"
+                                     , account = "Account: "}
     }
 
 
@@ -205,8 +206,9 @@ german =
                                  , revenue = "Einnahmen"
                                  , openingBalance = "EB-Wert:"
                                  , balance = "Saldo:"
-                                 , offsetAccount = "Gegenkonto"
-                                 , bookedUntil = "gebucht bis"}
+                                 , offsetAccount = "Gegen- konto"
+                                 , bookedUntil = "gebucht bis"
+                                 , account = "Konto: "}
     }
 
 

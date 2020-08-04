@@ -72,7 +72,7 @@
 
     <xsl:template match="nominalAccount">
         <fo:block margin-top="20pt" text-align="left" font-weight="bold" font-size="13pt" >
-            <xsl:text> Konto:  </xsl:text>
+            <xsl:value-of select="@account_l"/>
             <xsl:value-of select="@accountId"/>
             <xsl:text>  </xsl:text>
             <xsl:value-of select="@accountName"/>
