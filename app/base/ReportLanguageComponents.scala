@@ -19,4 +19,4 @@ case class ReportLanguageComponents(
     balance: String,
     offsetAccount: String,
     bookedUntil: String
-) {}
+)

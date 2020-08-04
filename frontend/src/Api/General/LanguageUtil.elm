@@ -194,9 +194,9 @@ german =
                       , {id = 52, categoryIds = [5], name = "Umsatzsteuer"}]
     , reportLanguageComponents = { journal = "Journal"
                                  , nominalAccounts = "Sachkonten"
-                                 , bookingDate = "Datum"
+                                 , bookingDate = "Beleg- datum"
                                  , number = "Nr."
-                                 , receiptNumber = "Beleg. nr."
+                                 , receiptNumber = "Beleg- nr."
                                  , description = "Buchungstext"
                                  , debit = "SOLL"
                                  , credit = "HABEN"
