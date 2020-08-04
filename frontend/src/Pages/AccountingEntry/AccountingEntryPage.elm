@@ -10,6 +10,7 @@ import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreation
 import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
 import Api.Types.Language exposing (LanguageComponents)
+import Api.Types.ReportLanguageComponents exposing (ReportLanguageComponents, encoderReportLanguageComponents)
 import Browser
 import Browser.Dom as Dom
 import Dropdown exposing (Item)
@@ -250,7 +251,7 @@ update msg model =
             ( model, Cmd.none )
 
         GetJournal ->
-            (model, getJournal model.companyId model.accountingYear)
+            (model, getJournal model.companyId model.accountingYear model.lang.reportLanguageComponents)
 
         GetNominalAccounts ->
             (model, getNominalAccounts model.companyId model.accountingYear)
@@ -323,10 +324,10 @@ viewAccountList model =
 viewAccountListButton : LanguageComponents -> Bool -> Html Msg
 viewAccountListButton lang accountViewActive =
     if accountViewActive then
-        div [] [ button [ class "showButton", id "AccountListButton", onClick HideAccountList ] [ text lang.hideAccountList ] ]
+        div [] [ button [ class "navButton", id "AccountListButton", onClick HideAccountList ] [ text lang.hideAccountList ] ]
 
     else
-        div [] [ button [ class "showButton", id "AccountListButton", onClick ShowAccountList ] [ text lang.showAccountList ] ]
+        div [] [ button [ class "navButton", id "AccountListButton", onClick ShowAccountList ] [ text lang.showAccountList ] ]
 
 
 mkAccountTableLine : Account -> Html Msg
@@ -617,11 +618,12 @@ moveAccountingEntryDown accountingEntry =
         }
 
 
-getJournal : Int -> Int -> Cmd Msg
-getJournal companyId year =
-    Http.get
-        { url = "http://localhost:9000/reports/journal/companyId/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
+getJournal : Int -> Int -> ReportLanguageComponents ->  Cmd Msg
+getJournal companyId year langComps =
+    Http.post
+        { url = "http://localhost:9000/reports/journal/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
         , expect =  Http.expectBytesResponse GotJournal (resolve Ok)
+        , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }
 
 getNominalAccounts : Int -> Int -> Cmd Msg
