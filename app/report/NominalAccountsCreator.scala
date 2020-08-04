@@ -3,7 +3,7 @@ package report
 import java.sql.Date
 
 import base.NominalAccountEntry.{Credit, Debit}
-import base.{MonetaryValue, NominalAccount, NominalAccountEntry}
+import base.{MonetaryValue, NominalAccount, NominalAccountEntry, ReportLanguageComponents}
 import db.Company
 
 import scala.xml.Elem
@@ -11,17 +11,17 @@ import scala.xml.Elem
 
 object NominalAccountsCreator {
 
-  def mkNominalAccounts(company: Company, accountingYear: Int, nominalAccounts: Seq[NominalAccount]): Elem =
+  def mkNominalAccounts(languageComponents: ReportLanguageComponents, company: Company, accountingYear: Int, nominalAccounts: Seq[NominalAccount]): Elem =
     <nominalAccounts
-    pageName="Sachkonten"
+    pageName={languageComponents.nominalAccounts}
     accountingYear={accountingYear.toString}>
       {mkCompanyData(company)}
-      {nominalAccounts.map(mkNominalAccountData)}
+      {nominalAccounts.map(na => mkNominalAccountData(languageComponents, na))}
     </nominalAccounts>
 
 
 
-  def mkNominalAccountData(nominalAccount : NominalAccount) : Elem =
+  def mkNominalAccountData(languageComponents: ReportLanguageComponents, nominalAccount : NominalAccount) : Elem =
     <nominalAccount
     accountId={nominalAccount.accountId.toString}
     accountName={nominalAccount.accountName}
@@ -29,7 +29,17 @@ object NominalAccountsCreator {
     openingBalance={MonetaryValue.show(nominalAccount.openingBalance)}
     revenue={MonetaryValue.show(nominalAccount.revenue)}
     creditBalance={MonetaryValue.show(nominalAccount.creditBalance)}
-    debitBalance={MonetaryValue.show(nominalAccount.debitBalance)}>
+    debitBalance={MonetaryValue.show(nominalAccount.debitBalance)}
+    debit_l={languageComponents.debit}
+    credit_l={languageComponents.credit}
+    date_l={languageComponents.bookingDate}
+    description_l={languageComponents.description}
+    receiptNumber_l={languageComponents.receiptNumber}
+    offsetAccount_l={languageComponents.offsetAccount}
+    openingBalance_l={languageComponents.openingBalance}
+    balance_l={languageComponents.balance}
+    bookedUntil_l={languageComponents.bookedUntil}
+    sum_l={languageComponents.sum}>
       {nominalAccount.entries.map(mkNominalAccountEntriesData)}
     </nominalAccount>
 
