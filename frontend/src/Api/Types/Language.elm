@@ -2,6 +2,7 @@ module Api.Types.Language exposing (..)
 
 
 import Api.General.AccountUtil exposing (AccountType, Category)
+import Api.Types.ReportLanguageComponents exposing (ReportLanguageComponents)
 type alias LanguageComponents =
     { short : String
     , name : String
@@ -57,6 +58,7 @@ type alias LanguageComponents =
     , printNominalAccounts : String
     , accountCategories : List Category
     , accountTypes : List AccountType
+    , reportLanguageComponents : ReportLanguageComponents
     }
 
 

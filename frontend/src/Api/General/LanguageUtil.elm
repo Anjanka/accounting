@@ -96,6 +96,21 @@ english =
                           , {id = 42, categoryIds = [4], name = "debts"}
                           , {id = 51, categoryIds = [5], name = "prepaid tax"}
                           , {id = 52, categoryIds = [5], name = "sales taxes"}]
+    , reportLanguageComponents = { journal = "Journal"
+                                     , nominalAccounts = "Nominal Accounts"
+                                     , bookingDate = "Date"
+                                     , number = "No."
+                                     , receiptNumber = "Receipt. No."
+                                     , description = "Posting Text"
+                                     , debit = "DEBIT"
+                                     , credit = "CREDIT"
+                                     , amount = "Amount"
+                                     , sum = "Sum"
+                                     , revenue = "Revenue"
+                                     , openingBalance = "OB value:"
+                                     , balance = "Balance:"
+                                     , offsetAccount = "Offset Account"
+                                     , bookedUntil = "booked until"}
     }
 
 
@@ -177,6 +192,21 @@ german =
                       , {id = 42, categoryIds = [4], name = "Verbindlichkeiten"}
                       , {id = 51, categoryIds = [5], name = "Vorsteuer"}
                       , {id = 52, categoryIds = [5], name = "Umsatzsteuer"}]
+    , reportLanguageComponents = { journal = "Journal"
+                                 , nominalAccounts = "Sachkonten"
+                                 , bookingDate = "Datum"
+                                 , number = "Nr."
+                                 , receiptNumber = "Beleg. nr."
+                                 , description = "Buchungstext"
+                                 , debit = "SOLL"
+                                 , credit = "HABEN"
+                                 , amount = "Betrag"
+                                 , sum = "Summe"
+                                 , revenue = "Einnahmen"
+                                 , openingBalance = "EB-Wert:"
+                                 , balance = "Saldo:"
+                                 , offsetAccount = "Gegenkonto"
+                                 , bookedUntil = "gebucht bis"}
     }
 
 
