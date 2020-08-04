@@ -16,16 +16,16 @@ import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
 import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
-import Http exposing (Error)
+import Http exposing (Error(..), Response(..))
 import Json.Decode as Decode
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
-import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset, unicodeToString)
+import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), downloadReport, getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset, resolve, unicodeToString)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
 import Task
-import Url.Builder exposing (Root(..))
+import Bytes exposing (Bytes)
 
 
 
@@ -108,6 +108,8 @@ type Msg
     | GotResponseAllAccounts (Result Error (List Account))
     | GotResponsePost (Result Error AccountingEntry)
     | GotResponseDeleteOrSwap (Result Error ())
+    | GotJournal (Result Http.Error Bytes)
+    | GotNominalAccounts (Result Http.Error Bytes)
     | DropdownTemplateChanged (Maybe String)
     | DropdownCreditChanged (Maybe String)
     | DropdownDebitChanged (Maybe String)
@@ -117,6 +119,7 @@ type Msg
     | HideAccountList
     | NoOp
     | GetJournal
+    | GetNominalAccounts
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -171,6 +174,20 @@ update msg model =
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
+
+        GotJournal result ->
+            case result of
+              Ok response ->
+                  ( model, downloadReport model.lang.reportLanguageComponents.journal model.accountingYear response )
+              Err error ->
+                  ( { model | error = HttpUtil.errorToString error }, Cmd.none )
+
+        GotNominalAccounts result ->
+                    case result of
+                      Ok response ->
+                          ( model, downloadReport model.lang.reportLanguageComponents.nominalAccounts model.accountingYear response)
+                      Err error ->
+                          ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         ChangeDay newContent ->
             ( updateDay model (handleParseResultDay model.accountingEntry.bookingDate.day (parseDay model newContent)), Cmd.none )
@@ -235,6 +252,14 @@ update msg model =
         GetJournal ->
             (model, getJournal model.companyId model.accountingYear)
 
+        GetNominalAccounts ->
+            (model, getNominalAccounts model.companyId model.accountingYear)
+
+
+
+
+
+
 
 
 
@@ -259,12 +284,11 @@ view model =
         , linkButton (fragmentUrl  [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage, makeLinkLang model.lang.short ])
             [ class "navButton", id "templatePageButton" ]
             [ text model.lang.manageTemplates ]
-        , linkButton (Url.Builder.custom (CrossOrigin "http://localhost:9000") [ "reports", "journal", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
-            [ class "navButton", id "journalButton" ]
-            [ text model.lang.printJournal ]
-        , linkButton (Url.Builder.custom (CrossOrigin "http://localhost:9000") [ "reports", "nominalAccounts", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
-                    [ class "navButton", id "nominalAccountsButton" ]
-                    [ text model.lang.printNominalAccounts ]
+     --  , linkButton (Url.Builder.custom (CrossOrigin "http://localhost:9000") [ "reports", "journal", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
+     --      [ class "navButton", id "journalButton" ]
+     --      [ text model.lang.printJournal ]
+        , button [ class "navButton", id "journalButton", onClick GetJournal] [ text model.lang.printJournal  ]
+        , button [ class "navButton", id "journalButton", onClick GetNominalAccounts] [ text model.lang.printNominalAccounts  ]
         , viewAccountListButton model.lang model.accountViewActive
         , p [ id "freeP" ] []
         , viewAccountList model
@@ -596,6 +620,14 @@ moveAccountingEntryDown accountingEntry =
 getJournal : Int -> Int -> Cmd Msg
 getJournal companyId year =
     Http.get
-        { url = "http://localhost:9000/reports/journal/companyId/" ++ String.fromInt companyId ++ "/accountingYear/" ++ String.fromInt year
-        , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
+        { url = "http://localhost:9000/reports/journal/companyId/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
+        , expect =  Http.expectBytesResponse GotJournal (resolve Ok)
         }
+
+getNominalAccounts : Int -> Int -> Cmd Msg
+getNominalAccounts companyId year =
+    Http.get
+        { url = "http://localhost:9000/reports/nominalAccounts/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
+        , expect =  Http.expectBytesResponse GotNominalAccounts (resolve Ok)
+        }
+

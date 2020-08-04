@@ -4,6 +4,9 @@ import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.AccountingEntryUtil as AccountingEntryUtil
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
+import Bytes exposing (Bytes)
+import File.Download as Download
+import Http exposing (Error(..), Response(..))
 import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent, updateWithEntry, updateWithTemplate)
@@ -192,3 +195,27 @@ getListWithPosition allAccountingEntries =
                 { position = pos, index = i + 1, accountingEntry = ae }
             )
             allAccountingEntries
+
+resolve : (body -> Result String a) -> Http.Response body -> Result Http.Error a
+resolve toResult response =
+    case response of
+        BadUrl_ url ->
+            Err (BadUrl url)
+
+        Timeout_ ->
+            Err Timeout
+
+        NetworkError_ ->
+            Err NetworkError
+
+        BadStatus_ metadata _ ->
+            Err (BadStatus metadata.statusCode)
+
+        GoodStatus_ _ body ->
+            Result.mapError BadBody (toResult body)
+
+
+downloadReport : String -> Int -> Bytes -> Cmd msg
+downloadReport name accountingYear pdfContent =
+    Download.bytes (String.concat [name, " ", String.fromInt accountingYear, ".pdf"]) "application/pdf" pdfContent
+
