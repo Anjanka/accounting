@@ -116,20 +116,21 @@ class ReportController @Inject() (
 //   else 0
 // }
 
-// implicit val dateOrdering: Ordering[Date] = (x: Date, y: Date) => {
-//   val localX = x.toLocalDate
-//   val localY = y.toLocalDate
-//   if (localX.getYear < localY.getYear) -1
-//   else if (localX.getYear > localY.getYear) 1
-//   else if (localX.getMonthValue < localY.getMonthValue) -1
-//   else if (localX.getMonthValue > localY.getMonthValue) 1
-//   else if (localX.getDayOfMonth < localY.getDayOfMonth) -1
-//   else if (localX.getDayOfMonth > localY.getDayOfMonth) 1
-//   else 0
-// }
+ implicit val dateOrdering: Ordering[Date] = (x: Date, y: Date) => {
+   val localX = x.toLocalDate
+   val localY = y.toLocalDate
+   if (localX.getYear < localY.getYear) -1
+   else if (localX.getYear > localY.getYear) 1
+   else if (localX.getMonthValue < localY.getMonthValue) -1
+   else if (localX.getMonthValue > localY.getMonthValue) 1
+   else if (localX.getDayOfMonth < localY.getDayOfMonth) -1
+   else if (localX.getDayOfMonth > localY.getDayOfMonth) 1
+   else 0
+ }
 
   def getNominalAccounts(entries: Seq[AccountingEntry], accounts: Seq[Account]): Seq[NominalAccount] = {
     val openingBalanceAccounts = accounts.filter(_.accountType == 91).map(_.id)
+    val lastDate = entries.maxBy(_.bookingDate).bookingDate
 
     entries
       .flatMap(entry =>
@@ -144,6 +145,7 @@ class ReportController @Inject() (
           NominalAccount(
             i,
             accounts.filter(i == _.id).head.title,
+            lastBookingDate = lastDate,
             tuples
               .map(pair => pair._2)
               .sortBy(_.id)

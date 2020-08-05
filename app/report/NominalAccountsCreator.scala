@@ -30,6 +30,7 @@ object NominalAccountsCreator {
     revenue={MonetaryValue.show(nominalAccount.revenue)}
     creditBalance={MonetaryValue.show(nominalAccount.creditBalance)}
     debitBalance={MonetaryValue.show(nominalAccount.debitBalance)}
+    lastDate={showDate(nominalAccount.lastBookingDate)}
     account_l={languageComponents.account}
     debit_l={languageComponents.debit}
     credit_l={languageComponents.credit}

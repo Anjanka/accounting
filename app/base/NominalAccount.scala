@@ -1,9 +1,12 @@
 package base
 
+import java.sql.Date
+
 import base.NominalAccountEntry.{Credit, Debit}
+
 import Numeric.Implicits._
 
-case class NominalAccount(accountId: Int, accountName: String, entries: Seq[NominalAccountEntry]) {
+case class NominalAccount(accountId: Int, accountName: String, lastBookingDate: Date, entries: Seq[NominalAccountEntry]) {
 
   val debitBalance: MonetaryValue =
     entries
