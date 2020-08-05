@@ -6,7 +6,7 @@
             <fo:layout-master-set>
                 <fo:simple-page-master master-name="simpleA4"
                                        page-height="29.7cm" page-width="21.0cm" margin="1.5cm" margin-top="1cm" margin-bottom="1cm">
-                    <fo:region-body   margin-top="2cm" margin-bottom="0.5cm" region-name="xsl-region-body" extent="1cm"/>
+                    <fo:region-body   margin-top="2.5cm" margin-bottom="0.5cm" region-name="xsl-region-body" extent="1cm"/>
                     <fo:region-before  region-name="xsl-region-before" display-align="after" />
                     <fo:region-after   region-name="xsl-region-after" display-align="before" extent="0.5cm"/>
 
@@ -15,10 +15,12 @@
             <fo:page-sequence master-reference="simpleA4">
                 <fo:static-content flow-name="xsl-region-before"  font-family="Helvetica" >
                      <xsl:apply-templates select="company"/>
-                     <fo:block margin-top="10pt" text-align="center" font-size="14pt" font-weight="bold" >
+                     <fo:block margin-top="15pt" margin-bottom="15pt" text-align="center" font-size="16pt" font-weight="bold" >
                          <xsl:value-of select="@pageName"/>
-                         <xsl:text>   </xsl:text>
-                         <xsl:value-of select="@accountingYear"/>
+                         <xsl:value-of select="@from_l"/>
+                         <xsl:value-of select="@firstBookingDate"/>
+                         <xsl:value-of select="@to_l"/>
+                         <xsl:value-of select="@lastBookingDate"/>
                      </fo:block>
                 </fo:static-content>
 
@@ -82,15 +84,17 @@
                             <fo:table-body>
                                 <xsl:apply-templates select="accountingEntry"/>
                                 <fo:table-row>
-                                    <fo:table-cell number-columns-spanned="5" border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
+                                    <fo:table-cell number-columns-spanned="4" border-top="1pt solid black" border-bottom="2pt solid black">
                                         <fo:block text-align="left" margin-left="5pt" font-weight="bold">
                                             <xsl:value-of select="@sum_l"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
-                                           <fo:block />
+                                        <fo:block text-align="right" margin-right="5pt" font-weight="bold">
+                                            <xsl:value-of select="@sum"/>
+                                        </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
+                                    <fo:table-cell number-columns-spanned="2" border-top="1pt solid black" border-right="1pt solid black" border-bottom="2pt solid black">
                                         <fo:block />
                                     </fo:table-cell>
 

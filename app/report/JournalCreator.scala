@@ -13,6 +13,10 @@ object JournalCreator {
   <journal
   pageName={languageComponents.journal}
   accountingYear={accountingYear.toString}
+  lastBookingDate={showDate(accountingEntries.maxBy(_.bookingDate).bookingDate)}
+  firstBookingDate={showDate(accountingEntries.minBy(_.bookingDate).bookingDate)}
+  from_l={languageComponents.from}
+  to_l={languageComponents.to}
   debit_l={languageComponents.debit}
   credit_l={languageComponents.credit}
   date_l={languageComponents.bookingDate}
@@ -21,6 +25,7 @@ object JournalCreator {
   number_l={languageComponents.number}
   amount_l={languageComponents.amount}
   sum_l={languageComponents.sum}
+  sum={MonetaryValue.show(accountingEntries.map(entry => MonetaryValue.fromAllCents(100 * entry.amountWhole + entry.amountChange)).sum)}
   >
   {mkCompanyData(company)}
   {accountingEntries.map(mkAccountingEntryData)}
@@ -54,6 +59,17 @@ object JournalCreator {
   List(pad(localDate.getDayOfMonth), pad(localDate.getMonthValue), localDate.getYear).mkString(".")
 
 }
+  implicit val dateOrdering: Ordering[Date] = (x: Date, y: Date) => {
+    val localX = x.toLocalDate
+    val localY = y.toLocalDate
+    if (localX.getYear < localY.getYear) -1
+    else if (localX.getYear > localY.getYear) 1
+    else if (localX.getMonthValue < localY.getMonthValue) -1
+    else if (localX.getMonthValue > localY.getMonthValue) 1
+    else if (localX.getDayOfMonth < localY.getDayOfMonth) -1
+    else if (localX.getDayOfMonth > localY.getDayOfMonth) 1
+    else 0
+  }
 
 
 }
