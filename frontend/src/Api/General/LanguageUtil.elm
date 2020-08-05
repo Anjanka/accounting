@@ -111,7 +111,9 @@ english =
                                      , balance = "Balance:"
                                      , offsetAccount = "Offset Account"
                                      , bookedUntil = "booked until"
-                                     , account = "Account: "}
+                                     , account = "Account: "
+                                     , from = " from "
+                                     , to = " to "}
     }
 
 
@@ -208,7 +210,9 @@ german =
                                  , balance = "Saldo:"
                                  , offsetAccount = "Gegen- konto"
                                  , bookedUntil = "gebucht bis"
-                                 , account = "Konto: "}
+                                 , account = "Konto: "
+                                 , from = " vom "
+                                 , to = " bis "}
     }
 
 
