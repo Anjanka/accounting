@@ -94,7 +94,7 @@
                         </fo:block>
                     </fo:table-cell>
                     <fo:table-cell number-columns-spanned="3" border-bottom="1px solid black"
-                                   border-right="1px solid black">
+                                   border-right="1px solid black" display-align="after">
                         <fo:block text-align="left" margin-left="5pt">
                             <xsl:value-of select="@description_l"/>
                         </fo:block>
@@ -104,12 +104,12 @@
                             <xsl:value-of select="@offsetAccount_l"/>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell border-bottom="1px solid black" border-right="1px solid black">
+                    <fo:table-cell border-bottom="1px solid black" border-right="1px solid black" display-align="after">
                         <fo:block text-align="center">
                             <xsl:value-of select="@debit_l"/>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell border-bottom="1px solid black">
+                    <fo:table-cell border-bottom="1px solid black" display-align="after">
                         <fo:block text-align="center">
                             <xsl:value-of select="@credit_l"/>
                         </fo:block>
@@ -163,13 +163,13 @@
                             <xsl:value-of select="@balance"/>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell border-right="1pt solid black">
-                        <fo:block text-align="right" margin-right="5pt">
+                    <fo:table-cell border-right="1pt solid black" display-align="after">
+                        <fo:block text-align="right" margin-right="5pt" >
                             <xsl:value-of select="@revenue"/>
                         </fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block text-align="right" margin-right="5pt">
+                    <fo:table-cell display-align="after">
+                        <fo:block text-align="right" margin-right="5pt" >
                             <xsl:value-of select="@creditBalance"/>
                         </fo:block>
                     </fo:table-cell>
