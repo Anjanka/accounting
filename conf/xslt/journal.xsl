@@ -49,7 +49,7 @@
                                             <xsl:value-of select="@date_l"/>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
+                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black" display-align="after">
                                         <fo:block text-align="center"  >
                                             <xsl:value-of select="@number_l"/>
                                         </fo:block>
@@ -59,22 +59,22 @@
                                              <xsl:value-of select="@receiptNumber_l"/>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
+                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black" display-align="after">
                                         <fo:block text-align="left" margin-left="5pt">
                                             <xsl:value-of select="@description_l"/>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
+                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black" display-align="after">
                                         <fo:block text-align="center" >
                                             <xsl:value-of select="@amount_l"/>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black">
+                                    <fo:table-cell  border-top="1pt solid black"  border-bottom="1pt solid black" border-right="1pt solid black" display-align="after">
                                         <fo:block text-align="center" >
                                             <xsl:value-of select="@debit_l"/>
                                         </fo:block>
                                     </fo:table-cell>
-                                    <fo:table-cell  border-top="1pt solid black" border-bottom="1pt solid black" border-right="1pt solid black">>
+                                    <fo:table-cell  border-top="1pt solid black" border-bottom="1pt solid black" border-right="1pt solid black" display-align="after">
                                         <fo:block text-align="center" >
                                             <xsl:value-of select="@credit_l"/>
                                         </fo:block>
