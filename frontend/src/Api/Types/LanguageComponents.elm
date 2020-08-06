@@ -1,4 +1,4 @@
-module Api.Types.Language exposing (..)
+module Api.Types.LanguageComponents exposing (..)
 
 
 import Api.General.AccountUtil exposing (AccountType, Category)
@@ -73,5 +73,5 @@ languageList : List LanguageForList
 languageList = [
                 {short = "en", name = "English"}
               , {short = "de", name = "Deutsch"}
-              , {short = "fr", name = "Français"}
+            --  , {short = "fr", name = "Français"}
               ]

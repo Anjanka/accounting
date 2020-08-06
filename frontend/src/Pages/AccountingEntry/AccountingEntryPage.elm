@@ -3,13 +3,13 @@ module Pages.AccountingEntry.AccountingEntryPage exposing (Msg, init, update, vi
 import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams, getKey)
 import Api.General.DateUtil as DateUtil
 import Api.General.HttpUtil as HttpUtil
-import Api.General.LanguageUtil exposing (getLanguage)
+import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEntry, encoderAccountingEntry)
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams, encoderAccountingEntryCreationParams)
 import Api.Types.AccountingEntryKey exposing (encoderAccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate)
-import Api.Types.Language exposing (LanguageComponents)
+import Api.Types.LanguageComponents exposing (LanguageComponents)
 import Api.Types.ReportLanguageComponents exposing (ReportLanguageComponents, encoderReportLanguageComponents)
 import Browser
 import Browser.Dom as Dom

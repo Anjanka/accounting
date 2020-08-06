@@ -2,7 +2,7 @@ module Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel exposing (
 
 import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
-import Api.Types.Language exposing (LanguageComponents)
+import Api.Types.LanguageComponents exposing (LanguageComponents)
 
 
 type alias Model =

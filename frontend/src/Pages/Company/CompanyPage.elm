@@ -2,7 +2,7 @@ module Pages.Company.CompanyPage exposing (Msg, init, update, view)
 
 import Api.General.CompanyUtil exposing (empty, getCreationParams, isValid, show, updateAddress, updateCity, updateCountry, updateName, updatePostalCode, updateRevenueOffice, updateTaxNumber)
 import Api.General.HttpUtil as HttpUtil
-import Api.General.LanguageUtil exposing (getLanguage)
+import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Company exposing (Company, decoderCompany, encoderCompany)
 import Api.Types.CompanyCreationParams exposing (encoderCompanyCreationParams)
 import Api.Types.CompanyKey exposing (encoderCompanyKey)

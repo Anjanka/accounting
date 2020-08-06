@@ -3,7 +3,7 @@ module Pages.AccountingEntry.AccountingEntryPageModel exposing (..)
 import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
-import Api.Types.Language exposing (LanguageComponents)
+import Api.Types.LanguageComponents exposing (LanguageComponents)
 import Pages.AccountingEntry.InputContent exposing (InputContent)
 
 

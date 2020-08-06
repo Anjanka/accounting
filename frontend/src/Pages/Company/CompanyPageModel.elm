@@ -2,7 +2,7 @@ module Pages.Company.CompanyPageModel exposing (..)
 
 
 import Api.Types.Company exposing (Company)
-import Api.Types.Language exposing (LanguageComponents)
+import Api.Types.LanguageComponents exposing (LanguageComponents)
 
 type alias Model =
     { lang : LanguageComponents

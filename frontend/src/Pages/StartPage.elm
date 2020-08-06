@@ -1,9 +1,9 @@
 module Pages.StartPage exposing (Model, Msg, init, update, view)
 
 import Api.General.HttpUtil as HttpUtil
-import Api.General.LanguageUtil exposing (default, getLanguage)
+import Api.General.LanguageComponentConstants exposing (default, getLanguage)
 import Api.Types.Company exposing (Company, decoderCompany)
-import Api.Types.Language exposing (LanguageComponents, LanguageForList, languageList)
+import Api.Types.LanguageComponents exposing (LanguageComponents, LanguageForList, languageList)
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, text)

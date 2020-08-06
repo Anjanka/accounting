@@ -2,10 +2,10 @@ module Pages.AccountPage exposing (Model, Msg, init, update, view)
 
 import Api.General.AccountUtil as AccountUtil exposing (AccountType, Category, updateAccountType, updateCategory)
 import Api.General.HttpUtil as HttpUtil
-import Api.General.LanguageUtil exposing (getLanguage)
+import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
 import Api.Types.AccountKey exposing (encoderAccountKey)
-import Api.Types.Language exposing (LanguageComponents)
+import Api.Types.LanguageComponents exposing (LanguageComponents)
 import Browser
 import Browser.Dom as Dom
 import Dropdown exposing (Item)

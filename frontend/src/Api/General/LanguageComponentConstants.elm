@@ -1,6 +1,6 @@
-module Api.General.LanguageUtil exposing (..)
+module Api.General.LanguageComponentConstants exposing (..)
 
-import Api.Types.Language exposing (LanguageComponents)
+import Api.Types.LanguageComponents exposing (LanguageComponents)
 
 
 getLanguage : String -> LanguageComponents
