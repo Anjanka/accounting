@@ -3,12 +3,11 @@ package controllers
 import base.Id.AccountingEntryKey
 import db.AccountingEntryDAO.CompanyYearKey
 import db.creation.AccountingEntryCreationParams
-import db.{ AccountingEntry, AccountingEntryDAO, Tables }
-import io.circe
+import db.{AccountingEntry, AccountingEntryDAO, Tables}
 import io.circe.Json
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.libs.circe.Circe
-import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 
 import scala.concurrent.ExecutionContext
 

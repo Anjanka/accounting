@@ -4,7 +4,7 @@ import Api.Types.Account exposing (Account)
 import Bootstrap.Button
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, div, text)
-import Html.Attributes exposing (class, href, value)
+import Html.Attributes exposing (class, href)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 
 
