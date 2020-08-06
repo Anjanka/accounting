@@ -1,5 +1,7 @@
 module Api.General.LanguageComponentConstants exposing (..)
 
+import Api.General.AccountCategoryConstants exposing (englishAccountCategories, germanAccountCategories)
+import Api.Types.AccountTypeConstants exposing (englishAccountTypes, germanAccountTypes)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
 
 
@@ -72,30 +74,8 @@ english =
     , month = "mm"
     , printJournal = "Print Journal"
     , printNominalAccounts = "Print Nominal Accounts"
-    , accountCategories = [ {id = 0, name ="financial account"}
-                              , {id = 1 , name = "fixed assets"}
-                              , {id = 2, name = "resources"}
-                              , {id = 3, name = "business expenses"}
-                              , {id = 4, name = "borrowed capital"}
-                              , {id = 5, name = "tax account"}
-                              , {id = 8, name = "revenues"}
-                              , {id = 9, name ="balance carried forward"}]
-        , accountTypes = [ {id = 11, categoryIds = [1], name = "inferior assets"}
-                          , {id = 1, categoryIds = [0], name = "cash account"}
-                          , {id = 31, categoryIds = [3], name = "purchased goods"}
-                          , {id = 32, categoryIds = [3], name = "telephone costs"}
-                          , {id = 33, categoryIds = [3], name = "travel expenses"}
-                          , {id = 0, categoryIds = [7,1,2,3,4,5,6,7,8,9,0], name = "other"}
-                          , {id = 81, categoryIds = [8], name ="interest income"}
-                          , {id = 91, categoryIds = [9], name = "opening balance"}
-                          , {id = 82, categoryIds = [8], name = "sales revenue"}
-                          , {id = 34, categoryIds = [3], name = "personnel costs"}
-                          , {id = 35, categoryIds = [3], name = "postal charges"}
-                          , {id = 36, categoryIds = [3], name = "lease expenses"}
-                          , {id = 41, categoryIds = [4], name = "loans"}
-                          , {id = 42, categoryIds = [4], name = "debts"}
-                          , {id = 51, categoryIds = [5], name = "prepaid tax"}
-                          , {id = 52, categoryIds = [5], name = "sales taxes"}]
+    , accountCategories = englishAccountCategories
+    , accountTypes = englishAccountTypes
     , reportLanguageComponents = { journal = "Journal"
                                      , nominalAccounts = "Nominal Accounts"
                                      , bookingDate = "Receipt Date"
@@ -171,30 +151,8 @@ german =
     , month = "mm"
     , printJournal = "Journal drucken"
     , printNominalAccounts = "Sachkonten drucken"
-    , accountCategories = [ {id = 0, name ="Finanzkonto"}
-                          , {id = 1 , name = "Anlagevermögen"}
-                          , {id = 2, name = "Eigenkapital"}
-                          , {id = 3, name = "Betriebsausgaben"}
-                          , {id = 4, name = "Fremdkapital"}
-                          , {id = 5, name = "Steuerkonto"}
-                          , {id = 8, name = "Einnahmen"}
-                          , {id = 9, name ="Saldovortrag"}]
-    , accountTypes = [ {id = 11, categoryIds = [1], name = "Geringwertige WG"}
-                      , {id = 1, categoryIds = [0], name = "Kassenkonto"}
-                      , {id = 31, categoryIds = [3], name = "Wareneinkauf"}
-                      , {id = 32, categoryIds = [3], name = "Telefonkosten"}
-                      , {id = 33, categoryIds = [3], name = "Reisekosten"}
-                      , {id = 0, categoryIds = [7,1,2,3,4,5,6,7,8,9,0], name = "Sonstige"}
-                      , {id = 81, categoryIds = [8], name ="Zinserträge"}
-                      , {id = 91, categoryIds = [9], name = "Eröffungsbilanz"}
-                      , {id = 82, categoryIds = [8], name = "Umsatzerlöse"}
-                      , {id = 34, categoryIds = [3], name = "Personalkosten"}
-                      , {id = 35, categoryIds = [3], name = "Portokosten"}
-                      , {id = 36, categoryIds = [3], name = "Miete"}
-                      , {id = 41, categoryIds = [4], name = "Darlehen"}
-                      , {id = 42, categoryIds = [4], name = "Verbindlichkeiten"}
-                      , {id = 51, categoryIds = [5], name = "Vorsteuer"}
-                      , {id = 52, categoryIds = [5], name = "Umsatzsteuer"}]
+    , accountCategories = germanAccountCategories
+    , accountTypes = germanAccountTypes
     , reportLanguageComponents = { journal = "Journal"
                                  , nominalAccounts = "Sachkonten"
                                  , bookingDate = "Beleg- datum"
