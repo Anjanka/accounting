@@ -5,18 +5,16 @@ import java.sql.Date
 
 import akka.stream.scaladsl.StreamConverters
 import base.Id.CompanyKey
-import base.{ NominalAccount, NominalAccountEntry, ReportLanguageComponents }
+import base.{LogicalConstants, NominalAccount, NominalAccountEntry, ReportLanguageComponents}
 import db.AccountingEntryDAO.CompanyYearKey
 import db._
 import io.circe.Json
 import javax.inject.Inject
 import play.api.libs.circe.Circe
-import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
-import report.{ JournalCreator, NominalAccountsCreator, ReportCreator }
+import play.api.mvc.{Action, BaseController, ControllerComponents}
+import report.{JournalCreator, NominalAccountsCreator, ReportCreator}
 
-import Ordering.Implicits._
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class ReportController @Inject() (
     accountingEntryDAO: AccountingEntryDAO,
@@ -129,7 +127,7 @@ class ReportController @Inject() (
  }
 
   def getNominalAccounts(entries: Seq[AccountingEntry], accounts: Seq[Account]): Seq[NominalAccount] = {
-    val openingBalanceAccounts = accounts.filter(_.accountType == 91).map(_.id)
+    val openingBalanceAccounts = accounts.filter(_.accountType == LogicalConstants.openingBalanceAccount).map(_.id)
     val lastDate = entries.maxBy(_.bookingDate).bookingDate
 
     entries
