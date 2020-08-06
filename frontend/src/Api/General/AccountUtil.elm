@@ -37,7 +37,7 @@ isEmpty account =
     account.id == 0 && account.title == "" && account.companyId == 0
 
 
-type alias Category = {
+type alias AccountCategory = {
     id : Int
     , name : String
     }

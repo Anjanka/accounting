@@ -1,6 +1,6 @@
 module Pages.AccountPage exposing (Model, Msg, init, update, view)
 
-import Api.General.AccountUtil as AccountUtil exposing (AccountType, Category, updateAccountType, updateCategory)
+import Api.General.AccountUtil as AccountUtil exposing (AccountType, AccountCategory, updateAccountType, updateCategory)
 import Api.General.HttpUtil as HttpUtil
 import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
@@ -323,7 +323,7 @@ mkTableLine txt account =
         ]
 
 
-dropdownOptionsAccountCategory : String -> List Category -> Dropdown.Options Msg
+dropdownOptionsAccountCategory : String -> List AccountCategory -> Dropdown.Options Msg
 dropdownOptionsAccountCategory text allCategories =
     let
         defaultOptions =
@@ -336,7 +336,7 @@ dropdownOptionsAccountCategory text allCategories =
     }
 
 
-categoryForDropdown : Category -> Item
+categoryForDropdown : AccountCategory -> Item
 categoryForDropdown cat =
     { value = String.fromInt cat.id, text = cat.name, enabled = True }
 
