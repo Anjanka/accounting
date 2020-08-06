@@ -1,6 +1,7 @@
 module Api.General.LanguageComponentConstants exposing (..)
 
 import Api.General.AccountCategoryConstants exposing (englishAccountCategories, germanAccountCategories)
+import Api.General.ReportLanguageComponentConstants exposing (englishReportLanguageComponents, germanReportLanguageComponents)
 import Api.Types.AccountTypeConstants exposing (englishAccountTypes, germanAccountTypes)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
 
@@ -76,24 +77,7 @@ english =
     , printNominalAccounts = "Print Nominal Accounts"
     , accountCategories = englishAccountCategories
     , accountTypes = englishAccountTypes
-    , reportLanguageComponents = { journal = "Journal"
-                                     , nominalAccounts = "Nominal Accounts"
-                                     , bookingDate = "Receipt Date"
-                                     , number = "No."
-                                     , receiptNumber = "Receipt No."
-                                     , description = "Posting Text"
-                                     , debit = "DEBIT"
-                                     , credit = "CREDIT"
-                                     , amount = "Amount"
-                                     , sum = "Sum"
-                                     , revenue = "Revenue"
-                                     , openingBalance = "OB value:"
-                                     , balance = "Balance:"
-                                     , offsetAccount = "Offset Account"
-                                     , bookedUntil = "booked until"
-                                     , account = "Account: "
-                                     , from = " from "
-                                     , to = " to "}
+    , reportLanguageComponents = englishReportLanguageComponents
     }
 
 
@@ -153,24 +137,7 @@ german =
     , printNominalAccounts = "Sachkonten drucken"
     , accountCategories = germanAccountCategories
     , accountTypes = germanAccountTypes
-    , reportLanguageComponents = { journal = "Journal"
-                                 , nominalAccounts = "Sachkonten"
-                                 , bookingDate = "Beleg- datum"
-                                 , number = "Nr."
-                                 , receiptNumber = "Beleg- nr."
-                                 , description = "Buchungstext"
-                                 , debit = "SOLL"
-                                 , credit = "HABEN"
-                                 , amount = "Betrag"
-                                 , sum = "Summe"
-                                 , revenue = "Einnahmen"
-                                 , openingBalance = "EB-Wert:"
-                                 , balance = "Saldo:"
-                                 , offsetAccount = "Gegen- konto"
-                                 , bookedUntil = "gebucht bis"
-                                 , account = "Konto: "
-                                 , from = " vom "
-                                 , to = " bis "}
+    , reportLanguageComponents = germanReportLanguageComponents
     }
 
 
