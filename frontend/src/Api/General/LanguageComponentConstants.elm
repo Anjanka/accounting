@@ -2,7 +2,7 @@ module Api.General.LanguageComponentConstants exposing (..)
 
 import Api.General.AccountCategoryConstants exposing (englishAccountCategories, germanAccountCategories)
 import Api.General.ReportLanguageComponentConstants exposing (englishReportLanguageComponents, germanReportLanguageComponents)
-import Api.Types.AccountTypeConstants exposing (englishAccountTypes, germanAccountTypes)
+import Api.General.AccountTypeConstants exposing (englishAccountTypes, germanAccountTypes)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
 
 

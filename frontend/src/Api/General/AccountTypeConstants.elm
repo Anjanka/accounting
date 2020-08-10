@@ -1,4 +1,4 @@
-module Api.Types.AccountTypeConstants exposing (..)
+module Api.General.AccountTypeConstants exposing (..)
 
 import Api.General.AccountUtil exposing (AccountType)
 
