@@ -28,8 +28,8 @@ class ReportController @Inject() (
 
   def journal(companyId: Int, accountingYear: Int): Action[Json] =
     Action.async(circe.json) { request =>
-      val languageCandidate = request.body.as[ReportLanguageComponents]
-      languageCandidate match {
+      val languageComponentsCandidate = request.body.as[ReportLanguageComponents]
+      languageComponentsCandidate match {
         case Left(decodingFailure) =>
           Future(BadRequest(s"Could not parse ${request.body} as valid report language component: $decodingFailure."))
         case Right(languageComponents) =>
@@ -65,8 +65,8 @@ class ReportController @Inject() (
 
   def nominalAccounts(companyId: Int, accountingYear: Int): Action[Json] =
     Action.async(circe.json) { request =>
-      val languageCandidate = request.body.as[ReportLanguageComponents]
-      languageCandidate match {
+      val languageComponentsCandidate = request.body.as[ReportLanguageComponents]
+      languageComponentsCandidate match {
         case Left(decodingFailure) =>
           Future(BadRequest(s"Could not parse ${request.body} as valid report language component: $decodingFailure."))
         case Right(languageComponents) =>
@@ -132,7 +132,7 @@ class ReportController @Inject() (
       case account if account.accountType == BusinessConstants.openingBalanceAccount => account.id
     }.toSet
     val lastDate = entries.maxBy(_.bookingDate).bookingDate
-
+    val accountMap = accounts.map(account => account.id -> account.title).toMap
     entries
       .flatMap(entry =>
         List(
@@ -145,7 +145,7 @@ class ReportController @Inject() (
         case (i, tuples) =>
           NominalAccount(
             i,
-            accounts.filter(i == _.id).head.title,
+            accountMap(i),
             lastBookingDate = lastDate,
             tuples
               .map(pair => pair._2)
