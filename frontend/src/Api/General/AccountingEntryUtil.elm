@@ -6,6 +6,7 @@ import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreation
 import Api.Types.AccountingEntryKey exposing (AccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.Date exposing (Date)
+import Api.General.Amount as Amount
 
 
 empty : AccountingEntry
@@ -22,12 +23,15 @@ empty =
     , amountChange = 0
     }
 
-emptyWith : {companyId : Int, accountingYear : Int} -> AccountingEntry
+
+emptyWith : { companyId : Int, accountingYear : Int } -> AccountingEntry
 emptyWith params =
-    {empty
-    |companyId = params.companyId
-    , accountingYear = params.accountingYear
-    , bookingDate = { year = params.accountingYear, month = 0, day = 0 }}
+    { empty
+        | companyId = params.companyId
+        , accountingYear = params.accountingYear
+        , bookingDate = { year = params.accountingYear, month = 0, day = 0 }
+    }
+
 
 updateCompanyId : AccountingEntry -> Int -> AccountingEntry
 updateCompanyId accountingEntry companyId =
@@ -94,19 +98,9 @@ show accountingEntry =
     String.concat [ String.fromInt accountingEntry.companyId, " - ", DateUtil.show accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", showAmount accountingEntry, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit ]
 
 
-
 showAmount : AccountingEntry -> String
 showAmount accountingEntry =
-    String.fromInt accountingEntry.amountWhole ++ "," ++ giveDoubleDigitChange accountingEntry.amountChange
-
-
-giveDoubleDigitChange : Int -> String
-giveDoubleDigitChange change =
-    if change < 10 then
-        String.concat [ "0", String.fromInt change ]
-
-    else
-        String.fromInt change
+    Amount.display { whole = accountingEntry.amountWhole, change = accountingEntry.amountChange }
 
 
 isValid : AccountingEntry -> Bool
@@ -124,18 +118,29 @@ isValid accountingEntry =
         /= 0
         && (accountingEntry.amountWhole /= 0 || accountingEntry.amountChange /= 0)
 
+
 isEmpty : AccountingEntry -> Bool
 isEmpty accountingEntry =
-    accountingEntry.companyId == 0
-    && accountingEntry.id == 0
-    && accountingEntry.accountingYear == 0
-    && accountingEntry.bookingDate == { year = 0, month = 0, day = 0 }
-    && accountingEntry.receiptNumber == ""
-    && accountingEntry.description == ""
-    && accountingEntry.credit == 0
-    && accountingEntry.debit == 0
-    && accountingEntry.amountWhole == 0
-    && accountingEntry.amountChange == 0
+    accountingEntry.companyId
+        == 0
+        && accountingEntry.id
+        == 0
+        && accountingEntry.accountingYear
+        == 0
+        && accountingEntry.bookingDate
+        == { year = 0, month = 0, day = 0 }
+        && accountingEntry.receiptNumber
+        == ""
+        && accountingEntry.description
+        == ""
+        && accountingEntry.credit
+        == 0
+        && accountingEntry.debit
+        == 0
+        && accountingEntry.amountWhole
+        == 0
+        && accountingEntry.amountChange
+        == 0
 
 
 getCreationParams : AccountingEntry -> AccountingEntryCreationParams
@@ -151,6 +156,7 @@ getCreationParams accountingEntry =
     , amountChange = accountingEntry.amountChange
     }
 
+
 getKey : AccountingEntry -> AccountingEntryKey
 getKey accountingEntry =
-    {companyId = accountingEntry.companyId, accountingYear = accountingEntry.accountingYear, id = accountingEntry.id}
+    { companyId = accountingEntry.companyId, accountingYear = accountingEntry.accountingYear, id = accountingEntry.id }

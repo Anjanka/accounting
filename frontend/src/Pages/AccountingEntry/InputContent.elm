@@ -5,7 +5,7 @@ import Api.General.DateUtil exposing (showDay, showMonth)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Basics.Extra exposing (flip)
-import Pages.Amount as Amount exposing (Amount)
+import Api.General.Amount as Amount exposing (Amount)
 import Pages.FromInput as FromInput exposing (FromInput)
 
 
@@ -72,7 +72,7 @@ updateWithEntry inputContent accountingEntry =
     let
         newAmountFI =
             inputContent.amount
-                |> flip FromInput.updateText (Amount.displayAmount (Amount.amountOf accountingEntry))
+                |> flip FromInput.updateText (Amount.display (Amount.amountOf accountingEntry))
                 |> flip FromInput.updateValue (Amount.amountOf accountingEntry)
     in
     { inputContent

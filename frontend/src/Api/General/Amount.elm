@@ -1,4 +1,4 @@
-module Pages.Amount exposing (..)
+module Api.General.Amount exposing (..)
 
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Pages.FromInput as FromInput exposing (FromInput)
@@ -46,8 +46,8 @@ changeParser =
         ]
 
 
-displayAmount : Amount -> String
-displayAmount amount =
+display : Amount -> String
+display amount =
     let
         separator =
             if amount.change == 0 then

@@ -10,7 +10,7 @@ import Http exposing (Error(..), Response(..))
 import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent, updateWithEntry, updateWithTemplate)
-import Pages.Amount exposing (Amount)
+import Api.General.Amount exposing (Amount)
 
 
 insertForEdit : Model -> AccountingEntry -> Model
