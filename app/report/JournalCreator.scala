@@ -1,16 +1,21 @@
 package report
 
 import java.sql.Date
-
-import base.{MonetaryValue, ReportLanguageComponents}
-import db.{AccountingEntry, Company}
+import base.DateUtil.Implicits._
+import base.{ MonetaryValue, ReportLanguageComponents }
+import db.{ AccountingEntry, Company }
 
 import scala.xml.Elem
 
 object JournalCreator {
 
-  def mkJournal(languageComponents: ReportLanguageComponents, company: Company, accountingYear: Int, accountingEntries: Seq[AccountingEntry]): Elem =
-  <journal
+  def mkJournal(
+      languageComponents: ReportLanguageComponents,
+      company: Company,
+      accountingYear: Int,
+      accountingEntries: Seq[AccountingEntry]
+  ): Elem =
+    <journal
   pageName={languageComponents.journal}
   accountingYear={accountingYear.toString}
   lastBookingDate={showDate(accountingEntries.maxBy(_.bookingDate).bookingDate)}
@@ -32,18 +37,18 @@ object JournalCreator {
   </journal>
 
   def mkAccountingEntryData(accountingEntry: AccountingEntry): Elem =
-  <accountingEntry
+    <accountingEntry
   number={accountingEntry.id.toString}
   date={showDate(accountingEntry.bookingDate)}
   receiptNumber={accountingEntry.receiptNumber}
   description={accountingEntry.description}
   debit={accountingEntry.debit.toString}
   credit={accountingEntry.credit.toString}
-  amount={MonetaryValue.show(MonetaryValue.fromAllCents(100 * accountingEntry.amountWhole + accountingEntry.amountChange))}
+  amount={MonetaryValue.show(accountingEntry.monetaryValue)}
   />
 
   def mkCompanyData(company: Company): Elem =
-  <company
+    <company
   name={company.name}
   address={company.address}
   taxNumber={company.taxNumber}
@@ -54,22 +59,10 @@ object JournalCreator {
   />
 
   def showDate(date: Date): String = {
-  val localDate = date.toLocalDate
-  def pad(dateComponent: Int): String = if (dateComponent < 10) s"0$dateComponent" else dateComponent.toString
-  List(pad(localDate.getDayOfMonth), pad(localDate.getMonthValue), localDate.getYear).mkString(".")
+    val localDate = date.toLocalDate
+    def pad(dateComponent: Int): String = if (dateComponent < 10) s"0$dateComponent" else dateComponent.toString
+    List(pad(localDate.getDayOfMonth), pad(localDate.getMonthValue), localDate.getYear).mkString(".")
 
-}
-  implicit val dateOrdering: Ordering[Date] = (x: Date, y: Date) => {
-    val localX = x.toLocalDate
-    val localY = y.toLocalDate
-    if (localX.getYear < localY.getYear) -1
-    else if (localX.getYear > localY.getYear) 1
-    else if (localX.getMonthValue < localY.getMonthValue) -1
-    else if (localX.getMonthValue > localY.getMonthValue) 1
-    else if (localX.getDayOfMonth < localY.getDayOfMonth) -1
-    else if (localX.getDayOfMonth > localY.getDayOfMonth) 1
-    else 0
   }
-
 
 }
