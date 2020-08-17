@@ -27,7 +27,7 @@ object NominalAccountEntry {
       bookingDate = entry.bookingDate
     )
 
-  def mkDebitEntry(entry: db.AccountingEntry, openingBalanceAccountIds: Seq[Int]): NominalAccountEntry =
+  def mkDebitEntry(entry: db.AccountingEntry, openingBalanceAccountIds: Set[Int]): NominalAccountEntry =
     base.NominalAccountEntry(
       openingBalance = openingBalanceAccountIds.contains(entry.credit),
       id = entry.id,

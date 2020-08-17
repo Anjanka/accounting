@@ -128,14 +128,16 @@ class ReportController @Inject() (
   }
 
   def getNominalAccounts(entries: Seq[AccountingEntry], accounts: Seq[Account]): Seq[NominalAccount] = {
-    val openingBalanceAccounts = accounts.filter(_.accountType == BusinessConstants.openingBalanceAccount).map(_.id)
+    val openingBalanceAccountIds = accounts.collect {
+      case account if account.accountType == BusinessConstants.openingBalanceAccount => account.id
+    }.toSet
     val lastDate = entries.maxBy(_.bookingDate).bookingDate
 
     entries
       .flatMap(entry =>
         List(
           entry.credit -> NominalAccountEntry.mkCreditEntry(entry),
-          entry.debit -> NominalAccountEntry.mkDebitEntry(entry, openingBalanceAccounts)
+          entry.debit -> NominalAccountEntry.mkDebitEntry(entry, openingBalanceAccountIds)
         )
       )
       .groupBy(pair => pair._1)
