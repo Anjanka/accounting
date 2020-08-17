@@ -4,12 +4,15 @@ import java.sql.Date
 
 import base.NominalAccountEntry.CreditOrDebit
 
-
-case class NominalAccountEntry(openingBalance : Boolean, id : Int, receiptNumber: String, offsetAccount: Int, description: String, amount: CreditOrDebit, bookingDate: Date) {
-
-
-
-}
+case class NominalAccountEntry(
+    openingBalance: Boolean,
+    id: Int,
+    receiptNumber: String,
+    offsetAccount: Int,
+    description: String,
+    amount: CreditOrDebit,
+    bookingDate: Date
+)
 
 object NominalAccountEntry {
 
@@ -20,22 +23,20 @@ object NominalAccountEntry {
       receiptNumber = entry.receiptNumber,
       offsetAccount = entry.debit,
       description = entry.description,
-      amount = Credit(MonetaryValue.fromAllCents(100 * entry.amountWhole + entry.amountChange)),
+      amount = Credit(entry.monetaryValue),
       bookingDate = entry.bookingDate
     )
 
-  def mkDebitEntry(entry: db.AccountingEntry, openingBalanceAccounts : Seq[Int]): NominalAccountEntry =
+  def mkDebitEntry(entry: db.AccountingEntry, openingBalanceAccountIds: Seq[Int]): NominalAccountEntry =
     base.NominalAccountEntry(
-      openingBalance= openingBalanceAccounts.contains(entry.credit),
+      openingBalance = openingBalanceAccountIds.contains(entry.credit),
       id = entry.id,
       receiptNumber = entry.receiptNumber,
       offsetAccount = entry.credit,
       description = entry.description,
-      amount = Debit(MonetaryValue.fromAllCents(100 * entry.amountWhole + entry.amountChange)),
+      amount = Debit(entry.monetaryValue),
       bookingDate = entry.bookingDate
     )
-
-
 
   sealed trait CreditOrDebit {
     def monetaryValue: MonetaryValue
