@@ -33,7 +33,6 @@ class ReportController @Inject() (
         case Left(decodingFailure) =>
           Future(BadRequest(s"Could not parse ${request.body} as valid report language component: $decodingFailure."))
         case Right(languageComponents) =>
-          val reportCreator = ReportCreator()
           for {
             entries <- accountingEntryDAO.dao.findPartial(CompanyYearKey(companyId, accountingYear))(
               AccountingEntryDAO.compareCompanyYearKey
@@ -43,7 +42,7 @@ class ReportController @Inject() (
             val allEntries = entries.sortBy(_.id)
             val dataContent = StreamConverters.fromInputStream(() =>
               new ByteArrayInputStream(
-                reportCreator
+                ReportCreator
                   .createJournalPdf(
                     JournalCreator.mkJournal(languageComponents, company.get, accountingYear, allEntries)
                   )
@@ -70,7 +69,6 @@ class ReportController @Inject() (
         case Left(decodingFailure) =>
           Future(BadRequest(s"Could not parse ${request.body} as valid report language component: $decodingFailure."))
         case Right(languageComponents) =>
-          val reportCreator = ReportCreator()
           for {
             entries <- accountingEntryDAO.dao.findPartial(CompanyYearKey(companyId, accountingYear))(
               AccountingEntryDAO.compareCompanyYearKey
@@ -83,7 +81,7 @@ class ReportController @Inject() (
 
             val dataContent = StreamConverters.fromInputStream(() =>
               new ByteArrayInputStream(
-                reportCreator
+                ReportCreator
                   .createNominalAccountsPdf(
                     NominalAccountsCreator
                       .mkNominalAccounts(languageComponents, company.get, accountingYear, allNominalAccountEntries)
