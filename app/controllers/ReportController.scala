@@ -5,16 +5,16 @@ import java.sql.Date
 
 import akka.stream.scaladsl.StreamConverters
 import base.Id.CompanyKey
-import base.{LogicalConstants, NominalAccount, NominalAccountEntry, ReportLanguageComponents}
+import base.{ BusinessConstants, NominalAccount, NominalAccountEntry, ReportLanguageComponents }
 import db.AccountingEntryDAO.CompanyYearKey
 import db._
 import io.circe.Json
 import javax.inject.Inject
 import play.api.libs.circe.Circe
-import play.api.mvc.{Action, BaseController, ControllerComponents}
-import report.{JournalCreator, NominalAccountsCreator, ReportCreator}
+import play.api.mvc.{ Action, BaseController, ControllerComponents }
+import report.{ JournalCreator, NominalAccountsCreator, ReportCreator }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ReportController @Inject() (
     accountingEntryDAO: AccountingEntryDAO,
@@ -85,7 +85,8 @@ class ReportController @Inject() (
               new ByteArrayInputStream(
                 reportCreator
                   .createNominalAccountsPdf(
-                    NominalAccountsCreator.mkNominalAccounts(languageComponents, company.get, accountingYear, allNominalAccountEntries)
+                    NominalAccountsCreator
+                      .mkNominalAccounts(languageComponents, company.get, accountingYear, allNominalAccountEntries)
                   )
                   .toByteArray
               )
@@ -114,20 +115,20 @@ class ReportController @Inject() (
 //   else 0
 // }
 
- implicit val dateOrdering: Ordering[Date] = (x: Date, y: Date) => {
-   val localX = x.toLocalDate
-   val localY = y.toLocalDate
-   if (localX.getYear < localY.getYear) -1
-   else if (localX.getYear > localY.getYear) 1
-   else if (localX.getMonthValue < localY.getMonthValue) -1
-   else if (localX.getMonthValue > localY.getMonthValue) 1
-   else if (localX.getDayOfMonth < localY.getDayOfMonth) -1
-   else if (localX.getDayOfMonth > localY.getDayOfMonth) 1
-   else 0
- }
+  implicit val dateOrdering: Ordering[Date] = (x: Date, y: Date) => {
+    val localX = x.toLocalDate
+    val localY = y.toLocalDate
+    if (localX.getYear < localY.getYear) -1
+    else if (localX.getYear > localY.getYear) 1
+    else if (localX.getMonthValue < localY.getMonthValue) -1
+    else if (localX.getMonthValue > localY.getMonthValue) 1
+    else if (localX.getDayOfMonth < localY.getDayOfMonth) -1
+    else if (localX.getDayOfMonth > localY.getDayOfMonth) 1
+    else 0
+  }
 
   def getNominalAccounts(entries: Seq[AccountingEntry], accounts: Seq[Account]): Seq[NominalAccount] = {
-    val openingBalanceAccounts = accounts.filter(_.accountType == LogicalConstants.openingBalanceAccount).map(_.id)
+    val openingBalanceAccounts = accounts.filter(_.accountType == BusinessConstants.openingBalanceAccount).map(_.id)
     val lastDate = entries.maxBy(_.bookingDate).bookingDate
 
     entries
