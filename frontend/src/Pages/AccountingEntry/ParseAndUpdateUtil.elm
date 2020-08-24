@@ -1,30 +1,14 @@
 module Pages.AccountingEntry.ParseAndUpdateUtil exposing (..)
 
 import Api.General.AccountUtil as AccountUtil
-import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (updateBookingDate)
-import Api.General.DateUtil as DateUtil
+import Api.General.AccountingEntryUtil as AccountingEntryUtil
 import Api.Types.Account exposing (Account)
 import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
-import Pages.AccountingEntry.InputContent as InputContent exposing (updateAmount, updateCreditId, updateDebitId)
+import Pages.AccountingEntry.InputContent exposing (updateAmount, updateCreditId, updateDebitId)
 import Pages.FromInput as FromInput
 
 
-updateDay : Model -> { string : String, int : Int } -> Model
-updateDay model day =
-    let
-        modelWithUpdatedEntry =
-            model.accountingEntry.bookingDate
-                |> (\d -> DateUtil.updateDay d day.int)
-                |> updateBookingDate model.accountingEntry
-                |> updateAccountingEntry model
-
-        modelWithUpdatedContent =
-            modelWithUpdatedEntry.content
-                |> (\c -> InputContent.updateDay c day.string)
-                |> updateContent modelWithUpdatedEntry
-    in
-    modelWithUpdatedContent
 
 
 handleParseResultDay : Int -> Result DateError Int -> { string : String, int : Int }
@@ -47,21 +31,6 @@ handleParseResultDay oldContent dayCandidate =
             { string = String.fromInt oldContent, int = oldContent }
 
 
-updateMonth : Model -> { string : String, int : Int } -> Model
-updateMonth model month =
-    let
-        modelWithUpdatedEntry =
-            model.accountingEntry.bookingDate
-                |> (\d -> DateUtil.updateMonth d month.int)
-                |> updateBookingDate model.accountingEntry
-                |> updateAccountingEntry model
-
-        modelWithUpdatedContent =
-            modelWithUpdatedEntry.content
-                |> (\c -> InputContent.updateMonth c month.string)
-                |> updateContent modelWithUpdatedEntry
-    in
-    modelWithUpdatedContent
 
 
 handleParseResultMonth : Int -> Result DateError Int -> { string : String, int : Int }
@@ -84,36 +53,6 @@ handleParseResultMonth oldContent monthCandidate =
             { string = String.fromInt oldContent, int = oldContent }
 
 
-updateReceiptNumber : Model -> String -> Model
-updateReceiptNumber model newContent =
-    let
-        modelWithNewEntry =
-            model.accountingEntry
-                |> (\ae -> AccountingEntryUtil.updateReceiptNumber ae newContent)
-                |> updateAccountingEntry model
-
-        modelWithNewContent =
-            modelWithNewEntry.content
-                |> (\c -> InputContent.updateReceiptNumber c newContent)
-                |> updateContent modelWithNewEntry
-    in
-    modelWithNewContent
-
-
-updateDescription : Model -> String -> Model
-updateDescription model newContent =
-    let
-        modelWithNewEntry =
-            model.accountingEntry
-                |> (\ae -> AccountingEntryUtil.updateDescription ae newContent)
-                |> updateAccountingEntry model
-
-        modelWithNewContent =
-            modelWithNewEntry.content
-                |> (\c -> InputContent.updateDescription c newContent)
-                |> updateContent modelWithNewEntry
-    in
-    modelWithNewContent
 
 
 parseAndUpdateCredit : Model -> String -> Model
@@ -139,36 +78,8 @@ parseWith empty nonEmpty model newContent =
         nonEmpty model newContent account
 
 
-updateCredit : Model -> Int -> Model
-updateCredit model creditId =
-    let
-        modelWithUpdatedEntry =
-            model.accountingEntry
-                |> (\ae -> AccountingEntryUtil.updateCredit ae creditId)
-                |> updateAccountingEntry model
-
-        modelWithUpdatedContent =
-            modelWithUpdatedEntry.content
-                |> (\c -> updateCreditId c (String.fromInt creditId))
-                |> updateContent modelWithUpdatedEntry
-    in
-    modelWithUpdatedContent
 
 
-updateDebit : Model -> Int -> Model
-updateDebit model debitId =
-    let
-        modelWithUpdatedEntry =
-            model.accountingEntry
-                |> (\ae -> AccountingEntryUtil.updateDebit ae debitId)
-                |> updateAccountingEntry model
-
-        modelWithUpdatedContent =
-            modelWithUpdatedEntry.content
-                |> (\c -> updateDebitId c (String.fromInt debitId))
-                |> updateContent modelWithUpdatedEntry
-    in
-    modelWithUpdatedContent
 
 
 findAccountName : List Account -> String -> Account

@@ -1,12 +1,13 @@
 module Pages.AccountingEntry.AccountingEntryPageModel exposing (..)
 
-import Api.General.AccountingEntryUtil as AccountingEntryUtil
+import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (updateBookingDate)
+import Api.General.DateUtil as DateUtil
 import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
-import Pages.AccountingEntry.InputContent exposing (InputContent, emptyInputContent)
+import Pages.AccountingEntry.InputContent as InputContent exposing (InputContent, emptyInputContent, updateCreditId, updateDebitId)
 
 
 type alias Model =
@@ -78,11 +79,102 @@ updateAccountingEntry model accountingEntry =
     { model | accountingEntry = accountingEntry }
 
 
-updateFeedback : Model -> String -> Model
-updateFeedback model feedback =
-    { model | feedback = feedback }
+
+updateDebit : Model -> Int -> Model
+updateDebit model debitId =
+    let
+        modelWithUpdatedEntry =
+            model.accountingEntry
+                |> (\ae -> AccountingEntryUtil.updateDebit ae debitId)
+                |> updateAccountingEntry model
+
+        modelWithUpdatedContent =
+            modelWithUpdatedEntry.content
+                |> (\c -> updateDebitId c (String.fromInt debitId))
+                |> updateContent modelWithUpdatedEntry
+    in
+    modelWithUpdatedContent
 
 
-updateError : Model -> String -> Model
-updateError model error =
-    { model | error = error }
+updateCredit : Model -> Int -> Model
+updateCredit model creditId =
+    let
+        modelWithUpdatedEntry =
+            model.accountingEntry
+                |> (\ae -> AccountingEntryUtil.updateCredit ae creditId)
+                |> updateAccountingEntry model
+
+        modelWithUpdatedContent =
+            modelWithUpdatedEntry.content
+                |> (\c -> updateCreditId c (String.fromInt creditId))
+                |> updateContent modelWithUpdatedEntry
+    in
+    modelWithUpdatedContent
+
+
+
+updateReceiptNumber : Model -> String -> Model
+updateReceiptNumber model newContent =
+    let
+        modelWithNewEntry =
+            model.accountingEntry
+                |> (\ae -> AccountingEntryUtil.updateReceiptNumber ae newContent)
+                |> updateAccountingEntry model
+
+        modelWithNewContent =
+            modelWithNewEntry.content
+                |> (\c -> InputContent.updateReceiptNumber c newContent)
+                |> updateContent modelWithNewEntry
+    in
+    modelWithNewContent
+
+
+updateDescription : Model -> String -> Model
+updateDescription model newContent =
+    let
+        modelWithNewEntry =
+            model.accountingEntry
+                |> (\ae -> AccountingEntryUtil.updateDescription ae newContent)
+                |> updateAccountingEntry model
+
+        modelWithNewContent =
+            modelWithNewEntry.content
+                |> (\c -> InputContent.updateDescription c newContent)
+                |> updateContent modelWithNewEntry
+    in
+    modelWithNewContent
+
+
+
+updateMonth : Model -> { string : String, int : Int } -> Model
+updateMonth model month =
+    let
+        modelWithUpdatedEntry =
+            model.accountingEntry.bookingDate
+                |> (\d -> DateUtil.updateMonth d month.int)
+                |> updateBookingDate model.accountingEntry
+                |> updateAccountingEntry model
+
+        modelWithUpdatedContent =
+            modelWithUpdatedEntry.content
+                |> (\c -> InputContent.updateMonth c month.string)
+                |> updateContent modelWithUpdatedEntry
+    in
+    modelWithUpdatedContent
+
+
+updateDay : Model -> { string : String, int : Int } -> Model
+updateDay model day =
+    let
+        modelWithUpdatedEntry =
+            model.accountingEntry.bookingDate
+                |> (\d -> DateUtil.updateDay d day.int)
+                |> updateBookingDate model.accountingEntry
+                |> updateAccountingEntry model
+
+        modelWithUpdatedContent =
+            modelWithUpdatedEntry.content
+                |> (\c -> InputContent.updateDay c day.string)
+                |> updateContent modelWithUpdatedEntry
+    in
+    modelWithUpdatedContent
