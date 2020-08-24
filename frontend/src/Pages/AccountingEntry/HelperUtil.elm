@@ -147,9 +147,13 @@ type Position
     | Last
 
 
-getListWithPosition : List AccountingEntry -> List EntryWithListPosition
-getListWithPosition allAccountingEntries =
-    if List.length allAccountingEntries <= 1 then
+makeListWithPosition : List AccountingEntry -> List EntryWithListPosition
+makeListWithPosition allAccountingEntries =
+    let
+        length =
+            List.length allAccountingEntries
+    in
+    if length <= 1 then
         List.map (\ae -> { position = OnlyOne, index = 1, accountingEntry = ae }) allAccountingEntries
 
     else
@@ -160,7 +164,7 @@ getListWithPosition allAccountingEntries =
                         if i == 0 then
                             First
 
-                        else if i == List.length allAccountingEntries - 1 then
+                        else if i == length - 1 then
                             Last
 
                         else
