@@ -124,8 +124,8 @@ isEmpty accountingEntry =
     accountingEntry == empty
 
 
-getCreationParams : AccountingEntry -> AccountingEntryCreationParams
-getCreationParams accountingEntry =
+creationParams : AccountingEntry -> AccountingEntryCreationParams
+creationParams accountingEntry =
     { companyId = accountingEntry.companyId
     , accountingYear = accountingEntry.accountingYear
     , bookingDate = accountingEntry.bookingDate
@@ -138,6 +138,6 @@ getCreationParams accountingEntry =
     }
 
 
-getKey : AccountingEntry -> AccountingEntryKey
-getKey accountingEntry =
+keyOf : AccountingEntry -> AccountingEntryKey
+keyOf accountingEntry =
     { companyId = accountingEntry.companyId, accountingYear = accountingEntry.accountingYear, id = accountingEntry.id }

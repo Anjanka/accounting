@@ -1,6 +1,6 @@
 module Pages.AccountingEntry.AccountingEntryPage exposing (Msg, init, update, view)
 
-import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (getCreationParams, getKey)
+import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (creationParams, keyOf)
 import Api.General.DateUtil as DateUtil
 import Api.General.HttpUtil as HttpUtil
 import Api.General.LanguageComponentConstants exposing (getLanguage)
@@ -221,7 +221,7 @@ update msg model =
             ( handleAccountSelection updateDebit { model | selectedDebit = selectedDebit } selectedDebit, Cmd.none )
 
         CreateAccountingEntry ->
-            ( reset model, createAccountingEntry (getCreationParams model.accountingEntry) )
+            ( reset model, createAccountingEntry (creationParams model.accountingEntry) )
 
         ReplaceAccountingEntry ->
             ( reset model, replaceAccountingEntry model.accountingEntry )
@@ -596,7 +596,7 @@ deleteAccountingEntry accountingEntry =
     Http.post
         { url = "http://localhost:9000/accountingEntry/delete"
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
-        , body = Http.jsonBody (encoderAccountingEntryKey (getKey accountingEntry))
+        , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
         }
 
 
@@ -605,7 +605,7 @@ moveAccountingEntryUp accountingEntry =
     Http.post
         { url = "http://localhost:9000/accountingEntry/moveUp"
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
-        , body = Http.jsonBody (encoderAccountingEntryKey (getKey accountingEntry))
+        , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
         }
 
 
@@ -614,7 +614,7 @@ moveAccountingEntryDown accountingEntry =
     Http.post
         { url = "http://localhost:9000/accountingEntry/moveDown"
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
-        , body = Http.jsonBody (encoderAccountingEntryKey (getKey accountingEntry))
+        , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
         }
 
 
