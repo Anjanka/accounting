@@ -13,20 +13,20 @@ import Api.Types.LanguageComponents exposing (LanguageComponents)
 import Api.Types.ReportLanguageComponents exposing (ReportLanguageComponents, encoderReportLanguageComponents)
 import Browser
 import Browser.Dom as Dom
+import Bytes exposing (Bytes)
 import Dropdown exposing (Item)
 import Html exposing (Html, button, div, input, label, p, table, td, text, th, tr)
 import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error(..), Response(..))
 import Json.Decode as Decode
-import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model)
+import Pages.AccountingEntry.AccountingEntryPageModel as Model exposing (Flags, Model)
 import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), downloadReport, getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset, resolve, unicodeToString)
 import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
 import Task
-import Bytes exposing (Bytes)
 
 
 
@@ -42,43 +42,9 @@ main =
         }
 
 
-
---defaultFlags : Flags
---defaultFlags =
---    { companyId = 1, accountingYear = 2020 }
---
---
---dummyInit : () -> ( Model, Cmd Msg )
---dummyInit _ =
---    init defaultFlags
--- MODEL
-
-
-type alias Flags =
-    { companyId : Int
-    , accountingYear : Int
-    , lang : String
-    }
-
-
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { lang = getLanguage flags.lang
-      , companyId = flags.companyId
-      , accountingYear = flags.accountingYear
-      , content = emptyInputContent
-      , accountingEntry = AccountingEntryUtil.emptyWith { companyId = flags.companyId, accountingYear = flags.accountingYear }
-      , allAccountingEntries = []
-      , allAccounts = []
-      , allAccountingEntryTemplates = []
-      , feedback = ""
-      , error = ""
-      , editActive = False
-      , accountViewActive = False
-      , selectedTemplate = Nothing
-      , selectedCredit = Nothing
-      , selectedDebit = Nothing
-      }
+    ( Model.init flags
     , Cmd.batch
         [ getAccounts flags.companyId
         , getAccountingEntryTemplates flags.companyId
@@ -178,17 +144,19 @@ update msg model =
 
         GotJournal result ->
             case result of
-              Ok response ->
-                  ( model, downloadReport model.lang.reportLanguageComponents.journal model.accountingYear response )
-              Err error ->
-                  ( { model | error = HttpUtil.errorToString error }, Cmd.none )
+                Ok response ->
+                    ( model, downloadReport model.lang.reportLanguageComponents.journal model.accountingYear response )
+
+                Err error ->
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         GotNominalAccounts result ->
-                    case result of
-                      Ok response ->
-                          ( model, downloadReport model.lang.reportLanguageComponents.nominalAccounts model.accountingYear response)
-                      Err error ->
-                          ( { model | error = HttpUtil.errorToString error }, Cmd.none )
+            case result of
+                Ok response ->
+                    ( model, downloadReport model.lang.reportLanguageComponents.nominalAccounts model.accountingYear response )
+
+                Err error ->
+                    ( { model | error = HttpUtil.errorToString error }, Cmd.none )
 
         ChangeDay newContent ->
             ( updateDay model (handleParseResultDay model.accountingEntry.bookingDate.day (parseDay model newContent)), Cmd.none )
@@ -251,16 +219,10 @@ update msg model =
             ( model, Cmd.none )
 
         GetJournal ->
-            (model, getJournal model.companyId model.accountingYear model.lang.reportLanguageComponents)
+            ( model, getJournal model.companyId model.accountingYear model.lang.reportLanguageComponents )
 
         GetNominalAccounts ->
-            (model, getNominalAccounts model.companyId model.accountingYear model.lang.reportLanguageComponents)
-
-
-
-
-
-
+            ( model, getNominalAccounts model.companyId model.accountingYear model.lang.reportLanguageComponents )
 
 
 
@@ -279,17 +241,18 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ class "page" ]
-        [ linkButton (fragmentUrl  [ makeLinkId model.companyId, makeLinkPath AccountPage, makeLinkLang model.lang.short ])
+        [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage, makeLinkLang model.lang.short ])
             [ class "navButton", id "accountPageButton" ]
             [ text model.lang.manageAccounts ]
-        , linkButton (fragmentUrl  [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage, makeLinkLang model.lang.short ])
+        , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage, makeLinkLang model.lang.short ])
             [ class "navButton", id "templatePageButton" ]
             [ text model.lang.manageTemplates ]
-     --  , linkButton (Url.Builder.custom (CrossOrigin "http://localhost:9000") [ "reports", "journal", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
-     --      [ class "navButton", id "journalButton" ]
-     --      [ text model.lang.printJournal ]
-        , button [ class "navButton", id "journalButton", onClick GetJournal] [ text model.lang.printJournal  ]
-        , button [ class "navButton", id "journalButton", onClick GetNominalAccounts] [ text model.lang.printNominalAccounts  ]
+
+        --  , linkButton (Url.Builder.custom (CrossOrigin "http://localhost:9000") [ "reports", "journal", makeLinkId model.companyId, makeLinkYear model.accountingYear ] [] Nothing)
+        --      [ class "navButton", id "journalButton" ]
+        --      [ text model.lang.printJournal ]
+        , button [ class "navButton", id "journalButton", onClick GetJournal ] [ text model.lang.printJournal ]
+        , button [ class "navButton", id "journalButton", onClick GetNominalAccounts ] [ text model.lang.printNominalAccounts ]
         , viewAccountListButton model.lang model.accountViewActive
         , p [ id "freeP" ] []
         , viewAccountList model
@@ -618,19 +581,19 @@ moveAccountingEntryDown accountingEntry =
         }
 
 
-getJournal : Int -> Int -> ReportLanguageComponents ->  Cmd Msg
+getJournal : Int -> Int -> ReportLanguageComponents -> Cmd Msg
 getJournal companyId year langComps =
     Http.post
         { url = "http://localhost:9000/reports/journal/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
-        , expect =  Http.expectBytesResponse GotJournal (resolve Ok)
+        , expect = Http.expectBytesResponse GotJournal (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }
+
 
 getNominalAccounts : Int -> Int -> ReportLanguageComponents -> Cmd Msg
 getNominalAccounts companyId year langComps =
     Http.post
         { url = "http://localhost:9000/reports/nominalAccounts/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
-        , expect =  Http.expectBytesResponse GotNominalAccounts (resolve Ok)
+        , expect = Http.expectBytesResponse GotNominalAccounts (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }
-

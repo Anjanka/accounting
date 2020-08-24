@@ -1,10 +1,12 @@
 module Pages.AccountingEntry.AccountingEntryPageModel exposing (..)
 
+import Api.General.AccountingEntryUtil as AccountingEntryUtil
+import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
-import Pages.AccountingEntry.InputContent exposing (InputContent)
+import Pages.AccountingEntry.InputContent exposing (InputContent, emptyInputContent)
 
 
 type alias Model =
@@ -25,7 +27,29 @@ type alias Model =
     , selectedDebit : Maybe String
     }
 
+type alias Flags =
+    { companyId : Int
+    , accountingYear : Int
+    , lang : String
+    }
 
+init : Flags -> Model
+init flags = { lang = getLanguage flags.lang
+      , companyId = flags.companyId
+      , accountingYear = flags.accountingYear
+      , content = emptyInputContent
+      , accountingEntry = AccountingEntryUtil.emptyWith { companyId = flags.companyId, accountingYear = flags.accountingYear }
+      , allAccountingEntries = []
+      , allAccounts = []
+      , allAccountingEntryTemplates = []
+      , feedback = ""
+      , error = ""
+      , editActive = False
+      , accountViewActive = False
+      , selectedTemplate = Nothing
+      , selectedCredit = Nothing
+      , selectedDebit = Nothing
+      }
 
 updateContent : Model -> InputContent -> Model
 updateContent model content =
