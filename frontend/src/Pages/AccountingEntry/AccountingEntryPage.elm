@@ -3,7 +3,6 @@ module Pages.AccountingEntry.AccountingEntryPage exposing (Msg, init, update, vi
 import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (creationParams, keyOf)
 import Api.General.DateUtil as DateUtil
 import Api.General.HttpUtil as HttpUtil
-import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntry exposing (AccountingEntry, decoderAccountingEntry, encoderAccountingEntry)
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams, encoderAccountingEntryCreationParams)
@@ -22,7 +21,7 @@ import Http exposing (Error(..), Response(..))
 import Json.Decode as Decode
 import Pages.AccountingEntry.AccountingEntryPageModel as Model exposing (Flags, Model)
 import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), downloadReport, getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset, resolve, unicodeToString)
-import Pages.AccountingEntry.InputContent exposing (emptyInputContent)
+import Pages.AccountingEntry.InputContent
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
