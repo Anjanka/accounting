@@ -1,6 +1,5 @@
 module Api.General.Amount exposing (..)
 
-import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Pages.FromInput as FromInput exposing (FromInput)
 import Parser exposing ((|.), (|=), Parser, andThen, oneOf, succeed, symbol)
 
@@ -105,6 +104,6 @@ amountFromInput =
         }
 
 
-amountOf : AccountingEntry -> Amount
-amountOf accountingEntry =
-    { whole = accountingEntry.amountWhole, change = accountingEntry.amountChange }
+toCents : Amount -> Int
+toCents amount =
+    amount.whole * 100 + amount.change

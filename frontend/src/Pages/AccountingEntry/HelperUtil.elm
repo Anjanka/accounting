@@ -1,7 +1,8 @@
 module Pages.AccountingEntry.HelperUtil exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
-import Api.General.AccountingEntryUtil as AccountingEntryUtil
+import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (amountOf)
+import Api.General.Amount exposing (Amount, toCents)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Bytes exposing (Bytes)
@@ -9,8 +10,7 @@ import File.Download as Download
 import Http exposing (Error(..), Response(..))
 import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
-import Pages.AccountingEntry.InputContent exposing (emptyInputContent, updateWithEntry, updateWithTemplate)
-import Api.General.Amount exposing (Amount)
+import Pages.AccountingEntry.InputContent exposing (updateWithEntry, updateWithTemplate)
 
 
 insertForEdit : Model -> AccountingEntry -> Model
@@ -70,19 +70,6 @@ insertTemplateData model description =
     }
 
 
-reset : Model -> Model
-reset model =
-    { model
-        | content = emptyInputContent
-        , accountingEntry = AccountingEntryUtil.emptyWith { companyId = model.companyId, accountingYear = model.accountingYear }
-        , error = ""
-        , editActive = False
-        , selectedTemplate = Nothing
-        , selectedCredit = Nothing
-        , selectedDebit = Nothing
-    }
-
-
 findEntry : String -> List AccountingEntryTemplate -> AccountingEntryTemplate
 findEntry description allAccountingEntryTemplates =
     case List.Extra.find (\aet -> aet.description == description) allAccountingEntryTemplates of
@@ -116,20 +103,7 @@ getAmount accountId allEntries =
         sumOf entries =
             List.sum (List.map (amountOf >> toCents) entries)
     in
-     abs (sumOf allEntriesCredit - sumOf allEntriesDebit)
-
-
-
-amountOf : AccountingEntry -> Amount
-amountOf entry =
-    { whole = entry.amountWhole
-    , change = entry.amountChange
-    }
-
-
-toCents : Amount -> Int
-toCents amount =
-    amount.whole * 100 + amount.change
+    abs (sumOf allEntriesCredit - sumOf allEntriesDebit)
 
 
 showBalance : Int -> String
@@ -196,6 +170,7 @@ getListWithPosition allAccountingEntries =
             )
             allAccountingEntries
 
+
 resolve : (body -> Result String a) -> Http.Response body -> Result Http.Error a
 resolve toResult response =
     case response of
@@ -217,5 +192,4 @@ resolve toResult response =
 
 downloadReport : String -> Int -> Bytes -> Cmd msg
 downloadReport name accountingYear pdfContent =
-    Download.bytes (String.concat [name, " ", String.fromInt accountingYear, ".pdf"]) "application/pdf" pdfContent
-
+    Download.bytes (String.concat [ name, " ", String.fromInt accountingYear, ".pdf" ]) "application/pdf" pdfContent

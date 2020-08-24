@@ -19,8 +19,8 @@ import Html.Attributes exposing (class, disabled, for, id, placeholder, style, v
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error(..), Response(..))
 import Json.Decode as Decode
-import Pages.AccountingEntry.AccountingEntryPageModel as Model exposing (Flags, Model)
-import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), downloadReport, getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, reset, resolve, unicodeToString)
+import Pages.AccountingEntry.AccountingEntryPageModel as Model exposing (Flags, Model, reset)
+import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), downloadReport, getBalance, getListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, resolve, unicodeToString)
 import Pages.AccountingEntry.InputContent
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth, updateCredit, updateDay, updateDebit, updateDescription, updateMonth, updateReceiptNumber)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)

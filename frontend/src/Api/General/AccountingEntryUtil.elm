@@ -1,12 +1,12 @@
 module Api.General.AccountingEntryUtil exposing (..)
 
+import Api.General.Amount as Amount exposing (Amount)
 import Api.General.DateUtil as DateUtil
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams)
 import Api.Types.AccountingEntryKey exposing (AccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.Date exposing (Date)
-import Api.General.Amount as Amount
 
 
 empty : AccountingEntry
@@ -100,7 +100,14 @@ show accountingEntry =
 
 showAmount : AccountingEntry -> String
 showAmount accountingEntry =
-    Amount.display { whole = accountingEntry.amountWhole, change = accountingEntry.amountChange }
+    Amount.display (amountOf accountingEntry)
+
+
+amountOf : AccountingEntry -> Amount
+amountOf entry =
+    { whole = entry.amountWhole
+    , change = entry.amountChange
+    }
 
 
 isValid : AccountingEntry -> Bool

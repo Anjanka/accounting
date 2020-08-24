@@ -21,11 +21,12 @@ type alias Model =
     , feedback : String
     , error : String
     , editActive : Bool
-    , accountViewActive: Bool
+    , accountViewActive : Bool
     , selectedTemplate : Maybe String
     , selectedCredit : Maybe String
     , selectedDebit : Maybe String
     }
+
 
 type alias Flags =
     { companyId : Int
@@ -33,36 +34,55 @@ type alias Flags =
     , lang : String
     }
 
+
 init : Flags -> Model
-init flags = { lang = getLanguage flags.lang
-      , companyId = flags.companyId
-      , accountingYear = flags.accountingYear
-      , content = emptyInputContent
-      , accountingEntry = AccountingEntryUtil.emptyWith { companyId = flags.companyId, accountingYear = flags.accountingYear }
-      , allAccountingEntries = []
-      , allAccounts = []
-      , allAccountingEntryTemplates = []
-      , feedback = ""
-      , error = ""
-      , editActive = False
-      , accountViewActive = False
-      , selectedTemplate = Nothing
-      , selectedCredit = Nothing
-      , selectedDebit = Nothing
-      }
+init flags =
+    { lang = getLanguage flags.lang
+    , companyId = flags.companyId
+    , accountingYear = flags.accountingYear
+    , content = emptyInputContent
+    , accountingEntry = AccountingEntryUtil.emptyWith { companyId = flags.companyId, accountingYear = flags.accountingYear }
+    , allAccountingEntries = []
+    , allAccounts = []
+    , allAccountingEntryTemplates = []
+    , feedback = ""
+    , error = ""
+    , editActive = False
+    , accountViewActive = False
+    , selectedTemplate = Nothing
+    , selectedCredit = Nothing
+    , selectedDebit = Nothing
+    }
+
+
+reset : Model -> Model
+reset model =
+    { model
+        | content = emptyInputContent
+        , accountingEntry = AccountingEntryUtil.emptyWith { companyId = model.companyId, accountingYear = model.accountingYear }
+        , error = ""
+        , editActive = False
+        , selectedTemplate = Nothing
+        , selectedCredit = Nothing
+        , selectedDebit = Nothing
+    }
+
 
 updateContent : Model -> InputContent -> Model
 updateContent model content =
-    {model | content = content}
+    { model | content = content }
+
 
 updateAccountingEntry : Model -> AccountingEntry -> Model
 updateAccountingEntry model accountingEntry =
     { model | accountingEntry = accountingEntry }
 
+
 updateFeedback : Model -> String -> Model
 updateFeedback model feedback =
-    {model | feedback = feedback}
+    { model | feedback = feedback }
+
 
 updateError : Model -> String -> Model
 updateError model error =
-    {model | error = error}
+    { model | error = error }
