@@ -1,7 +1,7 @@
 module Pages.AccountingEntry.InputContent exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
-import Api.General.AccountingEntryUtil exposing (amountOf)
+import Api.General.AccountingEntryUtil exposing (amountOf, showAmount)
 import Api.General.DateUtil exposing (showDay, showMonth)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
@@ -73,8 +73,9 @@ updateWithEntry inputContent accountingEntry =
     let
         newAmountFI =
             inputContent.amount
-                |> flip FromInput.updateText (Amount.display (amountOf accountingEntry))
+                |> flip FromInput.updateText (showAmount accountingEntry)
                 |> flip FromInput.updateValue (amountOf accountingEntry)
+
     in
     { inputContent
         | day = showDay accountingEntry.bookingDate.day
