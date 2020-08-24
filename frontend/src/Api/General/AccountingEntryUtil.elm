@@ -14,7 +14,7 @@ empty =
     { companyId = 0
     , id = 0
     , accountingYear = 0
-    , bookingDate = { year = 0, month = 0, day = 0 }
+    , bookingDate = DateUtil.empty
     , receiptNumber = ""
     , description = ""
     , credit = 0
@@ -121,26 +121,7 @@ isValid accountingEntry =
 
 isEmpty : AccountingEntry -> Bool
 isEmpty accountingEntry =
-    accountingEntry.companyId
-        == 0
-        && accountingEntry.id
-        == 0
-        && accountingEntry.accountingYear
-        == 0
-        && accountingEntry.bookingDate
-        == { year = 0, month = 0, day = 0 }
-        && accountingEntry.receiptNumber
-        == ""
-        && accountingEntry.description
-        == ""
-        && accountingEntry.credit
-        == 0
-        && accountingEntry.debit
-        == 0
-        && accountingEntry.amountWhole
-        == 0
-        && accountingEntry.amountChange
-        == 0
+    accountingEntry == empty
 
 
 getCreationParams : AccountingEntry -> AccountingEntryCreationParams
