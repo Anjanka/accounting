@@ -55,5 +55,5 @@ isValid company =
 
 
 
-getCreationParams : Company -> CompanyCreationParams
-getCreationParams company = { name = company.name, address= company.address, postalCode = company.postalCode, city = company.city, country = company.country, taxNumber = company.taxNumber, revenueOffice = company.revenueOffice }
+creationParams : Company -> CompanyCreationParams
+creationParams company = { name = company.name, address= company.address, postalCode = company.postalCode, city = company.city, country = company.country, taxNumber = company.taxNumber, revenueOffice = company.revenueOffice }

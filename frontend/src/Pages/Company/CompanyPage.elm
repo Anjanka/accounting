@@ -1,6 +1,6 @@
 module Pages.Company.CompanyPage exposing (Msg, init, update, view)
 
-import Api.General.CompanyUtil exposing (empty, getCreationParams, isValid, show, updateAddress, updateCity, updateCountry, updateName, updatePostalCode, updateRevenueOffice, updateTaxNumber)
+import Api.General.CompanyUtil exposing (empty, creationParams, isValid, show, updateAddress, updateCity, updateCountry, updateName, updatePostalCode, updateRevenueOffice, updateTaxNumber)
 import Api.General.HttpUtil as HttpUtil
 import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Company exposing (Company, decoderCompany, encoderCompany)
@@ -295,7 +295,7 @@ createCompany company =
     Http.post
         { url = "http://localhost:9000/company/insert"
         , expect = HttpUtil.expectJson GotResponseCreateOrUpdate decoderCompany
-        , body = Http.jsonBody (encoderCompanyCreationParams (getCreationParams company))
+        , body = Http.jsonBody (encoderCompanyCreationParams (creationParams company))
         }
 
 
