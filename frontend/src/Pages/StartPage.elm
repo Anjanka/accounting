@@ -4,10 +4,11 @@ import Api.General.HttpUtil as HttpUtil
 import Api.General.LanguageComponentConstants exposing (default, getLanguage)
 import Api.Types.Company exposing (Company, decoderCompany)
 import Api.Types.LanguageComponents exposing (LanguageComponents, LanguageForList, languageList)
+import Bootstrap.Button
 import Browser
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, text)
-import Html.Attributes exposing (class, disabled, id, value)
+import Html.Attributes exposing (class, disabled, href, id, value)
 import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
@@ -181,11 +182,12 @@ view model =
 viewLanguageSelection : Model -> Html Msg
 viewLanguageSelection model =
     div [ class "page", class "startInputArea" ]
-        [ Html.form [ class "startDropdown" ]
+        [ Html.form [ class "startDropdown"]
             [ Dropdown.dropdown
                 (dropdownOptionsLanguage languageList)
-                []
+                [id "languageDropdown"]
                 model.selectedLanguage
+
             ]
         , languageButton model.selectedLanguage
         , div [] [ text model.error ]
@@ -202,12 +204,12 @@ viewCompanySelection model =
                 model.selectedCompany
             ]
         , companyButton model.selectedCompany
-        , div []
-            [ linkButton (fragmentUrl [ makeLinkPath CompanyPage, makeLinkLang model.lang.short ])
+        , button [ class "backButton", onClick BackToLanguageSelection ] [ text model.lang.back ]
+
+        , div[] [linkButton (fragmentUrl [ makeLinkPath CompanyPage, makeLinkLang model.lang.short ])
                 [ class "linkButton" ]
                 [ text model.lang.manageCompanies ]
-            , button [ class "backButton", onClick BackToLanguageSelection ] [ text model.lang.back ]
-            ]
+          ]
         , div [] [ text model.error ]
         ]
 
@@ -221,8 +223,9 @@ viewAccountingYearSelection model =
                 []
                 model.selectedYear
             ]
-        , yearButton model
+        , div[] [ yearButton model
         , button [ class "backButton", onClick BackToCompanySelection ] [ text model.lang.back ]
+         ]
         , div [] [ text model.error ]
         ]
 
@@ -239,9 +242,16 @@ companyButton selectedValue =
 
 yearButton : Model -> Html Msg
 yearButton model =
-    linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ])
-        [ class "linkButton", disabled (isNothing model.selectedYear) ]
-        [ text "Ok" ]
+          Bootstrap.Button.linkButton
+                [  Bootstrap.Button.disabled (isNothing  model.selectedYear)
+                  , Bootstrap.Button.attrs (href (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ]) :: [class "linkButton"] )
+                ]
+                [ text "Ok" ]
+
+ --   linkButtonWithDisabled (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ])
+ --       [ class "linkButton" ]
+ --       [ text "Ok" ]
+ --       (isNothing  model.selectedYear)
 
 
 isNothing : Maybe a -> Bool

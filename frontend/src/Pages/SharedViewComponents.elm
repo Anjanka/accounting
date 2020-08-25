@@ -28,8 +28,15 @@ accountForDropdown acc =
 linkButton : String -> List (Attribute msg) -> List (Html msg) -> Html msg
 linkButton link attrs children =
         Bootstrap.Button.linkButton
-            [ Bootstrap.Button.primary
-            , Bootstrap.Button.attrs (href link :: attrs)
+            [ Bootstrap.Button.attrs (href link :: attrs)
+            ]
+            children
+
+linkButtonWithDisabled : String -> List (Attribute msg) -> List (Html msg) -> Bool ->  Html msg
+linkButtonWithDisabled link attrs children isDisabled=
+          Bootstrap.Button.linkButton
+            [   Bootstrap.Button.disabled True
+              , Bootstrap.Button.attrs (href link :: attrs )
             ]
             children
 
