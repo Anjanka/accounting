@@ -2,7 +2,7 @@ module Api.General.LanguageComponentConstants exposing (..)
 
 import Api.General.AccountCategoryConstants exposing (englishAccountCategories, germanAccountCategories, makeCategoryList)
 import Api.General.ReportLanguageComponentConstants exposing (englishReportLanguageComponents, germanReportLanguageComponents)
-import Api.General.AccountTypeConstants exposing (englishAccountTypes, germanAccountTypes)
+import Api.General.AccountTypeConstants exposing (englishAccountTypes, germanAccountTypes, makeTypeList)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
 
 
@@ -76,7 +76,7 @@ english =
     , printJournal = "Print Journal"
     , printNominalAccounts = "Print Nominal Accounts"
     , accountCategories = makeCategoryList englishAccountCategories
-    , accountTypes = englishAccountTypes
+    , accountTypes = makeTypeList englishAccountTypes
     , reportLanguageComponents = englishReportLanguageComponents
     }
 
@@ -136,7 +136,7 @@ german =
     , printJournal = "Journal drucken"
     , printNominalAccounts = "Sachkonten drucken"
     , accountCategories = makeCategoryList germanAccountCategories
-    , accountTypes = germanAccountTypes
+    , accountTypes = makeTypeList germanAccountTypes
     , reportLanguageComponents = germanReportLanguageComponents
     }
 

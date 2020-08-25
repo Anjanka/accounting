@@ -23,7 +23,7 @@ makeCategoryList acs =
     , { id = 3, name = acs.businessExpenses }
     , { id = 4, name = acs.borrowedCapital }
     , { id = 5, name = acs.taxAccount }
-    , { id = 8, name = acs.taxAccount }
+    , { id = 8, name = acs.revenues }
     , { id = 9, name = acs.balanceCarriedForward }
     ]
 

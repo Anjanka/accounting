@@ -1,5 +1,6 @@
 module Pages.AccountPage exposing (Model, Msg, init, update, view)
 
+import Api.General.AccountTypeConstants exposing (getCategoryIdsWithDefault)
 import Api.General.AccountUtil as AccountUtil exposing (AccountType, AccountCategory, updateAccountType, updateCategory)
 import Api.General.HttpUtil as HttpUtil
 import Api.General.LanguageComponentConstants exposing (getLanguage)
@@ -358,7 +359,7 @@ getSelectableTypes : Maybe String -> List AccountType -> List AccountType
 getSelectableTypes selectedCategory allTypes =
     selectedCategory
         |> Maybe.andThen String.toInt
-        |> Maybe.map (\id -> List.sortBy (\a -> a.name) (List.filter (\at -> List.member id at.categoryIds) allTypes))
+        |> Maybe.map (\id -> List.sortBy (\a -> a.name) (List.filter (\at -> List.member id (getCategoryIdsWithDefault at.id)) allTypes))
         |> Maybe.withDefault []
 
 
