@@ -3,27 +3,52 @@ module Api.General.AccountCategoryConstants exposing (..)
 import Api.General.AccountUtil exposing (AccountCategory)
 
 
-englishAccountCategories : List AccountCategory
+type alias AccountCategories =
+    { financialAccount : String
+    , fixedAssets : String
+    , resources : String
+    , businessExpenses : String
+    , borrowedCapital : String
+    , taxAccount : String
+    , revenues : String
+    , balanceCarriedForward : String
+    }
+
+
+makeCategoryList : AccountCategories -> List AccountCategory
+makeCategoryList acs =
+    [ { id = 0, name = acs.financialAccount }
+    , { id = 1, name = acs.fixedAssets }
+    , { id = 2, name = acs.resources }
+    , { id = 3, name = acs.businessExpenses }
+    , { id = 4, name = acs.borrowedCapital }
+    , { id = 5, name = acs.taxAccount }
+    , { id = 8, name = acs.taxAccount }
+    , { id = 9, name = acs.balanceCarriedForward }
+    ]
+
+
+englishAccountCategories : AccountCategories
 englishAccountCategories =
-    [ { id = 0, name = "financial account" }
-    , { id = 1, name = "fixed assets" }
-    , { id = 2, name = "resources" }
-    , { id = 3, name = "business expenses" }
-    , { id = 4, name = "borrowed capital" }
-    , { id = 5, name = "tax account" }
-    , { id = 8, name = "revenues" }
-    , { id = 9, name = "balance carried forward" }
-    ]
+    { financialAccount = "financial account"
+    , fixedAssets = "fixed assets"
+    , resources = "resources"
+    , businessExpenses = "business expenses"
+    , borrowedCapital = "borrowed capital"
+    , taxAccount = "tax account"
+    , revenues = "revenues"
+    , balanceCarriedForward = "balance carried forward"
+    }
 
 
-germanAccountCategories : List AccountCategory
+germanAccountCategories : AccountCategories
 germanAccountCategories =
-    [ { id = 0, name = "Finanzkonto" }
-    , { id = 1, name = "Anlagevermögen" }
-    , { id = 2, name = "Eigenkapital" }
-    , { id = 3, name = "Betriebsausgaben" }
-    , { id = 4, name = "Fremdkapital" }
-    , { id = 5, name = "Steuerkonto" }
-    , { id = 8, name = "Einnahmen" }
-    , { id = 9, name = "Saldovortrag" }
-    ]
+    { financialAccount = "Finanzkonto"
+    , fixedAssets = "Anlagevermögen"
+    , resources = "Eigenkapital"
+    , businessExpenses = "Betriebsausgaben"
+    , borrowedCapital = "Fremdkapital"
+    , taxAccount = "Steuerkonto"
+    , revenues = "Einnahmen"
+    , balanceCarriedForward = "Saldovortrag"
+    }
