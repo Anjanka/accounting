@@ -44,7 +44,6 @@ type alias AccountCategory = {
 
 type alias AccountType = {
      id : Int
-   , categoryIds : List Int
-   , name : String
+    , name : String
  }
 

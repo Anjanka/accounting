@@ -1,6 +1,7 @@
 module Api.General.AccountTypeConstants exposing (..)
 
 import Api.General.AccountUtil exposing (AccountType)
+import Dict exposing (Dict, get)
 
 
 type alias AccountTypes =
@@ -25,23 +26,54 @@ type alias AccountTypes =
 
 makeTypeList : AccountTypes -> List AccountType
 makeTypeList ats =
-    [ { id = 11, categoryIds = [ 1 ], name = ats.inferiorAssets }
-    , { id = 1, categoryIds = [ 0 ], name = ats.cashAccount }
-    , { id = 31, categoryIds = [ 3 ], name = ats.purchasedGoods }
-    , { id = 32, categoryIds = [ 3 ], name = ats.telephoneCosts }
-    , { id = 33, categoryIds = [ 3 ], name = ats.travelExpenses }
-    , { id = 0, categoryIds = [ 7, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 ], name = ats.other }
-    , { id = 81, categoryIds = [ 8 ], name = ats.interestIncome }
-    , { id = 91, categoryIds = [ 9 ], name = ats.openingBalance }
-    , { id = 82, categoryIds = [ 8 ], name = ats.salesRevenue }
-    , { id = 34, categoryIds = [ 3 ], name = ats.personnelCosts }
-    , { id = 35, categoryIds = [ 3 ], name = ats.postalCharges }
-    , { id = 36, categoryIds = [ 3 ], name = ats.leaseExpenses }
-    , { id = 41, categoryIds = [ 4 ], name = ats.loans }
-    , { id = 42, categoryIds = [ 4 ], name = ats.debts }
-    , { id = 51, categoryIds = [ 5 ], name = ats.prepaidTax }
-    , { id = 52, categoryIds = [ 5 ], name = ats.salesTaxes }
+    [ { id = 11, name = ats.inferiorAssets }
+    , { id = 1, name = ats.cashAccount }
+    , { id = 31, name = ats.purchasedGoods }
+    , { id = 32, name = ats.telephoneCosts }
+    , { id = 33, name = ats.travelExpenses }
+    , { id = 0, name = ats.other }
+    , { id = 81, name = ats.interestIncome }
+    , { id = 91, name = ats.openingBalance }
+    , { id = 82, name = ats.salesRevenue }
+    , { id = 34, name = ats.personnelCosts }
+    , { id = 35, name = ats.postalCharges }
+    , { id = 36, name = ats.leaseExpenses }
+    , { id = 41, name = ats.loans }
+    , { id = 42, name = ats.debts }
+    , { id = 51, name = ats.prepaidTax }
+    , { id = 52, name = ats.salesTaxes }
     ]
+
+
+categoryIds : Dict Int (List Int)
+categoryIds =
+    Dict.fromList
+        [ ( 11, [ 1 ] )
+        , ( 1, [ 0 ] )
+        , ( 31, [ 3 ] )
+        , ( 32, [ 3 ] )
+        , ( 33, [ 3 ] )
+        , ( 0, [ 7, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 ] )
+        , ( 81, [ 8 ] )
+        , ( 91, [ 9 ] )
+        , ( 82, [ 8 ] )
+        , ( 34, [ 3 ] )
+        , ( 35, [ 3 ] )
+        , ( 36, [ 3 ] )
+        , ( 41, [ 4 ] )
+        , ( 42, [ 4 ] )
+        , ( 51, [ 5 ] )
+        , ( 52, [ 5 ] )
+        ]
+
+
+getCategoryIdsWithDefault : Int -> List Int
+getCategoryIdsWithDefault typeId =
+    case get typeId categoryIds of
+        Just list ->
+            list
+        Nothing ->
+            []
 
 
 englishAccountTypes : AccountTypes
