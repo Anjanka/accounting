@@ -50,7 +50,7 @@ display amount =
     let
         separator =
             if amount.change == 0 then
-                ""
+                ","
 
             else if amount.change < 9 then
                 ",0"
@@ -60,7 +60,7 @@ display amount =
 
         changeString =
             if amount.change == 0 then
-                ""
+                "00"
 
             else
                 String.fromInt amount.change
