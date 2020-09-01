@@ -1,6 +1,7 @@
 module Api.General.AccountUtil exposing (..)
 
 import Api.Types.Account exposing (Account)
+import List.Extra
 
 
 empty : Account
@@ -47,3 +48,9 @@ type alias AccountType = {
     , name : String
  }
 
+
+findAccountName : List Account -> String -> Account
+findAccountName accounts id =
+    String.toInt id
+        |> Maybe.andThen (\int -> List.Extra.find (\acc -> acc.id == int) accounts)
+        |> Maybe.withDefault empty

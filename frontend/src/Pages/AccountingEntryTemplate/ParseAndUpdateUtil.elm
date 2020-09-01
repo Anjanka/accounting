@@ -1,9 +1,8 @@
 module Pages.AccountingEntryTemplate.ParseAndUpdateUtil exposing (..)
 
-import Api.General.AccountUtil as AccountUtil
+import Api.General.AccountUtil exposing (findAccountName)
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.Types.Account exposing (Account)
-import List.Extra
 import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel exposing (Model, updateAccountingEntryTemplate, updateContentAmount)
 import Pages.FromInput as FromInput
 
@@ -47,21 +46,6 @@ parseWith empty nonEmpty model newContent =
 
     else
         nonEmpty model newContent account
-
-
-findAccountName : List Account -> String -> Account
-findAccountName accounts id =
-    case String.toInt id of
-        Just int ->
-            case List.Extra.find (\acc -> acc.id == int) accounts of
-                Just value ->
-                    value
-
-                Nothing ->
-                    AccountUtil.empty
-
-        Nothing ->
-            AccountUtil.empty
 
 
 parseAndUpdateAmount : Model -> String -> Model

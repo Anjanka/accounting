@@ -1,9 +1,8 @@
 module Pages.AccountingEntry.ParseAndUpdateUtil exposing (..)
 
-import Api.General.AccountUtil as AccountUtil
+import Api.General.AccountUtil exposing (findAccountName)
 import Api.General.AccountingEntryUtil as AccountingEntryUtil
 import Api.Types.Account exposing (Account)
-import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
 import Pages.AccountingEntry.InputContent exposing (updateAmount, updateCreditId, updateDebitId)
 import Pages.FromInput as FromInput
@@ -82,11 +81,7 @@ parseWith empty nonEmpty model newContent =
 
 
 
-findAccountName : List Account -> String -> Account
-findAccountName accounts id =
-    String.toInt id
-        |> Maybe.andThen (\int -> List.Extra.find (\acc -> acc.id == int) accounts)
-        |> Maybe.withDefault AccountUtil.empty
+
 
 
 
