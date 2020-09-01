@@ -2,7 +2,6 @@ module Pages.AccountingEntryTemplate.AccountingEntryTemplatePage exposing (Msg, 
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
 import Api.General.HttpUtil as HttpUtil
-import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate, decoderAccountingEntryTemplate, encoderAccountingEntryTemplate)
 import Api.Types.AccountingEntryTemplateCreationParams exposing (encoderAccountingEntryTemplateCreationParams)
@@ -15,8 +14,7 @@ import Html.Attributes exposing (class, disabled, for, id, placeholder, style, v
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
-import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel exposing (Model)
-import Pages.AccountingEntryTemplate.HelperUtil exposing (insertData, reset, updateAccountingEntryTemplate)
+import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel as Model exposing (Flags, Model, insertData, reset, updateAccountingEntryTemplate)
 import Pages.AccountingEntryTemplate.ParseAndUpdateUtil exposing (handleSelection, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, backToEntryPage)
 
@@ -47,33 +45,9 @@ main =
 -- MODEL
 
 
-type alias Flags =
-    { companyId : Int
-    , accountingYear : Maybe Int
-    , lang : String
-    }
-
-
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { lang = getLanguage flags.lang
-      , companyId = flags.companyId
-      , accountingYear = flags.accountingYear
-      , contentDescription = ""
-      , contentDebitID = ""
-      , contentCreditID = ""
-      , contentAmount = ""
-      , aet = AccountingEntryTemplateUtil.updateCompanyId AccountingEntryTemplateUtil.empty flags.companyId
-      , allAccounts = []
-      , allAccountingEntryTemplates = []
-      , response = ""
-      , feedback = ""
-      , error = ""
-      , selectedCredit = Nothing
-      , selectedDebit = Nothing
-      , buttonPressed = False
-      , editViewActive = False
-      }
+    ( Model.init flags
     , Cmd.batch
         [ getAccounts flags.companyId
         , getAccountingEntryTemplates flags.companyId
@@ -205,7 +179,7 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [class "page", class "templateInputArea"]
+    div [ class "page", class "templateInputArea" ]
         [ backToEntryPage model.lang.back model.companyId model.accountingYear model.lang.short
         , p [] []
         , viewEditOrCreate model
@@ -247,7 +221,7 @@ viewEditOrCreate model =
 viewCreditInput : Model -> Html Msg
 viewCreditInput model =
     div []
-        [ label [class "accountLabel"] [ text (model.lang.credit ++ ": ") ]
+        [ label [ class "accountLabel" ] [ text (model.lang.credit ++ ": ") ]
         , input [ class "accountIdField", placeholder model.lang.accountId, value model.contentCreditID, onInput ChangeCredit ] []
         , Dropdown.dropdown
             (dropdownOptionsCredit model.lang.noValidAccount (accountListForDropdown model.allAccounts model.selectedDebit))
@@ -259,7 +233,7 @@ viewCreditInput model =
 viewDebitInput : Model -> Html Msg
 viewDebitInput model =
     div []
-        [ label [class "accountLabel"] [ text (model.lang.debit ++ ": ") ]
+        [ label [ class "accountLabel" ] [ text (model.lang.debit ++ ": ") ]
         , input [ class "accountIdField", placeholder model.lang.accountId, value model.contentDebitID, onInput ChangeDebit ] []
         , Dropdown.dropdown
             (dropdownOptionsDebit model.lang.noValidAccount (accountListForDropdown model.allAccounts model.selectedCredit))
@@ -333,10 +307,10 @@ viewAccountingEntryTemplateList : Model -> Html Msg
 viewAccountingEntryTemplateList model =
     if model.buttonPressed then
         div []
-            [ div [] [ button [class "showButton", onClick HideAllAccountingEntryTemplates ] [ text model.lang.hideTemplateList ] ]
-            , div [  ]
+            [ div [] [ button [ class "showButton", onClick HideAllAccountingEntryTemplates ] [ text model.lang.hideTemplateList ] ]
+            , div []
                 [ table
-                    [id "allAccountingEntryTemplates"]
+                    [ id "allAccountingEntryTemplates" ]
                     (tr [ class "tableHeader" ]
                         [ th [] [ label [ for "description" ] [ text model.lang.description ] ]
                         , th [] [ label [ for "credit" ] [ text model.lang.credit ] ]
@@ -355,11 +329,11 @@ viewAccountingEntryTemplateList model =
 mkTableLine : String -> AccountingEntryTemplate -> Html Msg
 mkTableLine txt aet =
     tr []
-        [ td [class "textColumn"] [ text aet.description ]
-        , td [class "numberColumn"] [ text (String.fromInt aet.credit) ]
-        , td [class "numberColumn"] [ text (String.fromInt aet.debit) ]
-        , td [class "numberColumn"] [ text (AccountingEntryTemplateUtil.showAmount aet) ]
-        , td [class "buttonColumn"] [button [ class "editButton", onClick (ActivateEditView aet) ] [ text txt ]]
+        [ td [ class "textColumn" ] [ text aet.description ]
+        , td [ class "numberColumn" ] [ text (String.fromInt aet.credit) ]
+        , td [ class "numberColumn" ] [ text (String.fromInt aet.debit) ]
+        , td [ class "numberColumn" ] [ text (AccountingEntryTemplateUtil.showAmount aet) ]
+        , td [ class "buttonColumn" ] [ button [ class "editButton", onClick (ActivateEditView aet) ] [ text txt ] ]
         ]
 
 
