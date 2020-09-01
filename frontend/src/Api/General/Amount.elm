@@ -1,5 +1,6 @@
 module Api.General.Amount exposing (..)
 
+import Basics.Extra exposing (flip)
 import Pages.FromInput as FromInput exposing (FromInput)
 import Parser exposing ((|.), (|=), Parser, andThen, oneOf, succeed, symbol)
 
@@ -49,21 +50,14 @@ display : Amount -> String
 display amount =
     let
         separator =
-            if amount.change == 0 then
-                ","
-
-            else if amount.change < 9 then
+            if amount.change <= 9 then
                 ",0"
 
             else
                 ","
 
         changeString =
-            if amount.change == 0 then
-                "00"
-
-            else
-                String.fromInt amount.change
+            String.fromInt amount.change
 
         wholeString =
             String.fromInt amount.whole
@@ -107,3 +101,10 @@ amountFromInput =
 toCents : Amount -> Int
 toCents amount =
     amount.whole * 100 + amount.change
+
+
+updateAmountInFromInput : FromInput Amount -> Amount -> FromInput Amount
+updateAmountInFromInput input amount =
+    input
+        |> flip FromInput.updateText (display amount)
+        |> flip FromInput.updateValue amount

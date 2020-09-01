@@ -108,7 +108,7 @@ parseAndUpdateAmount model amountContent =
         |> (\md ->
                 updateAccountingEntry md
                     (model.accountingEntry
-                        |> (\ae -> AccountingEntryUtil.updateCompleteAmount ae md.content.amount.value.whole md.content.amount.value.change)
+                        |> (\ae -> AccountingEntryUtil.updateCompleteAmount ae md.content.amount.value)
                     )
            )
 

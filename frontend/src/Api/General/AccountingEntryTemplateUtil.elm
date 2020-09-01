@@ -2,7 +2,7 @@ module Api.General.AccountingEntryTemplateUtil exposing (..)
 
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.AccountingEntryTemplateCreationParams exposing (AccountingEntryTemplateCreationParams)
-import Api.General.Amount as Amount
+import Api.General.Amount as Amount exposing (Amount)
 
 
 empty : AccountingEntryTemplate
@@ -47,9 +47,9 @@ updateAmountChange aet change =
     { aet | amountChange = change }
 
 
-updateCompleteAmount : AccountingEntryTemplate -> Int -> Int -> AccountingEntryTemplate
-updateCompleteAmount aet whole change =
-    { aet | amountWhole = whole, amountChange = change }
+updateCompleteAmount : AccountingEntryTemplate -> Amount -> AccountingEntryTemplate
+updateCompleteAmount aet amount =
+    { aet | amountWhole = amount.whole, amountChange = amount.change }
 
 
 show : AccountingEntryTemplate -> String
@@ -58,8 +58,14 @@ show aet =
 
 
 showAmount : AccountingEntryTemplate -> String
-showAmount aet =
-    Amount.display { whole = aet.amountWhole, change = aet.amountChange }
+showAmount =
+    amountOf >> Amount.display
+
+amountOf : AccountingEntryTemplate -> Amount
+amountOf aet =
+    { whole = aet.amountWhole
+    , change = aet.amountChange
+    }
 
 
 getAccountingEntryTemplateCreationParams : AccountingEntryTemplate -> AccountingEntryTemplateCreationParams

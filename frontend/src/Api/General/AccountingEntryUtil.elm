@@ -83,9 +83,9 @@ updateAmountChange accountingEntry change =
     { accountingEntry | amountChange = change }
 
 
-updateCompleteAmount : AccountingEntry -> Int -> Int -> AccountingEntry
-updateCompleteAmount accountingEntry whole change =
-    { accountingEntry | amountWhole = whole, amountChange = change }
+updateCompleteAmount : AccountingEntry -> Amount -> AccountingEntry
+updateCompleteAmount accountingEntry amount=
+    { accountingEntry | amountWhole = amount.whole, amountChange = amount.change }
 
 
 updateWithTemplate : AccountingEntry -> AccountingEntryTemplate -> AccountingEntry

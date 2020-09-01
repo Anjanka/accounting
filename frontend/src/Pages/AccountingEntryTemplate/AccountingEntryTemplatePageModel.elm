@@ -1,10 +1,12 @@
 module Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
+import Api.General.Amount as Amount exposing (Amount)
 import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
+import Pages.FromInput exposing (FromInput)
 
 
 type alias Model =
@@ -14,7 +16,7 @@ type alias Model =
     , contentDescription : String
     , contentDebitID : String
     , contentCreditID : String
-    , contentAmount : String
+    , contentAmount : FromInput Amount
     , aet : AccountingEntryTemplate
     , allAccounts : List Account
     , allAccountingEntryTemplates : List AccountingEntryTemplate
@@ -43,7 +45,7 @@ init flags =
     , contentDescription = ""
     , contentDebitID = ""
     , contentCreditID = ""
-    , contentAmount = ""
+    , contentAmount = Amount.amountFromInput
     , aet = AccountingEntryTemplateUtil.updateCompanyId AccountingEntryTemplateUtil.empty flags.companyId
     , allAccounts = []
     , allAccountingEntryTemplates = []
@@ -57,13 +59,9 @@ init flags =
     }
 
 
-
 updateAccountingEntryTemplate : Model -> AccountingEntryTemplate -> Model
 updateAccountingEntryTemplate model aet =
     { model | aet = aet }
-
-
-
 
 
 insertData : Model -> AccountingEntryTemplate -> Model
@@ -72,7 +70,7 @@ insertData model aet =
         | contentDescription = aet.description
         , contentDebitID = String.fromInt aet.debit
         , contentCreditID = String.fromInt aet.credit
-        , contentAmount = AccountingEntryTemplateUtil.showAmount aet
+        , contentAmount = Amount.updateAmountInFromInput model.contentAmount (AccountingEntryTemplateUtil.amountOf aet)
         , aet = aet
         , error = ""
         , selectedCredit = Just (String.fromInt aet.credit)
@@ -87,9 +85,16 @@ reset model =
         | contentDescription = ""
         , contentDebitID = ""
         , contentCreditID = ""
-        , contentAmount = ""
+        , contentAmount = Amount.amountFromInput
         , aet = AccountingEntryTemplateUtil.updateCompanyId AccountingEntryTemplateUtil.empty model.companyId
         , error = ""
         , editViewActive = False
+    }
+
+
+updateContentAmount : Model -> FromInput Amount -> Model
+updateContentAmount model input =
+    { model
+        | contentAmount = input
     }
 

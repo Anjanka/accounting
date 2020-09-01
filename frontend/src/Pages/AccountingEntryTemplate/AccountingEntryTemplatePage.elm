@@ -197,9 +197,9 @@ viewEditOrCreate model =
             [ input [ placeholder model.lang.description, value model.contentDescription, onInput ChangeDescription ] []
             , viewCreditInput model
             , viewDebitInput model
-            , div [] [ input [ id "amountFieldTemplate", placeholder model.lang.amount, value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
+            , div [] [ input [ id "amountFieldTemplate", placeholder model.lang.amount, value model.contentAmount.text, onInput ChangeAmount ] [], label [] [ text model.error ] ]
 
-            --  , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
+           , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , div []
                 [ viewUpdateButton model.lang model.aet (model.selectedCredit /= model.selectedDebit)
                 , button [ class "deleteButton", onClick DeleteAccountingEntryTemplate ] [ text model.lang.delete ]
@@ -212,7 +212,7 @@ viewEditOrCreate model =
             [ div [] [ input [ placeholder model.lang.description, value model.contentDescription, onInput ChangeDescription ] [] ]
             , viewCreditInput model
             , viewDebitInput model
-            , div [] [ input [ id "amountFieldTemplate", placeholder model.lang.amount, value model.contentAmount, onInput ChangeAmount ] [], label [] [ text model.error ] ]
+            , div [] [ input [ id "amountFieldTemplate", placeholder model.lang.amount, value model.contentAmount.text, onInput ChangeAmount ] [], label [] [ text model.error ] ]
             , div [] [ text (AccountingEntryTemplateUtil.show model.aet) ]
             , viewCreateButton model.lang model.aet (model.selectedCredit /= model.selectedDebit)
             ]
