@@ -1,8 +1,7 @@
 module Pages.Company.CompanyPage exposing (Msg, init, update, view)
 
-import Api.General.CompanyUtil exposing (empty, creationParams, isValid, show, updateAddress, updateCity, updateCountry, updateName, updatePostalCode, updateRevenueOffice, updateTaxNumber)
+import Api.General.CompanyUtil exposing (creationParams, isValid, show, updateAddress, updateCity, updateCountry, updateName, updatePostalCode, updateRevenueOffice, updateTaxNumber)
 import Api.General.HttpUtil as HttpUtil
-import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Company exposing (Company, decoderCompany, encoderCompany)
 import Api.Types.CompanyCreationParams exposing (encoderCompanyCreationParams)
 import Api.Types.CompanyKey exposing (encoderCompanyKey)
@@ -13,8 +12,7 @@ import Html.Attributes exposing (class, disabled, id, placeholder, style, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
-import Pages.Company.CompanyPageModel exposing (Model)
-import Pages.Company.ParseAndUpdateUtil exposing (insertData, reset)
+import Pages.Company.CompanyPageModel as Model exposing (Flags, Model, insertData, reset)
 import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkPath)
 import Pages.SharedViewComponents exposing (linkButton)
 
@@ -36,20 +34,11 @@ main =
 -- MODEL
 
 
-type alias Flags =
-    {lang : String}
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { lang = getLanguage flags.lang
-      , company = empty
-      , allCompanies = []
-      , error = ""
-      , validationFeedback = ""
-      , selectedValue = Nothing
-      , editViewActivated = False
-      }
+    ( Model.init flags
     , getCompanies
     )
 
