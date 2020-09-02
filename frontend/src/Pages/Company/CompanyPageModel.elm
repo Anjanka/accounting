@@ -5,6 +5,7 @@ import Api.General.CompanyUtil as CompanyUtil exposing (empty)
 import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Company exposing (Company)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
+import List.Extra
 
 type alias Model =
     { lang : LanguageComponents
@@ -32,29 +33,12 @@ init flags = { lang = getLanguage flags.lang
 
 insertData : Model -> Model
 insertData model =
-    case model.selectedValue of
-        Just value ->
-            case String.toInt value of
-                Just id ->
-                    let
-                        companyCandidate =
-                            List.filter (\comp -> comp.id == id) model.allCompanies
-                    in
-                    case List.head companyCandidate of
-                        Just company ->
-                            { model
-                                | company = company
-                                , editViewActivated = True
-                            }
+    model.selectedValue
+      |> Maybe.andThen String.toInt
+      |> Maybe.andThen (\id -> List.Extra.find (\comp -> comp.id == id) model.allCompanies)
+      |> Maybe.map (\company -> {model | company = company, editViewActivated = True})
+      |> Maybe.withDefault model
 
-                        Nothing ->
-                            model
-
-                Nothing ->
-                    model
-
-        Nothing ->
-            model
 
 reset : Model -> Model
 reset model =
