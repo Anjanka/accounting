@@ -234,6 +234,10 @@ view model =
         ]
 
 
+
+-- TODO write separate view functions
+
+
 viewEditOrCreate : Model -> Html Msg
 viewEditOrCreate model =
     if model.editViewActive then
@@ -275,7 +279,7 @@ viewDropdowns model =
             model.selectedAccountType
         ]
 
-
+-- TODO delegate to CSS
 viewValidation : String -> String -> Html Msg
 viewValidation txt error =
     if String.isEmpty error then
@@ -287,11 +291,11 @@ viewValidation txt error =
 
 viewCreateButton : Model -> Html Msg
 viewCreateButton model =
-    if not (String.isEmpty model.validationFeedback) || String.isEmpty model.account.title then
-        button [ class "saveButton", disabled True, onClick CreateAccount ] [ text model.lang.create ]
-
-    else
-        button [ class "saveButton", disabled False, onClick CreateAccount ] [ text model.lang.create ]
+    let
+        isDisabled =
+            not (String.isEmpty model.validationFeedback) || String.isEmpty model.account.title
+    in
+    button [ class "saveButton", disabled isDisabled, onClick CreateAccount ] [ text model.lang.create ]
 
 
 viewAccountList : Model -> Html Msg
