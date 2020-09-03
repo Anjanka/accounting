@@ -205,8 +205,8 @@ updateUrl url model =
             Start.init ()
                 |> stepStart model
 
-        Just (CompanyRoute lang)->
-            Company.init { lang = lang}
+        Just (CompanyRoute lang) ->
+            Company.init { lang = lang }
                 |> stepCompany model
 
         Just (AccountRoute companyId lang) ->
