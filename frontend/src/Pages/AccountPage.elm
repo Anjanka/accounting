@@ -1,7 +1,8 @@
 module Pages.AccountPage exposing (Model, Msg, init, update, view)
 
 import Api.General.AccountTypeConstants exposing (getCategoryIdsWithDefault)
-import Api.General.AccountUtil as AccountUtil exposing (AccountType, AccountCategory, updateAccountType, updateCategory)
+import Api.General.AccountUtil as AccountUtil exposing (AccountCategory, AccountType, updateAccountType, updateCategory)
+import Api.General.GeneralUtil exposing (isJust)
 import Api.General.HttpUtil as HttpUtil
 import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Account exposing (Account, decoderAccount, encoderAccount)
@@ -207,7 +208,6 @@ update msg model =
 
 
 
-
 -- SUBSCRIPTIONS
 
 
@@ -367,6 +367,8 @@ resetViewport : Cmd Msg
 resetViewport =
     Task.perform (\_ -> NoOp) (Dom.setViewport 0 0)
 
+
+
 -- COMMUNICATION
 
 
@@ -422,13 +424,13 @@ parseAndUpdateAccount model idCandidate =
         case String.toInt idCandidate of
             Just int ->
                 let
-                    accountExist =
-                        not (AccountUtil.isEmpty (findAccount int model.allAccounts))
+                    accountExists =
+                        isJust (findAccount int model.allAccounts)
                 in
-                if int >= 100 && int <= 99999 && not accountExist then
+                if int >= 100 && int <= 99999 && not accountExists then
                     { model | contentId = idCandidate, account = AccountUtil.updateId model.account int, validationFeedback = "" }
 
-                else if int >= 100 && int <= 99999 && accountExist then
+                else if int >= 100 && int <= 99999 && accountExists then
                     { model | contentId = idCandidate, account = AccountUtil.updateId model.account 0, validationFeedback = existingAccount }
 
                 else if int > 99999 || String.length idCandidate > 5 then
@@ -444,14 +446,9 @@ parseAndUpdateAccount model idCandidate =
         { model | contentId = "", account = AccountUtil.updateId model.account 0, validationFeedback = idNotValid }
 
 
-findAccount : Int -> List Account -> Account
+findAccount : Int -> List Account -> Maybe Account
 findAccount id allAccounts =
-    case List.Extra.find (\account -> account.id == id) allAccounts of
-        Just value ->
-            value
-
-        Nothing ->
-            AccountUtil.empty
+    List.Extra.find (\account -> account.id == id) allAccounts
 
 
 updateAccount : Model -> Account -> Model
@@ -496,15 +493,14 @@ updateForEdit model account =
 handleCategorySelection : Account -> Maybe String -> Account
 handleCategorySelection account selectedCategory =
     selectedCategory
-       |> Maybe.andThen String.toInt
-       |> Maybe.map (\c -> updateCategory account c)
-       |> Maybe.withDefault account
+        |> Maybe.andThen String.toInt
+        |> Maybe.map (\c -> updateCategory account c)
+        |> Maybe.withDefault account
 
 
 handleAccountTypeSelection : Account -> Maybe String -> Account
 handleAccountTypeSelection account selectedType =
     selectedType
-       |> Maybe.andThen String.toInt
-       |> Maybe.map (\v -> updateAccountType account  v)
-       |> Maybe.withDefault account
-
+        |> Maybe.andThen String.toInt
+        |> Maybe.map (\v -> updateAccountType account v)
+        |> Maybe.withDefault account
