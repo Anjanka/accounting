@@ -1,5 +1,6 @@
 module Pages.StartPage exposing (Model, Msg, init, update, view)
 
+import Api.General.GeneralUtil exposing (isNothing)
 import Api.General.HttpUtil as HttpUtil
 import Api.General.LanguageComponentConstants exposing (default, getLanguage)
 import Api.Types.Company exposing (Company, decoderCompany)
@@ -254,14 +255,7 @@ yearButton model =
  --       (isNothing  model.selectedYear)
 
 
-isNothing : Maybe a -> Bool
-isNothing maybe =
-    case maybe of
-        Just _ ->
-            False
 
-        Nothing ->
-            True
 
 
 dropdownOptionsLanguage : List LanguageForList -> Dropdown.Options Msg
