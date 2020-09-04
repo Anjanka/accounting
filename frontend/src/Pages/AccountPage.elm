@@ -226,7 +226,7 @@ view model =
         [ backToEntryPage model.lang.back model.companyId model.accountingYear model.lang.short
         , p [] []
         , viewEditOrCreate model
-        , label [] [ text (AccountUtil.show model.account) ]
+        --, label [] [ text (AccountUtil.show model.account) ]
         , p [] []
         , viewAccountList model
         , p [] []
@@ -287,16 +287,13 @@ viewDropdowns model =
 
 
 
--- TODO delegate to CSS
-
-
 viewValidation : String -> String -> Html Msg
 viewValidation txt error =
     if String.isEmpty error then
-        div [ style "color" "green" ] [ text txt ]
+        div [][label [ class "validCase" ] [ text txt ]]
 
     else
-        div [ style "color" "red" ] [ text error ]
+        div [][label [ class "invalidCase"] [ text error ]]
 
 
 viewCreateButton : Model -> Html Msg
