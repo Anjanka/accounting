@@ -234,36 +234,42 @@ view model =
         ]
 
 
-
--- TODO write separate view functions
-
-
 viewEditOrCreate : Model -> Html Msg
 viewEditOrCreate model =
     if model.editViewActive then
-        div []
-            [ label [] [ text (model.contentId ++ " - ") ]
-            , input [ placeholder model.lang.accountId, value model.account.title, onInput ChangeName ] []
-            , viewDropdowns model
-            , div []
-                [ button
-                    [ class "saveButton"
-                    , onClick ReplaceAccount
-                    ]
-                    [ text model.lang.saveChanges ]
-                , button [ class "deleteButton", onClick DeleteAccount ] [ text model.lang.delete ]
-                , button [ class "cancelButton", onClick DeactivateEditView ] [ text model.lang.cancel ]
-                ]
-            ]
+        viewEdit model
 
     else
-        div []
-            [ input [ class "accountIdField", placeholder model.lang.accountId, value model.contentId, onInput ChangeID ] []
-            , input [ placeholder model.lang.accountName, value model.account.title, onInput ChangeName ] []
-            , viewDropdowns model
-            , viewCreateButton model
-            , viewValidation model.lang.accountValidationMessageOk model.validationFeedback
+        viewCreate model
+
+
+viewEdit : Model -> Html Msg
+viewEdit model =
+    div []
+        [ label [] [ text (model.contentId ++ " - ") ]
+        , input [ placeholder model.lang.accountId, value model.account.title, onInput ChangeName ] []
+        , viewDropdowns model
+        , div []
+            [ button
+                [ class "saveButton"
+                , onClick ReplaceAccount
+                ]
+                [ text model.lang.saveChanges ]
+            , button [ class "deleteButton", onClick DeleteAccount ] [ text model.lang.delete ]
+            , button [ class "cancelButton", onClick DeactivateEditView ] [ text model.lang.cancel ]
             ]
+        ]
+
+
+viewCreate : Model -> Html Msg
+viewCreate model =
+    div []
+        [ input [ class "accountIdField", placeholder model.lang.accountId, value model.contentId, onInput ChangeID ] []
+        , input [ placeholder model.lang.accountName, value model.account.title, onInput ChangeName ] []
+        , viewDropdowns model
+        , viewCreateButton model
+        , viewValidation model.lang.accountValidationMessageOk model.validationFeedback
+        ]
 
 
 viewDropdowns : Model -> Html Msg
@@ -279,7 +285,11 @@ viewDropdowns model =
             model.selectedAccountType
         ]
 
+
+
 -- TODO delegate to CSS
+
+
 viewValidation : String -> String -> Html Msg
 viewValidation txt error =
     if String.isEmpty error then
