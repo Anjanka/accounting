@@ -16,6 +16,7 @@ import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel as Model exposing (Flags, Model, insertData, reset, updateAccountingEntryTemplate)
 import Pages.AccountingEntryTemplate.ParseAndUpdateUtil exposing (handleSelection, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
+import Pages.LinkUtil exposing (makeLinkCompanyId)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, backToEntryPage)
 
 
@@ -344,7 +345,7 @@ mkTableLine txt aet =
 getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
     Http.get
-        { url = "http://localhost:9000/accountingEntryTemplate/getAll/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/accountingEntryTemplate/getAll/" ++ makeLinkCompanyId companyId
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
@@ -379,6 +380,6 @@ deleteAccountingEntryTemplate aet =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/account/getAll/" ++ makeLinkCompanyId companyId
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }

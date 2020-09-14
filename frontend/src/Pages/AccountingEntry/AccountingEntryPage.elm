@@ -514,7 +514,7 @@ resetViewport =
 getAccountingEntriesForCurrentYear : Int -> Int -> Cmd Msg
 getAccountingEntriesForCurrentYear companyId year =
     Http.get
-        { url = "http://localhost:9000/accountingEntry/findByYear/" ++ String.fromInt companyId ++ "/" ++ String.fromInt year
+        { url = "http://localhost:9000/accountingEntry/findByYear/" ++ makeLinkCompanyId companyId ++ makeLinkYear year
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntries (Decode.list decoderAccountingEntry)
         }
 
@@ -522,7 +522,7 @@ getAccountingEntriesForCurrentYear companyId year =
 getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
     Http.get
-        { url = "http://localhost:9000/accountingEntryTemplate/getAll/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/accountingEntryTemplate/getAll/" ++ makeLinkCompanyId companyId
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
@@ -530,7 +530,7 @@ getAccountingEntryTemplates companyId =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/account/getAll/" ++ makeLinkCompanyId companyId
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 
@@ -583,7 +583,7 @@ moveAccountingEntryDown accountingEntry =
 getJournal : Int -> Int -> ReportLanguageComponents -> Cmd Msg
 getJournal companyId year langComps =
     Http.post
-        { url = "http://localhost:9000/reports/journal/" ++ makeLinkCompanyId companyId ++ "/" ++ makeLinkYear year
+        { url = "http://localhost:9000/reports/journal/" ++ makeLinkCompanyId companyId ++ makeLinkYear year
         , expect = Http.expectBytesResponse GotJournal (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }

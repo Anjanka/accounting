@@ -35,6 +35,10 @@ makeLinkPath page =
             "Templates"
 
 
+makeLinkId: Int -> String
+makeLinkId id =
+  "id/" ++ String.fromInt id
+
 makeLinkCompanyId : Int -> String
 makeLinkCompanyId id =
     "companyId/" ++ String.fromInt id

@@ -17,6 +17,7 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List.Extra
+import Pages.LinkUtil exposing (makeLinkCompanyId)
 import Pages.SharedViewComponents exposing (backToEntryPage)
 import Task
 
@@ -386,7 +387,7 @@ resetViewport =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = "http://localhost:9000/account/getAll/" ++ String.fromInt companyId
+        { url = "http://localhost:9000/account/getAll/" ++ makeLinkCompanyId companyId
         , expect = HttpUtil.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
         }
 
