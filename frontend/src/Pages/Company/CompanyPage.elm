@@ -14,7 +14,7 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.Company.CompanyPageModel as Model exposing (Flags, Model, insertData, reset)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkPath)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, linkServer, makeLinkPath)
 import Pages.SharedViewComponents exposing (linkButton)
 
 
@@ -281,7 +281,7 @@ createCompany company =
 updateCompany : Company -> Cmd Msg
 updateCompany company =
     Http.post
-        { url = "http://localhost:9000/company/replace"
+        { url = String.join "/" [ linkServer, "company", "replace" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrUpdate decoderCompany
         , body = Http.jsonBody (encoderCompany company)
         }
@@ -294,7 +294,7 @@ deleteCompany selectedValue =
             case String.toInt value of
                 Just id ->
                     Http.post
-                        { url = "http://localhost:9000/company/delete"
+                        { url = String.join "/" [ linkServer, "company", "delete" ]
                         , expect = HttpUtil.expectWhatever GotResponseDelete
                         , body = Http.jsonBody (encoderCompanyKey { id = id })
                         }

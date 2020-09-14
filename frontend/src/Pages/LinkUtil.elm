@@ -11,6 +11,7 @@ type Path
     | AccountingEntryTemplatePage
 
 
+
 --makeLinkHost : String
 --makeLinkHost =
 --    "http://localhost:8080"
@@ -35,9 +36,10 @@ makeLinkPath page =
             "Templates"
 
 
-makeLinkId: Int -> String
+makeLinkId : Int -> String
 makeLinkId id =
-  "id/" ++ String.fromInt id
+    "id/" ++ String.fromInt id
+
 
 makeLinkCompanyId : Int -> String
 makeLinkCompanyId id =
@@ -48,6 +50,7 @@ makeLinkYear : Int -> String
 makeLinkYear year =
     "accountingYear/" ++ String.fromInt year
 
+
 makeLinkLang : String -> String
 makeLinkLang lang =
     "lang/" ++ lang
@@ -56,3 +59,8 @@ makeLinkLang lang =
 fragmentUrl : List String -> String
 fragmentUrl parts =
     Url.Builder.custom Relative [] [] (Just (Url.Builder.absolute parts []))
+
+
+linkServer : String
+linkServer =
+    "http://localhost:9000"

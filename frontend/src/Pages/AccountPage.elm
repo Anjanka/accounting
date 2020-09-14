@@ -12,12 +12,12 @@ import Browser
 import Browser.Dom as Dom
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, button, div, input, label, p, table, td, text, th, tr)
-import Html.Attributes exposing (class, disabled, for, id, placeholder, style, value)
+import Html.Attributes exposing (class, disabled, for, id, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List.Extra
-import Pages.LinkUtil exposing (makeLinkCompanyId)
+import Pages.LinkUtil exposing (linkServer, makeLinkCompanyId)
 import Pages.SharedViewComponents exposing (backToEntryPage)
 import Task
 
@@ -227,6 +227,7 @@ view model =
         [ backToEntryPage model.lang.back model.companyId model.accountingYear model.lang.short
         , p [] []
         , viewEditOrCreate model
+
         --, label [] [ text (AccountUtil.show model.account) ]
         , p [] []
         , viewAccountList model
@@ -287,14 +288,13 @@ viewDropdowns model =
         ]
 
 
-
 viewValidation : String -> String -> Html Msg
 viewValidation txt error =
     if String.isEmpty error then
-        div [][label [ class "validCase" ] [ text txt ]]
+        div [] [ label [ class "validCase" ] [ text txt ] ]
 
     else
-        div [][label [ class "invalidCase"] [ text error ]]
+        div [] [ label [ class "invalidCase" ] [ text error ] ]
 
 
 viewCreateButton : Model -> Html Msg
@@ -387,7 +387,7 @@ resetViewport =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = "http://localhost:9000/account/getAll/" ++ makeLinkCompanyId companyId
+        { url = String.join "/" [ linkServer, "account", "getAll", makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
         }
 
@@ -395,7 +395,7 @@ getAccounts companyId =
 replaceAccount : Account -> Cmd Msg
 replaceAccount account =
     Http.post
-        { url = "http://localhost:9000/account/replace"
+        { url = String.join "/" [ linkServer, "account", "replace" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
         , body = Http.jsonBody (encoderAccount account)
         }
@@ -404,7 +404,7 @@ replaceAccount account =
 createAccount : Account -> Cmd Msg
 createAccount account =
     Http.post
-        { url = "http://localhost:9000/account/insert"
+        { url = String.join "/" [ linkServer, "account", "insert" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
         , body = Http.jsonBody (encoderAccount account)
         }
@@ -413,7 +413,7 @@ createAccount account =
 deleteAccount : Account -> Cmd Msg
 deleteAccount account =
     Http.post
-        { url = "http://localhost:9000/account/delete "
+        { url = String.join "/" [ linkServer, "account", "delete" ]
         , expect = HttpUtil.expectWhatever GotResponseDelete
         , body = Http.jsonBody (encoderAccountKey { id = account.id, companyId = account.companyId })
         }
