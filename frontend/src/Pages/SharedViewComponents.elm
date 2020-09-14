@@ -5,7 +5,7 @@ import Bootstrap.Button
 import Dropdown exposing (Item)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (class, href)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
 
 
 accountListForDropdown : List Account -> Maybe String -> List Account
@@ -45,7 +45,7 @@ backToEntryPage : String -> Int -> Maybe Int -> String -> Html msg
 backToEntryPage txt companyId yearCandidate language =
     case yearCandidate of
         Just accountingYear ->
-            linkButton (fragmentUrl [ makeLinkId companyId, makeLinkPath AccountingEntryPage, makeLinkYear accountingYear , makeLinkLang language])
+            linkButton (fragmentUrl [ makeLinkCompanyId companyId, makeLinkPath AccountingEntryPage, makeLinkYear accountingYear , makeLinkLang language])
                 [ class "backButton"][text txt ]
 
 

@@ -23,7 +23,7 @@ import Pages.AccountingEntry.AccountingEntryPageModel as Model exposing (Flags, 
 import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), downloadReport, getBalance, makeListWithPosition, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, resolve, unicodeToString)
 import Pages.AccountingEntry.InputContent
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
 import Task
 
@@ -240,10 +240,10 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ class "page" ]
-        [ linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountPage, makeLinkLang model.lang.short ])
+        [ linkButton (fragmentUrl [ makeLinkCompanyId model.companyId, makeLinkPath AccountPage, makeLinkLang model.lang.short ])
             [ class "navButton", id "accountPageButton" ]
             [ text model.lang.manageAccounts ]
-        , linkButton (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryTemplatePage, makeLinkLang model.lang.short ])
+        , linkButton (fragmentUrl [ makeLinkCompanyId model.companyId, makeLinkPath AccountingEntryTemplatePage, makeLinkLang model.lang.short ])
             [ class "navButton", id "templatePageButton" ]
             [ text model.lang.manageTemplates ]
 
@@ -583,7 +583,7 @@ moveAccountingEntryDown accountingEntry =
 getJournal : Int -> Int -> ReportLanguageComponents -> Cmd Msg
 getJournal companyId year langComps =
     Http.post
-        { url = "http://localhost:9000/reports/journal/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
+        { url = "http://localhost:9000/reports/journal/" ++ makeLinkCompanyId companyId ++ "/" ++ makeLinkYear year
         , expect = Http.expectBytesResponse GotJournal (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }
@@ -592,7 +592,7 @@ getJournal companyId year langComps =
 getNominalAccounts : Int -> Int -> ReportLanguageComponents -> Cmd Msg
 getNominalAccounts companyId year langComps =
     Http.post
-        { url = "http://localhost:9000/reports/nominalAccounts/" ++ makeLinkId companyId ++ "/" ++ makeLinkYear year
+        { url = "http://localhost:9000/reports/nominalAccounts/" ++ makeLinkCompanyId companyId ++ "/" ++ makeLinkYear year
         , expect = Http.expectBytesResponse GotNominalAccounts (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }

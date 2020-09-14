@@ -14,7 +14,7 @@ import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List exposing (range)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkId, makeLinkLang, makeLinkPath, makeLinkYear)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (linkButton)
 import Task
 import Time exposing (..)
@@ -245,7 +245,7 @@ yearButton : Model -> Html Msg
 yearButton model =
           Bootstrap.Button.linkButton
                 [  Bootstrap.Button.disabled (isNothing  model.selectedYear)
-                  , Bootstrap.Button.attrs (href (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ]) :: [class "linkButton"] )
+                  , Bootstrap.Button.attrs (href (fragmentUrl [ makeLinkCompanyId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ]) :: [class "linkButton"] )
                 ]
                 [ text "Ok" ]
 

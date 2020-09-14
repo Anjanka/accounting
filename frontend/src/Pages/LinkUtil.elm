@@ -35,8 +35,8 @@ makeLinkPath page =
             "Templates"
 
 
-makeLinkId : Int -> String
-makeLinkId id =
+makeLinkCompanyId : Int -> String
+makeLinkCompanyId id =
     "companyId/" ++ String.fromInt id
 
 
