@@ -16,7 +16,7 @@ import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel as Model exposing (Flags, Model, insertData, reset, updateAccountingEntryTemplate)
 import Pages.AccountingEntryTemplate.ParseAndUpdateUtil exposing (handleSelection, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
-import Pages.LinkUtil exposing (linkServer, makeLinkCompanyId)
+import Pages.LinkUtil exposing (linkAccount, linkAccountingEntryTemplate, linkDelete, linkGetAll, linkInsert, linkReplace, linkServer, makeLinkCompanyId)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, backToEntryPage)
 
 
@@ -344,7 +344,7 @@ mkTableLine txt aet =
 getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
     Http.get
-        { url = String.join "/" [ linkServer, "accountingEntryTemplate", "getAll", makeLinkCompanyId companyId ]
+        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkGetAll, makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
@@ -352,7 +352,7 @@ getAccountingEntryTemplates companyId =
 createAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
 createAccountingEntryTemplate aet =
     Http.post
-        { url = String.join "/" [ linkServer, "accountingEntryTemplate", " insert" ]
+        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkInsert ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplateCreationParams (AccountingEntryTemplateUtil.getAccountingEntryTemplateCreationParams aet))
         }
@@ -361,7 +361,7 @@ createAccountingEntryTemplate aet =
 replaceAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
 replaceAccountingEntryTemplate aet =
     Http.post
-        { url = String.join "/" [ linkServer, "accountingEntryTemplate", "replace" ]
+        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkReplace ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
         }
@@ -370,7 +370,7 @@ replaceAccountingEntryTemplate aet =
 deleteAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
 deleteAccountingEntryTemplate aet =
     Http.post
-        { url = String.join "/" [ linkServer, "accountingEntryTemplate", "delete" ]
+        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkDelete ]
         , expect = HttpUtil.expectWhatever GotResponseDelete
         , body = Http.jsonBody (encoderAccountingEntryTemplateKey { id = aet.id })
         }
@@ -379,6 +379,6 @@ deleteAccountingEntryTemplate aet =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = String.join "/" [ linkServer, "account", "getAll", makeLinkCompanyId companyId ]
+        { url = String.join "/" [ linkServer, linkAccount, linkGetAll, makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }

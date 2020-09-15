@@ -23,7 +23,7 @@ import Pages.AccountingEntry.AccountingEntryPageModel as Model exposing (Flags, 
 import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), downloadReport, getBalance, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, makeListWithPosition, resolve, unicodeToString)
 import Pages.AccountingEntry.InputContent
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, linkServer, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
+import Pages.LinkUtil exposing (Path(..), fragmentUrl, linkAccount, linkAccountingEntry, linkAccountingEntryTemplate, linkDelete, linkFindByYear, linkGetAll, linkInsert, linkJournal, linkMoveDown, linkMoveUp, linkNominalAccounts, linkReplace, linkReports, linkServer, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
 import Task
 
@@ -514,7 +514,7 @@ resetViewport =
 getAccountingEntriesForCurrentYear : Int -> Int -> Cmd Msg
 getAccountingEntriesForCurrentYear companyId year =
     Http.get
-        { url = String.join "/" [ linkServer, "accountingEntry", "findByYear", makeLinkCompanyId companyId, makeLinkYear year ]
+        { url = String.join "/" [ linkServer, linkAccountingEntry, linkFindByYear, makeLinkCompanyId companyId, makeLinkYear year ]
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntries (Decode.list decoderAccountingEntry)
         }
 
@@ -522,7 +522,7 @@ getAccountingEntriesForCurrentYear companyId year =
 getAccountingEntryTemplates : Int -> Cmd Msg
 getAccountingEntryTemplates companyId =
     Http.get
-        { url = String.join "/" [ linkServer, "accountingEntryTemplate", "getAll", makeLinkCompanyId companyId ]
+        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkGetAll, makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
         }
 
@@ -530,7 +530,7 @@ getAccountingEntryTemplates companyId =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = String.join "/" [ linkServer, "account", "getAll", makeLinkCompanyId companyId ]
+        { url = String.join "/" [ linkServer, linkAccount, linkGetAll, makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
         }
 
@@ -538,7 +538,7 @@ getAccounts companyId =
 createAccountingEntry : AccountingEntryCreationParams -> Cmd Msg
 createAccountingEntry accountingEntryCreationParams =
     Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "insert" ]
+        { url = String.join "/" [ linkServer, linkAccountingEntry, linkInsert ]
         , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
         , body = Http.jsonBody (encoderAccountingEntryCreationParams accountingEntryCreationParams)
         }
@@ -547,7 +547,7 @@ createAccountingEntry accountingEntryCreationParams =
 replaceAccountingEntry : AccountingEntry -> Cmd Msg
 replaceAccountingEntry accountingEntry =
     Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "replace" ]
+        { url = String.join "/" [ linkServer, linkAccountingEntry, linkReplace ]
         , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
         , body = Http.jsonBody (encoderAccountingEntry accountingEntry)
         }
@@ -556,7 +556,7 @@ replaceAccountingEntry accountingEntry =
 deleteAccountingEntry : AccountingEntry -> Cmd Msg
 deleteAccountingEntry accountingEntry =
     Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "delete" ]
+        { url = String.join "/" [ linkServer, linkAccountingEntry, linkDelete ]
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
         , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
         }
@@ -565,7 +565,7 @@ deleteAccountingEntry accountingEntry =
 moveAccountingEntryUp : AccountingEntry -> Cmd Msg
 moveAccountingEntryUp accountingEntry =
     Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "moveUp" ]
+        { url = String.join "/" [ linkServer, linkAccountingEntry, linkMoveUp ]
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
         , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
         }
@@ -574,7 +574,7 @@ moveAccountingEntryUp accountingEntry =
 moveAccountingEntryDown : AccountingEntry -> Cmd Msg
 moveAccountingEntryDown accountingEntry =
     Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "moveDown" ]
+        { url = String.join "/" [ linkServer, linkAccountingEntry, linkMoveDown ]
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
         , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
         }
@@ -583,7 +583,7 @@ moveAccountingEntryDown accountingEntry =
 getJournal : Int -> Int -> ReportLanguageComponents -> Cmd Msg
 getJournal companyId year langComps =
     Http.post
-        { url = String.join "/" [ linkServer, "reports", "journal", makeLinkCompanyId companyId, makeLinkYear year ]
+        { url = String.join "/" [ linkServer, linkReports, linkJournal, makeLinkCompanyId companyId, makeLinkYear year ]
         , expect = Http.expectBytesResponse GotJournal (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }
@@ -592,7 +592,7 @@ getJournal companyId year langComps =
 getNominalAccounts : Int -> Int -> ReportLanguageComponents -> Cmd Msg
 getNominalAccounts companyId year langComps =
     Http.post
-        { url = String.join "/" [ linkServer, "reports", "nominalAccounts", makeLinkCompanyId companyId, makeLinkYear year ]
+        { url = String.join "/" [ linkServer, linkReports, linkNominalAccounts, makeLinkCompanyId companyId, makeLinkYear year ]
         , expect = Http.expectBytesResponse GotNominalAccounts (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
         }

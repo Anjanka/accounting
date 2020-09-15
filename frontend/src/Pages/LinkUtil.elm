@@ -11,12 +11,6 @@ type Path
     | AccountingEntryTemplatePage
 
 
-
---makeLinkHost : String
---makeLinkHost =
---    "http://localhost:8080"
-
-
 makeLinkPath : Path -> String
 makeLinkPath page =
     case page of
@@ -62,5 +56,49 @@ fragmentUrl parts =
 
 
 linkServer : String
-linkServer =
-    "http://localhost:9000"
+linkServer = "http://localhost:9000"
+
+linkAccount : String
+linkAccount= "account"
+
+linkAccountingEntry : String
+linkAccountingEntry= "accountingEntry"
+
+linkAccountingEntryTemplate : String
+linkAccountingEntryTemplate = "accountingEntryTemplate"
+
+linkCompany : String
+linkCompany = "company"
+
+linkReports : String
+linkReports = "reports"
+
+linkJournal : String
+linkJournal = "journal"
+
+linkNominalAccounts : String
+linkNominalAccounts = "nominalAccounts"
+
+linkDelete : String
+linkDelete = "delete"
+
+linkInsert : String
+linkInsert = "insert"
+
+linkReplace : String
+linkReplace = "replace"
+
+linkGetAll : String
+linkGetAll = "getAll"
+
+linkFind : String
+linkFind = "find"
+
+linkFindByYear : String
+linkFindByYear = "findByYear"
+
+linkMoveUp : String
+linkMoveUp = "moveUp"
+
+linkMoveDown : String
+linkMoveDown = "moveDown"

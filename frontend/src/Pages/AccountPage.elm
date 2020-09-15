@@ -17,7 +17,7 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List.Extra
-import Pages.LinkUtil exposing (linkServer, makeLinkCompanyId)
+import Pages.LinkUtil exposing (linkAccount, linkDelete, linkGetAll, linkInsert, linkReplace, linkServer, makeLinkCompanyId)
 import Pages.SharedViewComponents exposing (backToEntryPage)
 import Task
 
@@ -387,7 +387,7 @@ resetViewport =
 getAccounts : Int -> Cmd Msg
 getAccounts companyId =
     Http.get
-        { url = String.join "/" [ linkServer, "account", "getAll", makeLinkCompanyId companyId ]
+        { url = String.join "/" [ linkServer, linkAccount, linkGetAll, makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
         }
 
@@ -395,7 +395,7 @@ getAccounts companyId =
 replaceAccount : Account -> Cmd Msg
 replaceAccount account =
     Http.post
-        { url = String.join "/" [ linkServer, "account", "replace" ]
+        { url = String.join "/" [ linkServer, linkAccount, linkReplace ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
         , body = Http.jsonBody (encoderAccount account)
         }
@@ -404,7 +404,7 @@ replaceAccount account =
 createAccount : Account -> Cmd Msg
 createAccount account =
     Http.post
-        { url = String.join "/" [ linkServer, "account", "insert" ]
+        { url = String.join "/" [ linkServer, linkAccount, linkInsert ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
         , body = Http.jsonBody (encoderAccount account)
         }
@@ -413,7 +413,7 @@ createAccount account =
 deleteAccount : Account -> Cmd Msg
 deleteAccount account =
     Http.post
-        { url = String.join "/" [ linkServer, "account", "delete" ]
+        { url = String.join "/" [ linkServer, linkAccount, linkDelete ]
         , expect = HttpUtil.expectWhatever GotResponseDelete
         , body = Http.jsonBody (encoderAccountKey { id = account.id, companyId = account.companyId })
         }
