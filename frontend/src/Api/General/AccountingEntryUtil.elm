@@ -1,8 +1,10 @@
 module Api.General.AccountingEntryUtil exposing (..)
 
+import Api.General.Amount as Amount exposing (Amount)
 import Api.General.DateUtil as DateUtil
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryCreationParams exposing (AccountingEntryCreationParams)
+import Api.Types.AccountingEntryKey exposing (AccountingEntryKey)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.Date exposing (Date)
 
@@ -12,7 +14,7 @@ empty =
     { companyId = 0
     , id = 0
     , accountingYear = 0
-    , bookingDate = { year = 0, month = 0, day = 0 }
+    , bookingDate = DateUtil.empty
     , receiptNumber = ""
     , description = ""
     , credit = 0
@@ -21,12 +23,15 @@ empty =
     , amountChange = 0
     }
 
-emptyWith : {companyId : Int, accountingYear : Int} -> AccountingEntry
+
+emptyWith : { companyId : Int, accountingYear : Int } -> AccountingEntry
 emptyWith params =
-    {empty
-    |companyId = params.companyId
-    , accountingYear = params.accountingYear
-    , bookingDate = { year = params.accountingYear, month = 0, day = 0 }}
+    { empty
+        | companyId = params.companyId
+        , accountingYear = params.accountingYear
+        , bookingDate = { year = params.accountingYear, month = 0, day = 0 }
+    }
+
 
 updateCompanyId : AccountingEntry -> Int -> AccountingEntry
 updateCompanyId accountingEntry companyId =
@@ -78,9 +83,9 @@ updateAmountChange accountingEntry change =
     { accountingEntry | amountChange = change }
 
 
-updateCompleteAmount : AccountingEntry -> Int -> Int -> AccountingEntry
-updateCompleteAmount accountingEntry whole change =
-    { accountingEntry | amountWhole = whole, amountChange = change }
+updateCompleteAmount : AccountingEntry -> Amount -> AccountingEntry
+updateCompleteAmount accountingEntry amount=
+    { accountingEntry | amountWhole = amount.whole, amountChange = amount.change }
 
 
 updateWithTemplate : AccountingEntry -> AccountingEntryTemplate -> AccountingEntry
@@ -90,26 +95,19 @@ updateWithTemplate accountingEntry aet =
 
 show : AccountingEntry -> String
 show accountingEntry =
-    String.concat [ String.fromInt accountingEntry.companyId, " - ", stringFromDate accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", showAmount accountingEntry, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit ]
-
-
-stringFromDate : Date -> String
-stringFromDate date =
-    String.fromInt date.day ++ "." ++ String.fromInt date.month ++ "." ++ String.fromInt date.year
+    String.concat [ String.fromInt accountingEntry.companyId, " - ", DateUtil.show accountingEntry.bookingDate, " No.", accountingEntry.receiptNumber, " - ", accountingEntry.description, ": ", showAmount accountingEntry, "€ from credit: ", String.fromInt accountingEntry.credit, " - to debit: ", String.fromInt accountingEntry.debit ]
 
 
 showAmount : AccountingEntry -> String
 showAmount accountingEntry =
-    String.fromInt accountingEntry.amountWhole ++ "," ++ giveDoubleDigitChange accountingEntry.amountChange
+    Amount.display (amountOf accountingEntry)
 
 
-giveDoubleDigitChange : Int -> String
-giveDoubleDigitChange change =
-    if change < 10 then
-        String.concat [ "0", String.fromInt change ]
-
-    else
-        String.fromInt change
+amountOf : AccountingEntry -> Amount
+amountOf entry =
+    { whole = entry.amountWhole
+    , change = entry.amountChange
+    }
 
 
 isValid : AccountingEntry -> Bool
@@ -128,8 +126,13 @@ isValid accountingEntry =
         && (accountingEntry.amountWhole /= 0 || accountingEntry.amountChange /= 0)
 
 
-getCreationParams : AccountingEntry -> AccountingEntryCreationParams
-getCreationParams accountingEntry =
+isEmpty : AccountingEntry -> Bool
+isEmpty accountingEntry =
+    accountingEntry == empty
+
+
+creationParams : AccountingEntry -> AccountingEntryCreationParams
+creationParams accountingEntry =
     { companyId = accountingEntry.companyId
     , accountingYear = accountingEntry.accountingYear
     , bookingDate = accountingEntry.bookingDate
@@ -140,3 +143,8 @@ getCreationParams accountingEntry =
     , amountWhole = accountingEntry.amountWhole
     , amountChange = accountingEntry.amountChange
     }
+
+
+keyOf : AccountingEntry -> AccountingEntryKey
+keyOf accountingEntry =
+    { companyId = accountingEntry.companyId, accountingYear = accountingEntry.accountingYear, id = accountingEntry.id }

@@ -5,6 +5,7 @@ import java.sql.Date
 import base.Id.AccountingEntryKey
 import io.circe.generic.JsonCodec
 import base.JsonCodecs.Implicits._
+import base.MonetaryValue
 
 @JsonCodec
 case class AccountingEntry(
@@ -21,10 +22,16 @@ case class AccountingEntry(
 )
 
 object AccountingEntry {
+
   def keyOf(accountingEntry: AccountingEntry): AccountingEntryKey =
     AccountingEntryKey(
-      companyID = accountingEntry.companyId,
+      companyId = accountingEntry.companyId,
       id = accountingEntry.id,
       accountingYear = accountingEntry.accountingYear
     )
+
+  implicit class WithChange(val entry: AccountingEntry) extends AnyVal {
+    def monetaryValue: MonetaryValue = MonetaryValue.fromAllCents(100 * entry.amountWhole + entry.amountChange)
+  }
+
 }

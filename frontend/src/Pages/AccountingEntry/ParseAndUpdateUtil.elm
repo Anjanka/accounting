@@ -1,93 +1,57 @@
 module Pages.AccountingEntry.ParseAndUpdateUtil exposing (..)
 
-import Api.General.AccountUtil as AccountUtil
-import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (updateBookingDate)
-import Api.General.DateUtil as DateUtil
+import Api.General.AccountUtil exposing (findAccountName)
+import Api.General.AccountingEntryUtil as AccountingEntryUtil
 import Api.Types.Account exposing (Account)
-import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
-import Pages.AccountingEntry.InputContent as InputContent exposing (updateAmount, updateCreditId, updateDebitId)
+import Pages.AccountingEntry.InputContent exposing (updateAmount, updateCreditId, updateDebitId)
 import Pages.FromInput as FromInput
 
 
-updateDay : Model -> Int -> Model
-updateDay model day =
-    let
-        dayString =
-            if day == -1 then
-                ""
-
-            else
-                DateUtil.showDay day
-
-        modelWithUpdatedEntry =
-            model.accountingEntry.bookingDate
-                |> (\d -> DateUtil.updateDay d day)
-                |> updateBookingDate model.accountingEntry
-                |> updateAccountingEntry model
-
-        modelWithUpdatedContent =
-            modelWithUpdatedEntry.content
-                |> (\c -> InputContent.updateDay c dayString)
-                |> updateContent modelWithUpdatedEntry
-    in
-    modelWithUpdatedContent
 
 
-updateMonth : Model -> Int -> Model
-updateMonth model month =
-    let
-        monthString =
-            if month == -1 then
-                ""
+handleParseResultDay : Int -> Result DateError Int -> { string : String, int : Int }
+handleParseResultDay oldContent dayCandidate =
+    case dayCandidate of
+        Ok day ->
+            { string =
+                if day == 0 then
+                    ""
 
-            else
-                DateUtil.showMonth month
+                else
+                    String.fromInt day
+            , int = day
+            }
 
-        modelWithUpdatedEntry =
-            model.accountingEntry.bookingDate
-                |> (\d -> DateUtil.updateMonth d month)
-                |> updateBookingDate model.accountingEntry
-                |> updateAccountingEntry model
+        Err Empty ->
+            { string = "", int = 0 }
 
-        modelWithUpdatedContent =
-            modelWithUpdatedEntry.content
-                |> (\c -> InputContent.updateMonth c monthString)
-                |> updateContent modelWithUpdatedEntry
-    in
-    modelWithUpdatedContent
+        Err NotEmpty ->
+            { string = String.fromInt oldContent, int = oldContent }
 
 
-updateReceiptNumber : Model -> String -> Model
-updateReceiptNumber model newContent =
-    let
-        modelWithNewEntry =
-            model.accountingEntry
-                |> (\ae -> AccountingEntryUtil.updateReceiptNumber ae newContent)
-                |> updateAccountingEntry model
-
-        modelWithNewContent =
-            modelWithNewEntry.content
-                |> (\c -> InputContent.updateReceiptNumber c newContent)
-                |> updateContent modelWithNewEntry
-    in
-    modelWithNewContent
 
 
-updateDescription : Model -> String -> Model
-updateDescription model newContent =
-    let
-        modelWithNewEntry =
-            model.accountingEntry
-                |> (\ae -> AccountingEntryUtil.updateDescription ae newContent)
-                |> updateAccountingEntry model
+handleParseResultMonth : Int -> Result DateError Int -> { string : String, int : Int }
+handleParseResultMonth oldContent monthCandidate =
+    case monthCandidate of
+        Ok month ->
+            { string =
+                if month == 0 then
+                    ""
 
-        modelWithNewContent =
-            modelWithNewEntry.content
-                |> (\c -> InputContent.updateDescription c newContent)
-                |> updateContent modelWithNewEntry
-    in
-    modelWithNewContent
+                else
+                    String.fromInt month
+            , int = month
+            }
+
+        Err Empty ->
+            { string = "", int = 0 }
+
+        Err NotEmpty ->
+            { string = String.fromInt oldContent, int = oldContent }
+
+
 
 
 parseAndUpdateCredit : Model -> String -> Model
@@ -113,51 +77,24 @@ parseWith empty nonEmpty model newContent =
         nonEmpty model newContent account
 
 
-updateCredit : Model -> Int -> Model
-updateCredit model creditId =
-    let
-        modelWithUpdatedEntry =
-            model.accountingEntry
-                |> (\ae -> AccountingEntryUtil.updateCredit ae creditId)
-                |> updateAccountingEntry model
-
-        modelWithUpdatedContent =
-            modelWithUpdatedEntry.content
-                |> (\c -> updateCreditId c (String.fromInt creditId))
-                |> updateContent modelWithUpdatedEntry
-    in
-    modelWithUpdatedContent
 
 
-updateDebit : Model -> Int -> Model
-updateDebit model debitId =
-    let
-        modelWithUpdatedEntry =
-            model.accountingEntry
-                |> (\ae -> AccountingEntryUtil.updateDebit ae debitId)
-                |> updateAccountingEntry model
-
-        modelWithUpdatedContent =
-            modelWithUpdatedEntry.content
-                |> (\c -> updateDebitId c (String.fromInt debitId))
-                |> updateContent modelWithUpdatedEntry
-    in
-    modelWithUpdatedContent
 
 
-findAccountName : List Account -> String -> Account
-findAccountName accounts id =
-    case String.toInt id of
-        Just int ->
-            case List.Extra.find (\acc -> acc.id == int) accounts of
-                Just value ->
-                    value
 
-                Nothing ->
-                    AccountUtil.empty
 
-        Nothing ->
-            AccountUtil.empty
+
+
+--   case String.toInt id of
+--       Just int ->
+--           case List.Extra.find (\acc -> acc.id == int) accounts of
+--               Just value ->
+--                   value
+--               Nothing ->
+--                   AccountUtil.empty
+--       Nothing ->
+--           AccountUtil.empty
+
 
 parseAndUpdateAmount : Model -> String -> Model
 parseAndUpdateAmount model amountContent =
@@ -166,9 +103,10 @@ parseAndUpdateAmount model amountContent =
         |> (\md ->
                 updateAccountingEntry md
                     (model.accountingEntry
-                        |> (\ae -> AccountingEntryUtil.updateCompleteAmount ae md.content.amount.value.whole md.content.amount.value.change)
+                        |> (\ae -> AccountingEntryUtil.updateCompleteAmount ae md.content.amount.value)
                     )
            )
+
 
 
 --parseAndUpdateAmount : Model -> String -> Model
@@ -178,7 +116,6 @@ parseAndUpdateAmount model amountContent =
 --            | content = updateAmount model.content ""
 --            , accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry 0 0
 --        }
-
 --    else
 --        let
 --            wholeAndChange =
@@ -199,72 +136,79 @@ parseAndUpdateAmount model amountContent =
 --                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",", String.fromInt change ])
 --                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry (change * 10)) whole
 --                                                    }
-
 --                                                else if change < 10 && String.length changeString >= 2 then
 --                                                    { model
 --                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",0", String.fromInt change ])
 --                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole
 --                                                    }
-
 --                                                else
 --                                                    { model
 --                                                        | content = updateAmount model.content (String.concat [ String.fromInt whole, ",", String.fromInt change ])
 --                                                        , accountingEntry = AccountingEntryUtil.updateAmountWhole (AccountingEntryUtil.updateAmountChange model.accountingEntry change) whole
 --                                                    }
-
 --                                            Nothing ->
 --                                                { model
 --                                                    | content = updateAmount model.content (String.concat [ String.fromInt whole, "," ])
 --                                                    , accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0
 --                                                }
-
 --                                    Nothing ->
 --                                        { model | content = updateAmount model.content newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
-
 --                            Nothing ->
 --                                { model | content = updateAmount model.content newContent, accountingEntry = AccountingEntryUtil.updateCompleteAmount model.accountingEntry whole 0 }
-
 --                    Nothing ->
 --                        model
-
 --            Nothing ->
 --                model
 
 
-parseDay : Model -> String -> Int
+parseDay : Model -> String -> Result DateError Int
 parseDay model newDay =
     if String.isEmpty newDay then
-         -1
+        Err Empty
 
     else
-        case String.toInt newDay of
-            Just dayCandidate ->
-                if validDate dayCandidate model.accountingEntry.bookingDate.month model.accountingYear then
-                    dayCandidate
-
-                else
-                    -1
-
-            Nothing ->
-                -1
+        String.toInt newDay
+            |> filterMaybe (\dayCandidate -> validDate dayCandidate model.accountingEntry.bookingDate.month model.accountingYear)
+            |> Maybe.map Ok
+            |> Maybe.withDefault (Err NotEmpty)
 
 
-parseMonth : Model -> String -> Int
+
+-- case String.toInt newDay of
+--     Just dayCandidate ->
+--         if validDate dayCandidate model.accountingEntry.bookingDate.month model.accountingYear then
+--             Ok dayCandidate
+--         else
+--             Err NotEmpty
+--
+--     Nothing ->
+--         Err NotEmpty
+
+
+parseMonth : Model -> String -> Result DateError Int
 parseMonth model newMonth =
     if String.isEmpty newMonth then
-         -1
+        Err Empty
 
     else
-        case String.toInt newMonth of
-            Just monthCandidate ->
-                if validDate  model.accountingEntry.bookingDate.day monthCandidate model.accountingYear then
-                     monthCandidate
+        String.toInt newMonth
+            |> filterMaybe (\monthCandidate -> validDate model.accountingEntry.bookingDate.day monthCandidate model.accountingYear)
+            |> Maybe.map Ok
+            |> Maybe.withDefault (Err NotEmpty)
 
-                else
-                    -1
 
-            Nothing ->
-                -1
+filterMaybe : (a -> Bool) -> Maybe a -> Maybe a
+filterMaybe p maybe =
+    case maybe of
+        Just a ->
+            if p a then
+                maybe
+
+            else
+                Nothing
+
+        Nothing ->
+            Nothing
 
 
 validDate : Int -> Int -> Int -> Bool
@@ -277,8 +221,9 @@ validDate dayCandidate monthCandidate year =
 
 isLeap : Int -> Bool
 isLeap year =
-    if modBy 4 year == 0 then
-        True
+    modBy 4 year == 0
 
-    else
-        False
+
+type DateError
+    = Empty
+    | NotEmpty

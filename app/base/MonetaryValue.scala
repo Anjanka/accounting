@@ -4,20 +4,28 @@ import io.circe.generic.JsonCodec
 
 @JsonCodec
 case class MonetaryValue(whole: BigInt, change: Change) {
-  def toAllCents: BigInt = 100 * whole + change.toCents
+  lazy val toAllCents: BigInt = {
+    100 * whole + whole.signum * change.toCents
+  }
 
 }
 
 object MonetaryValue {
+
   def fromAllCents(cents: BigInt): MonetaryValue = {
     val whole = cents / 100
     val rem = (cents % 100).intValue()
     val tens = rem / 10
     val ones = rem % 10
     //todo guarantee proper usage?
-    val change = Change(Digit(tens), Digit(ones))
+    val change = Change(Digit(tens.abs), Digit(ones.abs))
     MonetaryValue(whole, change)
   }
+
+  def show(amount: MonetaryValue): String = {
+    s"${amount.whole},${amount.change.tens.id}${amount.change.ones.id}"
+  }
+
 }
 
 @JsonCodec
@@ -32,18 +40,19 @@ sealed trait Digit {
 
 object Digit {
 
-  def apply(int: Int): Digit = int match {
-    case n if n <= 0 => _0
-    case 1 => _1
-    case 2 => _2
-    case 3 => _3
-    case 4 => _4
-    case 5 => _5
-    case 6 => _6
-    case 7 => _7
-    case 8 => _8
-    case _ => _9
-  }
+  def apply(int: Int): Digit =
+    int match {
+      case n if n <= 0 => _0
+      case 1           => _1
+      case 2           => _2
+      case 3           => _3
+      case 4           => _4
+      case 5           => _5
+      case 6           => _6
+      case 7           => _7
+      case 8           => _8
+      case _           => _9
+    }
 
 }
 

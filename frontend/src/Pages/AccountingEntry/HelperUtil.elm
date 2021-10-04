@@ -1,13 +1,16 @@
 module Pages.AccountingEntry.HelperUtil exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
-import Api.General.AccountingEntryUtil as AccountingEntryUtil
+import Api.General.AccountingEntryUtil as AccountingEntryUtil exposing (amountOf)
+import Api.General.Amount exposing (Amount, toCents)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
+import Bytes exposing (Bytes)
+import File.Download as Download
+import Http exposing (Error(..), Response(..))
 import List.Extra
 import Pages.AccountingEntry.AccountingEntryPageModel exposing (Model, updateAccountingEntry, updateContent)
-import Pages.AccountingEntry.InputContent exposing (emptyInputContent, updateWithEntry, updateWithTemplate)
-import Pages.Amount exposing (Amount, toCents)
+import Pages.AccountingEntry.InputContent exposing (updateWithEntry, updateWithTemplate)
 
 
 insertForEdit : Model -> AccountingEntry -> Model
@@ -67,19 +70,6 @@ insertTemplateData model description =
     }
 
 
-reset : Model -> Model
-reset model =
-    { model
-        | content = emptyInputContent
-        , accountingEntry = AccountingEntryUtil.emptyWith { companyId = model.companyId, accountingYear = model.accountingYear }
-        , error = ""
-        , editActive = False
-        , selectedTemplate = Nothing
-        , selectedCredit = Nothing
-        , selectedDebit = Nothing
-    }
-
-
 findEntry : String -> List AccountingEntryTemplate -> AccountingEntryTemplate
 findEntry description allAccountingEntryTemplates =
     case List.Extra.find (\aet -> aet.description == description) allAccountingEntryTemplates of
@@ -90,11 +80,11 @@ findEntry description allAccountingEntryTemplates =
             AccountingEntryTemplateUtil.empty
 
 
-getBalance : String -> List AccountingEntry -> String
-getBalance accountIdCandidate allEntries =
+getBalance : String -> String -> List AccountingEntry -> String
+getBalance text accountIdCandidate allEntries =
     case String.toInt accountIdCandidate of
         Just accountId ->
-            showBalance (getAmount accountId allEntries)
+            text ++ ": " ++ showBalance (getAmount accountId allEntries)
 
         Nothing ->
             ""
@@ -113,14 +103,7 @@ getAmount accountId allEntries =
         sumOf entries =
             List.sum (List.map (amountOf >> toCents) entries)
     in
-    sumOf allEntriesCredit - sumOf allEntriesDebit
-
-
-amountOf : AccountingEntry -> Amount
-amountOf entry =
-    { whole = entry.amountWhole
-    , change = entry.amountChange
-    }
+    abs (sumOf allEntriesCredit - sumOf allEntriesDebit)
 
 
 showBalance : Int -> String
@@ -146,3 +129,71 @@ showBalance amount =
 
     else
         "0"
+
+
+unicodeToString : Int -> String
+unicodeToString symbol =
+    String.fromChar (Char.fromCode symbol)
+
+
+type alias EntryWithListPosition =
+    { position : Position, index : Int, accountingEntry : AccountingEntry }
+
+
+type Position
+    = OnlyOne
+    | First
+    | Middle
+    | Last
+
+
+makeListWithPosition : List AccountingEntry -> List EntryWithListPosition
+makeListWithPosition allAccountingEntries =
+    let
+        length =
+            List.length allAccountingEntries
+    in
+    if length <= 1 then
+        List.map (\ae -> { position = OnlyOne, index = 1, accountingEntry = ae }) allAccountingEntries
+
+    else
+        List.indexedMap
+            (\i ae ->
+                let
+                    pos =
+                        if i == 0 then
+                            First
+
+                        else if i == length - 1 then
+                            Last
+
+                        else
+                            Middle
+                in
+                { position = pos, index = i + 1, accountingEntry = ae }
+            )
+            allAccountingEntries
+
+
+resolve : (body -> Result String a) -> Http.Response body -> Result Http.Error a
+resolve toResult response =
+    case response of
+        BadUrl_ url ->
+            Err (BadUrl url)
+
+        Timeout_ ->
+            Err Timeout
+
+        NetworkError_ ->
+            Err NetworkError
+
+        BadStatus_ metadata _ ->
+            Err (BadStatus metadata.statusCode)
+
+        GoodStatus_ _ body ->
+            Result.mapError BadBody (toResult body)
+
+
+downloadReport : String -> Int -> Bytes -> Cmd msg
+downloadReport name accountingYear pdfContent =
+    Download.bytes (String.concat [ name, " ", String.fromInt accountingYear, ".pdf" ]) "application/pdf" pdfContent

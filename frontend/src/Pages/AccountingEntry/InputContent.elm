@@ -1,11 +1,12 @@
 module Pages.AccountingEntry.InputContent exposing (..)
 
 import Api.General.AccountingEntryTemplateUtil as AccountingEntryTemplateUtil
+import Api.General.AccountingEntryUtil as AccountingEntryUtil
+import Api.General.Amount as Amount exposing (Amount)
 import Api.General.DateUtil exposing (showDay, showMonth)
 import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Basics.Extra exposing (flip)
-import Pages.Amount as Amount exposing (Amount)
 import Pages.FromInput as FromInput exposing (FromInput)
 
 
@@ -69,12 +70,6 @@ updateAmount inputContent afi =
 
 updateWithEntry : InputContent -> AccountingEntry -> InputContent
 updateWithEntry inputContent accountingEntry =
-    let
-        newAmountFI =
-            inputContent.amount
-                |> flip FromInput.updateText (Amount.displayAmount (Amount.amountOf accountingEntry))
-                |> flip FromInput.updateValue (Amount.amountOf accountingEntry)
-    in
     { inputContent
         | day = showDay accountingEntry.bookingDate.day
         , month = showMonth accountingEntry.bookingDate.month
@@ -82,7 +77,7 @@ updateWithEntry inputContent accountingEntry =
         , description = accountingEntry.description
         , creditId = String.fromInt accountingEntry.credit
         , debitId = String.fromInt accountingEntry.debit
-        , amount = newAmountFI
+        , amount = Amount.updateAmountInFromInput inputContent.amount (AccountingEntryUtil.amountOf accountingEntry)
     }
 
 
@@ -90,7 +85,7 @@ updateWithTemplate : InputContent -> AccountingEntryTemplate -> InputContent
 updateWithTemplate inputContent aet =
     let
         newAmountText =
-            if aet.amountWhole /= 0 && aet.amountChange /= 0 then
+            if aet.amountWhole /= 0 || aet.amountChange /= 0 then
                 AccountingEntryTemplateUtil.showAmount aet
 
             else
