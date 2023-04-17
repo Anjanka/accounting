@@ -23,7 +23,6 @@ libraryDependencies ++= Seq(
   "io.circe"               %% "circe-parser"          % circeVersion,
   "org.flywaydb"           %% "flyway-play"           % "7.37.0",
   "com.typesafe.play"      %% "play-slick"            % "5.1.0",
-  "com.typesafe.play"      %% "play-slick-evolutions" % "5.1.0",
   "com.dripower"           %% "play-circe"            % "2814.2",
   "com.davegurnell"        %% "bridges"               % "0.24.0",
   "com.github.pathikrit"   %% "better-files"          % "3.9.2",
