@@ -1,13 +1,12 @@
 package report
 
-import java.io.{ ByteArrayOutputStream, StringReader }
-
 import better.files._
+import org.apache.fop.apps.FopFactory
+
+import java.io.{ByteArrayOutputStream, StringReader}
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
-import org.apache.fop.apps.{ FopFactory, MimeConstants }
-
 import scala.xml.Elem
 
 object ReportCreator {
@@ -24,9 +23,9 @@ object ReportCreator {
 
   private def createPdfWith(xsltFile: File)(xml: Elem): ByteArrayOutputStream = {
     val outputStream = new ByteArrayOutputStream()
-    val fopFactory = FopFactory.newInstance()
+    val fopFactory = FopFactory.newInstance(File(".").toJava.toURI)
     val foUserAgent = fopFactory.newFOUserAgent()
-    val fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, outputStream)
+    val fop = fopFactory.newFop(org.apache.xmlgraphics.util.MimeConstants.MIME_PDF, foUserAgent, outputStream)
 
     val factory = TransformerFactory.newInstance()
     val transformer = factory.newTransformer(new StreamSource(xsltFile.toJava))
