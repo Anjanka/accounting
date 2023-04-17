@@ -16,7 +16,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick"     %% "slick-codegen"         % "3.4.1",
   "com.typesafe.slick"     %% "slick-hikaricp"        % "3.4.1",
   "org.postgresql"          % "postgresql"            % "42.5.4",
-  "org.slf4j"               % "slf4j-nop"             % "2.0.5",
   "io.circe"               %% "circe-core"            % circeVersion,
   "io.circe"               %% "circe-generic"         % circeVersion,
   "io.circe"               %% "circe-parser"          % circeVersion,
@@ -28,6 +27,7 @@ libraryDependencies ++= Seq(
   "com.github.pathikrit"   %% "better-files"          % "3.9.2",
   "org.scalameta"          %% "scalafmt-dynamic"      % "3.7.2",
   "org.apache.xmlgraphics"  % "fop"                   % "2.7",
+  "org.scalameta"          %% "scalameta"             % "4.7.6",
   // Transitive dependency. Override added for proper version.
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2"
 )
