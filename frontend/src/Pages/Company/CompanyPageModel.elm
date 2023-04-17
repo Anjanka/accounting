@@ -16,6 +16,7 @@ type alias Model =
     , validationFeedback : String
     , selectedValue : Maybe String
     , editViewActivated : Bool
+    , authorizedAccess : AuthorizedAccess
     }
 
 
@@ -34,6 +35,7 @@ init flags =
     , validationFeedback = ""
     , selectedValue = Nothing
     , editViewActivated = False
+    , authorizedAccess = flags.authorizedAccess
     }
 
 

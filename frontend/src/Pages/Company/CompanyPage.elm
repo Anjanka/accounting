@@ -14,8 +14,9 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.Company.CompanyPageModel as Model exposing (Flags, Model, insertData, reset)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, linkServer, makeLinkPath)
+import Pages.LinkUtil as LinkUtil exposing (Path(..), fragmentUrl, makeLinkPath)
 import Pages.SharedViewComponents exposing (linkButton)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 
 
 
@@ -38,7 +39,7 @@ main =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( Model.init flags
-    , getCompanies
+    , getCompanies flags.authorizedAccess
     )
 
 
@@ -85,7 +86,7 @@ update msg model =
         GotResponseCreateOrUpdate result ->
             case result of
                 Ok _ ->
-                    ( reset model, getCompanies )
+                    ( reset model, getCompanies model.authorizedAccess )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -93,7 +94,7 @@ update msg model =
         GotResponseDelete result ->
             case result of
                 Ok _ ->
-                    ( reset model, getCompanies )
+                    ( reset model, getCompanies model.authorizedAccess )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error, selectedValue = Nothing }, Cmd.none )
@@ -120,13 +121,13 @@ update msg model =
             ( { model | company = updateRevenueOffice model.company newContent }, Cmd.none )
 
         CreateCompany ->
-            ( model, createCompany model.company )
+            ( model, createCompany model.authorizedAccess model.company )
 
         UpdateCompany ->
-            ( model, updateCompany model.company )
+            ( model, updateCompany model.authorizedAccess model.company )
 
         DeleteCompany ->
-            ( model, deleteCompany model.selectedValue )
+            ( model, deleteCompany model.authorizedAccess model.selectedValue )
 
         DropdownChanged selectedValue ->
             ( { model | selectedValue = selectedValue }, Cmd.none )
@@ -261,42 +262,46 @@ dropdownOptions text allCompanies =
 --COMMUNICATION
 
 
-getCompanies : Cmd Msg
-getCompanies =
-    Http.get
-        { url = "http://localhost:9000/company/getAll"
+getCompanies : AuthorizedAccess -> Cmd Msg
+getCompanies authorizedAccess =
+    HttpUtil.get
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "company", "getAll" ]
         , expect = HttpUtil.expectJson GotResponseForAllCompanies (Decode.list decoderCompany)
+        , jwt = authorizedAccess.jwt
         }
 
 
-createCompany : Company -> Cmd Msg
-createCompany company =
-    Http.post
-        { url = "http://localhost:9000/company/insert"
+createCompany : AuthorizedAccess -> Company -> Cmd Msg
+createCompany authorizedAccess company =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "company", "insert" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrUpdate decoderCompany
         , body = Http.jsonBody (encoderCompanyCreationParams (creationParams company))
+        , jwt = authorizedAccess.jwt
         }
 
 
-updateCompany : Company -> Cmd Msg
-updateCompany company =
-    Http.post
-        { url = String.join "/" [ linkServer, "company", "replace" ]
+updateCompany : AuthorizedAccess -> Company -> Cmd Msg
+updateCompany authorizedAccess company =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "company", "replace" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrUpdate decoderCompany
         , body = Http.jsonBody (encoderCompany company)
+        , jwt = authorizedAccess.jwt
         }
 
 
-deleteCompany : Maybe String -> Cmd Msg
-deleteCompany selectedValue =
+deleteCompany : AuthorizedAccess -> Maybe String -> Cmd Msg
+deleteCompany authorizedAccess selectedValue =
     case selectedValue of
         Just value ->
             case String.toInt value of
                 Just id ->
-                    Http.post
-                        { url = String.join "/" [ linkServer, "company", "delete" ]
+                    HttpUtil.post
+                        { url = LinkUtil.backendPage authorizedAccess.configuration [ "company", "delete" ]
                         , expect = HttpUtil.expectWhatever GotResponseDelete
                         , body = Http.jsonBody (encoderCompanyKey { id = id })
+                        , jwt = authorizedAccess.jwt
                         }
 
                 Nothing ->
