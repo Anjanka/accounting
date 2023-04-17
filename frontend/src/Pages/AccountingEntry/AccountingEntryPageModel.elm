@@ -8,6 +8,7 @@ import Api.Types.AccountingEntry exposing (AccountingEntry)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
 import Pages.AccountingEntry.InputContent as InputContent exposing (InputContent, emptyInputContent, updateCreditId, updateDebitId)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 
 
 type alias Model =
@@ -26,6 +27,7 @@ type alias Model =
     , selectedTemplate : Maybe String
     , selectedCredit : Maybe String
     , selectedDebit : Maybe String
+    , authorizedAccess : AuthorizedAccess
     }
 
 
@@ -33,6 +35,7 @@ type alias Flags =
     { companyId : Int
     , accountingYear : Int
     , lang : String
+    , authorizedAccess : AuthorizedAccess
     }
 
 
@@ -53,6 +56,7 @@ init flags =
     , selectedTemplate = Nothing
     , selectedCredit = Nothing
     , selectedDebit = Nothing
+    , authorizedAccess = flags.authorizedAccess
     }
 
 
@@ -77,7 +81,6 @@ updateContent model content =
 updateAccountingEntry : Model -> AccountingEntry -> Model
 updateAccountingEntry model accountingEntry =
     { model | accountingEntry = accountingEntry }
-
 
 
 updateDebit : Model -> Int -> Model
@@ -112,7 +115,6 @@ updateCredit model creditId =
     modelWithUpdatedContent
 
 
-
 updateReceiptNumber : Model -> String -> Model
 updateReceiptNumber model newContent =
     let
@@ -143,7 +145,6 @@ updateDescription model newContent =
                 |> updateContent modelWithNewEntry
     in
     modelWithNewContent
-
 
 
 updateMonth : Model -> { string : String, int : Int } -> Model

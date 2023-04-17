@@ -23,8 +23,9 @@ import Pages.AccountingEntry.AccountingEntryPageModel as Model exposing (Flags, 
 import Pages.AccountingEntry.HelperUtil exposing (EntryWithListPosition, Position(..), downloadReport, getBalance, handleAccountSelection, handleSelection, insertForEdit, insertTemplateData, makeListWithPosition, resolve, unicodeToString)
 import Pages.AccountingEntry.InputContent
 import Pages.AccountingEntry.ParseAndUpdateUtil exposing (handleParseResultDay, handleParseResultMonth, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, parseDay, parseMonth)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, linkServer, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
+import Pages.LinkUtil as LinkUtil exposing (Path(..), fragmentUrl, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, linkButton)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Task
 
 
@@ -45,9 +46,9 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( Model.init flags
     , Cmd.batch
-        [ getAccounts flags.companyId
-        , getAccountingEntryTemplates flags.companyId
-        , getAccountingEntriesForCurrentYear flags.companyId flags.accountingYear
+        [ getAccounts flags.authorizedAccess flags.companyId
+        , getAccountingEntryTemplates flags.authorizedAccess flags.companyId
+        , getAccountingEntriesForCurrentYear flags.authorizedAccess flags.companyId flags.accountingYear
         ]
     )
 
@@ -128,7 +129,7 @@ update msg model =
         GotResponsePost result ->
             case result of
                 Ok _ ->
-                    ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
+                    ( reset model, getAccountingEntriesForCurrentYear model.authorizedAccess model.companyId model.accountingYear )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -136,7 +137,7 @@ update msg model =
         GotResponseDeleteOrSwap result ->
             case result of
                 Ok _ ->
-                    ( reset model, getAccountingEntriesForCurrentYear model.companyId model.accountingYear )
+                    ( reset model, getAccountingEntriesForCurrentYear model.authorizedAccess model.companyId model.accountingYear )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -188,22 +189,22 @@ update msg model =
             ( handleAccountSelection updateDebit { model | selectedDebit = selectedDebit } selectedDebit, Cmd.none )
 
         CreateAccountingEntry ->
-            ( reset model, createAccountingEntry (creationParams model.accountingEntry) )
+            ( reset model, createAccountingEntry model.authorizedAccess (creationParams model.accountingEntry) )
 
         ReplaceAccountingEntry ->
-            ( reset model, replaceAccountingEntry model.accountingEntry )
+            ( reset model, replaceAccountingEntry model.authorizedAccess model.accountingEntry )
 
         DeleteAccountingEntry ->
-            ( reset model, deleteAccountingEntry model.accountingEntry )
+            ( reset model, deleteAccountingEntry model.authorizedAccess model.accountingEntry )
 
         EditAccountingEntry accountingEntry ->
             ( insertForEdit model accountingEntry, resetViewport )
 
         MoveEntryUp accountingEntry ->
-            ( model, moveAccountingEntryUp accountingEntry )
+            ( model, moveAccountingEntryUp model.authorizedAccess accountingEntry )
 
         MoveEntryDown accountingEntry ->
-            ( model, moveAccountingEntryDown accountingEntry )
+            ( model, moveAccountingEntryDown model.authorizedAccess accountingEntry )
 
         LeaveEditView ->
             ( reset model, Cmd.none )
@@ -218,10 +219,10 @@ update msg model =
             ( model, Cmd.none )
 
         GetJournal ->
-            ( model, getJournal model.companyId model.accountingYear model.lang.reportLanguageComponents )
+            ( model, getJournal model.authorizedAccess model.companyId model.accountingYear model.lang.reportLanguageComponents )
 
         GetNominalAccounts ->
-            ( model, getNominalAccounts model.companyId model.accountingYear model.lang.reportLanguageComponents )
+            ( model, getNominalAccounts model.authorizedAccess model.companyId model.accountingYear model.lang.reportLanguageComponents )
 
 
 
@@ -511,88 +512,98 @@ resetViewport =
 -- COMMUNICATION
 
 
-getAccountingEntriesForCurrentYear : Int -> Int -> Cmd Msg
-getAccountingEntriesForCurrentYear companyId year =
-    Http.get
-        { url = String.join "/" [ linkServer, "accountingEntry", "findByYear", makeLinkCompanyId companyId, makeLinkYear year ]
+getAccountingEntriesForCurrentYear : AuthorizedAccess -> Int -> Int -> Cmd Msg
+getAccountingEntriesForCurrentYear authorizedAccess companyId year =
+    HttpUtil.get
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntry", "findByYear", makeLinkCompanyId companyId, makeLinkYear year ]
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntries (Decode.list decoderAccountingEntry)
+        , jwt = authorizedAccess.jwt
         }
 
 
-getAccountingEntryTemplates : Int -> Cmd Msg
-getAccountingEntryTemplates companyId =
-    Http.get
-        { url = String.join "/" [ linkServer, "accountingEntryTemplate", "getAll", makeLinkCompanyId companyId ]
+getAccountingEntryTemplates : AuthorizedAccess -> Int -> Cmd Msg
+getAccountingEntryTemplates authorizedAccess companyId =
+    HttpUtil.get
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntryTemplate", "getAll", makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
+        , jwt = authorizedAccess.jwt
         }
 
 
-getAccounts : Int -> Cmd Msg
-getAccounts companyId =
-    Http.get
-        { url = String.join "/" [ linkServer, "account", "getAll", makeLinkCompanyId companyId ]
+getAccounts : AuthorizedAccess -> Int -> Cmd Msg
+getAccounts authorizedAccess companyId =
+    HttpUtil.get
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "account", "getAll", makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
+        , jwt = authorizedAccess.jwt
         }
 
 
-createAccountingEntry : AccountingEntryCreationParams -> Cmd Msg
-createAccountingEntry accountingEntryCreationParams =
-    Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "insert" ]
+createAccountingEntry : AuthorizedAccess -> AccountingEntryCreationParams -> Cmd Msg
+createAccountingEntry authorizedAccess accountingEntryCreationParams =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntry", "insert" ]
         , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
         , body = Http.jsonBody (encoderAccountingEntryCreationParams accountingEntryCreationParams)
+        , jwt = authorizedAccess.jwt
         }
 
 
-replaceAccountingEntry : AccountingEntry -> Cmd Msg
-replaceAccountingEntry accountingEntry =
-    Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "replace" ]
+replaceAccountingEntry : AuthorizedAccess -> AccountingEntry -> Cmd Msg
+replaceAccountingEntry authorizedAccess accountingEntry =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntry", "replace" ]
         , expect = HttpUtil.expectJson GotResponsePost decoderAccountingEntry
         , body = Http.jsonBody (encoderAccountingEntry accountingEntry)
+        , jwt = authorizedAccess.jwt
         }
 
 
-deleteAccountingEntry : AccountingEntry -> Cmd Msg
-deleteAccountingEntry accountingEntry =
-    Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "delete" ]
+deleteAccountingEntry : AuthorizedAccess -> AccountingEntry -> Cmd Msg
+deleteAccountingEntry authorizedAccess accountingEntry =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntry", "delete" ]
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
         , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
+        , jwt = authorizedAccess.jwt
         }
 
 
-moveAccountingEntryUp : AccountingEntry -> Cmd Msg
-moveAccountingEntryUp accountingEntry =
-    Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "moveUp" ]
+moveAccountingEntryUp : AuthorizedAccess -> AccountingEntry -> Cmd Msg
+moveAccountingEntryUp authorizedAccess accountingEntry =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntry", "moveUp" ]
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
         , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
+        , jwt = authorizedAccess.jwt
         }
 
 
-moveAccountingEntryDown : AccountingEntry -> Cmd Msg
-moveAccountingEntryDown accountingEntry =
-    Http.post
-        { url = String.join "/" [ linkServer, "accountingEntry", "moveDown" ]
+moveAccountingEntryDown : AuthorizedAccess -> AccountingEntry -> Cmd Msg
+moveAccountingEntryDown authorizedAccess accountingEntry =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntry", "moveDown" ]
         , expect = HttpUtil.expectWhatever GotResponseDeleteOrSwap
         , body = Http.jsonBody (encoderAccountingEntryKey (keyOf accountingEntry))
+        , jwt = authorizedAccess.jwt
         }
 
 
-getJournal : Int -> Int -> ReportLanguageComponents -> Cmd Msg
-getJournal companyId year langComps =
-    Http.post
-        { url = String.join "/" [ linkServer, "reports", "journal", makeLinkCompanyId companyId, makeLinkYear year ]
+getJournal : AuthorizedAccess -> Int -> Int -> ReportLanguageComponents -> Cmd Msg
+getJournal authorizedAccess companyId year langComps =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "reports", "journal", makeLinkCompanyId companyId, makeLinkYear year ]
         , expect = Http.expectBytesResponse GotJournal (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
+        , jwt = authorizedAccess.jwt
         }
 
 
-getNominalAccounts : Int -> Int -> ReportLanguageComponents -> Cmd Msg
-getNominalAccounts companyId year langComps =
-    Http.post
-        { url = String.join "/" [ linkServer, "reports", "nominalAccounts", makeLinkCompanyId companyId, makeLinkYear year ]
+getNominalAccounts : AuthorizedAccess -> Int -> Int -> ReportLanguageComponents -> Cmd Msg
+getNominalAccounts authorizedAccess companyId year langComps =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "reports", "nominalAccounts", makeLinkCompanyId companyId, makeLinkYear year ]
         , expect = Http.expectBytesResponse GotNominalAccounts (resolve Ok)
         , body = Http.jsonBody (encoderReportLanguageComponents langComps)
+        , jwt = authorizedAccess.jwt
         }
