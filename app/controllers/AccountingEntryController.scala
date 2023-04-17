@@ -1,10 +1,12 @@
 package controllers
 
+import action.UserAction
 import base.Id.AccountingEntryKey
 import db.AccountingEntryDAO.CompanyYearKey
 import db.creation.AccountingEntryCreationParams
 import db.{AccountingEntry, AccountingEntryDAO, Tables}
 import io.circe.Json
+
 import javax.inject.{Inject, Singleton}
 import play.api.libs.circe.Circe
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
@@ -13,8 +15,9 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class AccountingEntryController @Inject() (
-    val controllerComponents: ControllerComponents,
-    val accountingEntryDAO: AccountingEntryDAO
+    override protected val controllerComponents: ControllerComponents,
+    accountingEntryDAO: AccountingEntryDAO,
+    userAction: UserAction
 )(implicit ec: ExecutionContext)
     extends BaseController
     with Circe {
@@ -30,7 +33,8 @@ class AccountingEntryController @Inject() (
       AccountingEntryDAO.nextId,
       AccountingEntryCreationParams.create,
       AccountingEntry.keyOf,
-      accountingEntryDAO.dao
+      accountingEntryDAO.dao,
+      userAction
     )(
       controllerComponents
     )

@@ -1,17 +1,23 @@
 package controllers
 
+import action.UserAction
 import base.Id.CompanyKey
 import db.creation.CompanyCreationParams
-import db.{Company, CompanyDAO, Tables}
+import db.{ Company, CompanyDAO, Tables }
 import io.circe.Json
-import javax.inject.{Inject, Singleton}
+
+import javax.inject.{ Inject, Singleton }
 import play.api.libs.circe.Circe
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class CompanyController @Inject() (val controllerComponents: ControllerComponents, val companyDAO: CompanyDAO)(implicit
+class CompanyController @Inject() (
+    override protected val controllerComponents: ControllerComponents,
+    companyDAO: CompanyDAO,
+    userAction: UserAction
+)(implicit
     ec: ExecutionContext
 ) extends BaseController
     with Circe {
@@ -21,7 +27,8 @@ class CompanyController @Inject() (val controllerComponents: ControllerComponent
       _ => CompanyDAO.nextId,
       CompanyCreationParams.create,
       Company.keyOf,
-      companyDAO.dao
+      companyDAO.dao,
+      userAction
     )(
       controllerComponents
     )

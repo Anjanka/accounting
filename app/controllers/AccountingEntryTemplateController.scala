@@ -1,9 +1,11 @@
 package controllers
 
+import action.UserAction
 import base.Id.AccountingEntryTemplateKey
 import db.creation.AccountingEntryTemplateCreationParams
 import db.{ AccountingEntryTemplate, AccountingEntryTemplateDAO, Tables }
 import io.circe.Json
+
 import javax.inject.{ Inject, Singleton }
 import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
 
@@ -11,8 +13,9 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class AccountingEntryTemplateController @Inject() (
-    val controllerComponents: ControllerComponents,
-    val accountingEntryTemplateDAO: AccountingEntryTemplateDAO
+    override protected val controllerComponents: ControllerComponents,
+    accountingEntryTemplateDAO: AccountingEntryTemplateDAO,
+    userAction: UserAction
 )(implicit ec: ExecutionContext)
     extends BaseController {
 
@@ -33,7 +36,8 @@ class AccountingEntryTemplateController @Inject() (
       _ => AccountingEntryTemplateDAO.nextId,
       AccountingEntryTemplateCreationParams.create,
       AccountingEntryTemplate.keyOf,
-      accountingEntryTemplateDAO.dao
+      accountingEntryTemplateDAO.dao,
+      userAction
     )(
       controllerComponents
     )

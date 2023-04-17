@@ -1,16 +1,22 @@
 package controllers
 
+import action.UserAction
 import base.Id.AccountKey
-import db.{Account, AccountDAO, Tables}
+import db.{ Account, AccountDAO, Tables }
 import io.circe.Json
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+
+import javax.inject.{ Inject, Singleton }
+import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
 import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class AccountController @Inject() (val controllerComponents: ControllerComponents, val accountDAO: AccountDAO)(implicit
+class AccountController @Inject() (
+    override protected val controllerComponents: ControllerComponents,
+    accountDAO: AccountDAO,
+    userAction: UserAction
+)(implicit
     ec: ExecutionContext
 ) extends BaseController {
 
@@ -19,7 +25,8 @@ class AccountController @Inject() (val controllerComponents: ControllerComponent
       _ => DBIO.successful(()),
       (_, ps) => ps,
       Account.keyOf,
-      accountDAO.dao
+      accountDAO.dao,
+      userAction
     )(
       controllerComponents
     )
