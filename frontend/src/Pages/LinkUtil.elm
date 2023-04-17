@@ -1,5 +1,7 @@
 module Pages.LinkUtil exposing (..)
 
+import Basics.Extra exposing (flip)
+import Configuration exposing (Configuration)
 import Url.Builder exposing (Root(..))
 
 
@@ -61,6 +63,7 @@ fragmentUrl parts =
     Url.Builder.custom Relative [] [] (Just (Url.Builder.absolute parts []))
 
 
-linkServer : String
-linkServer =
-    "http://localhost:9000"
+backendPage : Configuration -> List String -> String
+backendPage configuration pathSteps =
+    (configuration.backendURL :: pathSteps)
+        |> flip Url.Builder.relative []
