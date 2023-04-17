@@ -13,6 +13,7 @@ import Pages.AccountingEntryTemplate.AccountingEntryTemplatePage as AccountingEn
 import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel as AccountingEntryTemplateModel
 import Pages.Company.CompanyPage as Company
 import Pages.Company.CompanyPageModel as CompanyModel
+import Pages.Login.LoginPage as LoginPage
 import Pages.StartPage as Start
 import Ports
 import Url exposing (Protocol(..), Url)
@@ -25,7 +26,7 @@ main =
         { init = init
         , onUrlChange = ChangedUrl
         , onUrlRequest = ClickedLink
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> Sub.batch [ Ports.fetchToken FetchToken ]
         , update = update
         , view = \model -> { title = titleFor model, body = [ view model ] }
         }
@@ -58,6 +59,9 @@ titleFor model =
         AccountingEntryTemplate _ ->
             "Manage Templates"
 
+        Login _ ->
+            "Log In"
+
         NotFound ->
             "Page not Found"
 
@@ -68,6 +72,7 @@ type Page
     | Account Account.Model
     | AccountingEntry AccountingEntryModel.Model
     | AccountingEntryTemplate AccountingEntryTemplateModel.Model
+    | Login LoginPage.Model
     | NotFound
 
 
@@ -80,6 +85,7 @@ type Msg
     | CompanyMsg Company.Msg
     | AccountingEntryTemplateMsg AccountingEntryTemplate.Msg
     | AccountingEntryMsg AccountingEntry.Msg
+    | LoginMsg LoginPage.Msg
 
 
 init : Configuration -> Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -111,6 +117,9 @@ view model =
 
         AccountingEntryTemplate accountingEntryTemplate ->
             Html.map AccountingEntryTemplateMsg (AccountingEntryTemplate.view accountingEntryTemplate)
+
+        Login login ->
+            Html.map LoginMsg (LoginPage.view login)
 
         NotFound ->
             div [] [ text "404 - PAGE NOT FOUND" ]
@@ -179,6 +188,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        LoginMsg loginMsg ->
+            case model.page of
+                Login login ->
+                    stepLogin model (LoginPage.update loginMsg login)
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 stepStart : Model -> ( Start.Model, Cmd Start.Msg ) -> ( Model, Cmd Msg )
 stepStart model ( start, cmd ) =
@@ -205,7 +222,7 @@ stepAccountingEntryTemplate model ( accountingEntryTemplate, cmd ) =
     ( { model | page = AccountingEntryTemplate accountingEntryTemplate }, Cmd.map AccountingEntryTemplateMsg cmd )
 
 
-stepLogin : Model -> ( Login.Model, Cmd Login.Msg ) -> ( Model, Cmd Msg )
+stepLogin : Model -> ( LoginPage.Model, Cmd LoginPage.Msg ) -> ( Model, Cmd Msg )
 stepLogin model ( login, cmd ) =
     ( { model | page = Login login }, Cmd.map LoginMsg cmd )
 
@@ -216,6 +233,7 @@ type Route
     | AccountRoute Int String
     | AccountingEntryRoute Int Int String
     | AccountingEntryTemplateRoute Int String
+    | LoginRoute
 
 
 followRoute : Model -> ( Model, Cmd Msg )
@@ -225,7 +243,7 @@ followRoute model =
             ( { model | page = NotFound }, Cmd.none )
 
         ( Nothing, Just _ ) ->
-            Login.init { configuration = model.configuration } |> stepLogin model
+            LoginPage.init { configuration = model.configuration } |> stepLogin model
 
         ( Just userJWT, Just entryRoute ) ->
             let
@@ -242,7 +260,7 @@ followRoute model =
             in
             case entryRoute of
                 LoginRoute ->
-                    Login.init
+                    LoginPage.init
                         { configuration = model.configuration
                         }
                         |> stepLogin model
@@ -306,6 +324,7 @@ parser =
         , Parser.map AccountRoute (companyIdParser </> s "Accounts" </> languageParser)
         , Parser.map AccountingEntryTemplateRoute (companyIdParser </> s "Templates" </> languageParser)
         , Parser.map AccountingEntryRoute (companyIdParser </> s "Accounting" </> accountingYearParser </> languageParser)
+        , Parser.map LoginRoute (s "Login")
         ]
 
 
