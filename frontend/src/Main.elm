@@ -1,4 +1,4 @@
-module Pages.AccountingMain exposing (..)
+module Main exposing (..)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
