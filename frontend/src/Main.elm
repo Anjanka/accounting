@@ -143,7 +143,7 @@ update msg model =
         FetchToken token ->
             let
                 actualToken =
-                    Just token |> Maybe.Extra.filter String.isEmpty
+                    Just token |> Maybe.Extra.filter (String.isEmpty >> not)
             in
             { model | jwt = actualToken }
                 |> followRoute
