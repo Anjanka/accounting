@@ -67,3 +67,9 @@ backendPage : Configuration -> List String -> String
 backendPage configuration pathSteps =
     (configuration.backendURL :: pathSteps)
         |> flip Url.Builder.relative []
+
+frontendPage : Configuration -> List String -> String
+frontendPage configuration pathSteps =
+    [ configuration.mainPageURL, "#" ]
+        ++ pathSteps
+        |> flip Url.Builder.relative []

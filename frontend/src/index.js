@@ -4,7 +4,8 @@ import './style.css'
 const app = Elm.Main.init({
     node: document.getElementById('root'),
     flags: {
-        backendURL: process.env.ELM_APP_BACKEND_URL
+        backendURL: process.env.ELM_APP_BACKEND_URL,
+        mainPageURL: process.env.ELM_APP_MAIN_PAGE_URL
     }
 })
 
