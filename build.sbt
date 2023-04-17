@@ -5,35 +5,39 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.12.10"
+scalaVersion := "2.13.10"
 
-addCompilerPlugin(
-  "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
-)
-
-val circeVersion = "0.12.3"
+val circeVersion = "0.14.5"
 
 libraryDependencies ++= Seq(
   guice,
-  "org.scalatestplus.play" %% "scalatestplus-play"    % "5.0.0" % Test,
-  "com.typesafe.slick"     %% "slick"                 % "3.3.2",
-  "com.typesafe.slick"     %% "slick-codegen"         % "3.3.2",
-  "com.typesafe.slick"     %% "slick-hikaricp"        % "3.3.2",
-  "org.postgresql"          % "postgresql"            % "9.4-1206-jdbc42",
-  "org.slf4j"               % "slf4j-nop"             % "1.6.4",
+  "org.scalatestplus.play" %% "scalatestplus-play"    % "5.1.0" % Test,
+  "com.typesafe.slick"     %% "slick"                 % "3.4.1",
+  "com.typesafe.slick"     %% "slick-codegen"         % "3.4.1",
+  "com.typesafe.slick"     %% "slick-hikaricp"        % "3.4.1",
+  "org.postgresql"          % "postgresql"            % "42.5.4",
+  "org.slf4j"               % "slf4j-nop"             % "2.0.5",
   "io.circe"               %% "circe-core"            % circeVersion,
   "io.circe"               %% "circe-generic"         % circeVersion,
   "io.circe"               %% "circe-parser"          % circeVersion,
-  "org.typelevel"          %% "spire"                 % "0.14.1",
-  "org.flywaydb"           %% "flyway-play"           % "6.0.0",
-  "com.typesafe.play"      %% "play-slick"            % "5.0.0",
-  "com.typesafe.play"      %% "play-slick-evolutions" % "5.0.0",
-  "com.dripower"           %% "play-circe"            % "2712.0",
-  "com.davegurnell"        %% "bridges"               % "0.21.0",
-  "com.github.pathikrit"   %% "better-files"          % "3.9.1",
-  "org.scalameta"          %% "scalameta"             % "4.3.13",
-  "org.scalameta"          %% "scalafmt-dynamic"      % "2.6.1",
-  "org.apache.xmlgraphics"  % "fop"                   % "0.93"
+  "org.flywaydb"           %% "flyway-play"           % "7.37.0",
+  "com.typesafe.play"      %% "play-slick"            % "5.1.0",
+  "com.typesafe.play"      %% "play-slick-evolutions" % "5.1.0",
+  "com.dripower"           %% "play-circe"            % "2814.2",
+  "com.davegurnell"        %% "bridges"               % "0.24.0",
+  "com.github.pathikrit"   %% "better-files"          % "3.9.2",
+  "org.scalameta"          %% "scalafmt-dynamic"      % "3.7.2",
+  "org.apache.xmlgraphics"  % "fop"                   % "2.7",
+  // Transitive dependency. Override added for proper version.
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2"
+)
+
+dependencyOverrides ++= Seq(
+  "com.google.inject" % "guice" % "5.1.0"
+)
+
+scalacOptions ++= Seq(
+  "-Ymacro-annotations"
 )
 
 lazy val elmGenerate = Command.command("elmGenerate") { state =>
