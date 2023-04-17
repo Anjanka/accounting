@@ -3,7 +3,9 @@ organization := "org.peabuddies"
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala)
+  .enablePlugins(JavaServerAppPackaging)
 
 scalaVersion := "2.13.10"
 
@@ -51,8 +53,19 @@ lazy val dbGenerate = Command.command("dbGenerate") { state =>
 commands += elmGenerate
 commands += dbGenerate
 
-// Adds additional packages into Twirl
-//TwirlKeys.templateImports += "org.peabuddies.controllers._"
+Docker / maintainer    := "nikita.danilenko.is@gmail.com"
+Docker / packageName   := "accounting"
+Docker / version       := sys.env.getOrElse("BUILD_NUMBER", "0")
+Docker / daemonUserUid := None
+Docker / daemonUser    := "daemon"
+dockerBaseImage        := "adoptopenjdk/openjdk11:latest"
+dockerUpdateLatest     := true
 
-// Adds additional packages into conf/routes
-// play.sbt.routes.RoutesKeys.routesImport += "org.peabuddies.binders._"
+// Patches and workarounds
+
+// Docker has known issues with Play's PID file. The below command disables Play's PID file.
+// cf. https://www.playframework.com/documentation/2.8.x/Deploying#Play-PID-Configuration
+// The setting is a possible duplicate of the same setting in the application.conf.
+Universal / javaOptions ++= Seq(
+  "-Dpidfile.path=/dev/null"
+)
