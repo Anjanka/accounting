@@ -1,8 +1,6 @@
 package controllers
 
 import action.UserAction
-
-import java.io.ByteArrayInputStream
 import akka.stream.scaladsl.StreamConverters
 import base.DateUtil.Implicits._
 import base.Id.CompanyKey
@@ -10,12 +8,12 @@ import base.{ BusinessConstants, NominalAccount, NominalAccountEntry, ReportLang
 import db.AccountingEntryDAO.CompanyYearKey
 import db._
 import io.circe.Json
-
-import javax.inject.Inject
 import play.api.libs.circe.Circe
 import play.api.mvc.{ Action, BaseController, ControllerComponents }
 import report.{ JournalCreator, NominalAccountsCreator, ReportCreator }
 
+import java.io.ByteArrayInputStream
+import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ReportController @Inject() (
@@ -57,9 +55,8 @@ class ReportController @Inject() (
               contentLength = None,
               inline = false,
               fileName = None
-            ).withHeaders(
-              CONTENT_TYPE -> "application/pdf",
-              CONTENT_DISPOSITION -> "attachment"
+            ).as(
+              contentType = "application/pdf"
             )
           }
       }
