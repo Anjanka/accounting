@@ -5,7 +5,7 @@ import Api.General.HttpUtil as HttpUtil
 import Api.Types.Credentials exposing (Credentials, encoderCredentials)
 import Browser.Navigation
 import Configuration exposing (Configuration)
-import Html exposing (Html, button, div, input, label, text)
+import Html exposing (Html, button, div, input, label, p, text)
 import Html.Attributes exposing (autocomplete, id, type_)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
@@ -61,13 +61,23 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SetUsername username ->
-            ( { model | credentials = model.credentials |> updateUsername username }, Cmd.none )
+            ( { model
+                | credentials = model.credentials |> updateUsername username
+                , error = ""
+              }
+            , Cmd.none
+            )
 
         SetPassword password ->
-            ( { model | credentials = model.credentials |> updatePassword password }, Cmd.none )
+            ( { model
+                | credentials = model.credentials |> updatePassword password
+                , error = ""
+              }
+            , Cmd.none
+            )
 
         Login ->
-            ( model
+            ( { model | error = "" }
             , login model.configuration model.credentials
             )
 
@@ -96,7 +106,7 @@ login configuration credentials =
 
 
 view : Model -> Html Msg
-view _ =
+view model =
     div [ id "login" ]
         [ div []
             [ label [] [ text "Username" ]
@@ -119,4 +129,6 @@ view _ =
             ]
         , div []
             [ button [ onClick Login ] [ text "Log In" ] ]
+        , p [] []
+        , div [] [ label [] [ text model.error ] ]
         ]
