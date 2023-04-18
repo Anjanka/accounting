@@ -3,15 +3,15 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET     /account/find/companyId/*companyId/id/*id                                            controllers.AccountController.find(companyId: Int, id: Int)
-GET     /account/getAll/companyId/*companyId                                              controllers.AccountController.findAll(companyId: Int)
+GET     /account/find/companyId/:companyId/id/:id                                         controllers.AccountController.find(companyId: Int, id: Int)
+GET     /account/getAll/companyId/:companyId                                              controllers.AccountController.findAll(companyId: Int)
 POST    /account/replace                                                                  controllers.AccountController.replace
 POST    /account/insert                                                                   controllers.AccountController.insert
 POST    /account/delete                                                                   controllers.AccountController.delete
 
 
-GET    /accountingEntry/find/companyId/*companyId/id/*id/accountingYear/*accountingYear      controllers.AccountingEntryController.find(companyId: Int, id: Int, accountingYear: Int)
-GET    /accountingEntry/findByYear/companyId/*companyId/accountingYear/*accountingYear    controllers.AccountingEntryController.findByYear(companyId: Int, accountingYear: Int)
+GET    /accountingEntry/find/companyId/:companyId/id/:id/accountingYear/:accountingYear   controllers.AccountingEntryController.find(companyId: Int, id: Int, accountingYear: Int)
+GET    /accountingEntry/findByYear/companyId/:companyId/accountingYear/:accountingYear    controllers.AccountingEntryController.findByYear(companyId: Int, accountingYear: Int)
 POST   /accountingEntry/replace                                                           controllers.AccountingEntryController.replace
 POST   /accountingEntry/insert                                                            controllers.AccountingEntryController.insert
 POST   /accountingEntry/delete                                                            controllers.AccountingEntryController.delete
@@ -19,18 +19,20 @@ POST   /accountingEntry/moveUp                                                  
 POST   /accountingEntry/moveDown                                                          controllers.AccountingEntryController.moveDown
 
 
-GET    /accountingEntryTemplate/find/id/*id                                                  controllers.AccountingEntryTemplateController.find(id: Int)
-GET    /accountingEntryTemplate/getAll/companyId/*companyId                               controllers.AccountingEntryTemplateController.findAll(companyId: Int)
+GET    /accountingEntryTemplate/find/id/:id                                               controllers.AccountingEntryTemplateController.find(id: Int)
+GET    /accountingEntryTemplate/getAll/companyId/:companyId                               controllers.AccountingEntryTemplateController.findAll(companyId: Int)
 POST   /accountingEntryTemplate/replace                                                   controllers.AccountingEntryTemplateController.replace
 POST   /accountingEntryTemplate/insert                                                    controllers.AccountingEntryTemplateController.insert
 POST   /accountingEntryTemplate/delete                                                    controllers.AccountingEntryTemplateController.delete
 
 
-GET     /company/find/id/*id                                                                 controllers.CompanyController.find(id: Int)
+GET     /company/find/id/:id                                                              controllers.CompanyController.find(id: Int)
 GET     /company/getAll                                                                   controllers.CompanyController.findAll
 POST    /company/replace                                                                  controllers.CompanyController.replace
 POST    /company/insert                                                                   controllers.CompanyController.insert
 POST    /company/delete                                                                   controllers.CompanyController.delete
 
-POST /reports/journal/companyId/*companyId/accountingYear/*accountingYear                 controllers.ReportController.journal(companyId: Int, accountingYear: Int)
-POST /reports/nominalAccounts/companyId/*companyId/accountingYear/*accountingYear         controllers.ReportController.nominalAccounts(companyId: Int, accountingYear: Int)
+POST    /reports/journal/companyId/:companyId/accountingYear/:accountingYear              controllers.ReportController.journal(companyId: Int, accountingYear: Int)
+POST    /reports/nominalAccounts/companyId/:companyId/accountingYear/:accountingYear      controllers.ReportController.nominalAccounts(companyId: Int, accountingYear: Int)
+
+POST    /user/login                                                                       controllers.user.UserController.login
