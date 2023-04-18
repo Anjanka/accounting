@@ -6,7 +6,7 @@ import Api.Types.Credentials exposing (Credentials, encoderCredentials)
 import Browser.Navigation
 import Configuration exposing (Configuration)
 import Html exposing (Html, button, div, input, label, text)
-import Html.Attributes exposing (autocomplete, type_)
+import Html.Attributes exposing (autocomplete, id, type_)
 import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra exposing (onEnter)
 import Http
@@ -97,7 +97,7 @@ login configuration credentials =
 
 view : Model -> Html Msg
 view _ =
-    div []
+    div [ id "login" ]
         [ div []
             [ label [] [ text "Username" ]
             , input

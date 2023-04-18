@@ -222,3 +222,38 @@ tr:hover {
     text-align: left;
 }
 
+#login  {
+    text-align: center;
+}
+
+#login input,
+#login label,
+#login button {
+    font-family: Arial, sans-serif;
+    font-size: large;
+}
+
+#login label {
+    padding: 5px;
+}
+
+#login button {
+    display: inline-block;
+    text-align: center;
+    margin-left: auto;
+    margin-top: 5px;
+    margin-right: auto;
+    width: 50%;
+    background-color: #36d936;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    height: 100%;
+    color: #fafafa;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+#login button:hover {
+    background-color: rgb(70 240 70);
+}
