@@ -87,14 +87,14 @@
 }
 
 #dayField {
-    margin-right: 0px;
+    margin-right: 0;
     width: 25px;
     text-align: right;
 }
 
 #monthField {
-    margin-left: 0px;
-    margin-right: 0px;
+    margin-left: 0;
+    margin-right: 0;
     width: 26px;
     text-align: right;
 }
