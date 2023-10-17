@@ -6,7 +6,7 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
-            "NoRedInk/elm-json-decode-pipeline": "1.0.0",
+            "NoRedInk/elm-json-decode-pipeline": "1.0.1",
             "PaackEng/elm-ui-dialog": "1.0.0",
             "abadi199/elm-input-extra": "5.2.3",
             "elm/browser": "1.0.2",
@@ -20,7 +20,9 @@
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
             "elm-community/basics-extra": "4.1.0",
+            "elm-community/html-extra": "3.4.0",
             "elm-community/list-extra": "8.2.4",
+            "elm-community/maybe-extra": "5.3.0",
             "mdgriffith/elm-ui": "1.1.7",
             "rundis/elm-bootstrap": "5.2.0"
         },

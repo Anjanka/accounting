@@ -1,11 +1,12 @@
 module Pages.Company.CompanyPageModel exposing (..)
 
-
 import Api.General.CompanyUtil as CompanyUtil exposing (empty)
 import Api.General.LanguageComponentConstants exposing (getLanguage)
 import Api.Types.Company exposing (Company)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
 import List.Extra
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
+
 
 type alias Model =
     { lang : LanguageComponents
@@ -15,29 +16,36 @@ type alias Model =
     , validationFeedback : String
     , selectedValue : Maybe String
     , editViewActivated : Bool
+    , authorizedAccess : AuthorizedAccess
     }
 
 
 type alias Flags =
-    {lang : String}
+    { lang : String
+    , authorizedAccess : AuthorizedAccess
+    }
+
 
 init : Flags -> Model
-init flags = { lang = getLanguage flags.lang
-                   , company = empty
-                   , allCompanies = []
-                   , error = ""
-                   , validationFeedback = ""
-                   , selectedValue = Nothing
-                   , editViewActivated = False
-                   }
+init flags =
+    { lang = getLanguage flags.lang
+    , company = empty
+    , allCompanies = []
+    , error = ""
+    , validationFeedback = ""
+    , selectedValue = Nothing
+    , editViewActivated = False
+    , authorizedAccess = flags.authorizedAccess
+    }
+
 
 insertData : Model -> Model
 insertData model =
     model.selectedValue
-      |> Maybe.andThen String.toInt
-      |> Maybe.andThen (\id -> List.Extra.find (\comp -> comp.id == id) model.allCompanies)
-      |> Maybe.map (\company -> {model | company = company, editViewActivated = True})
-      |> Maybe.withDefault model
+        |> Maybe.andThen String.toInt
+        |> Maybe.andThen (\id -> List.Extra.find (\comp -> comp.id == id) model.allCompanies)
+        |> Maybe.map (\company -> { model | company = company, editViewActivated = True })
+        |> Maybe.withDefault model
 
 
 reset : Model -> Model

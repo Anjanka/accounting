@@ -1,6 +1,7 @@
 module Api.General.HttpUtil exposing (..)
 
-import Http exposing (Error(..), Expect, expectStringResponse)
+import Api.Auxiliary exposing (JWT)
+import Http exposing (Body, Error(..), Expect, expectStringResponse)
 import Json.Decode as D
 
 
@@ -68,3 +69,95 @@ errorToString error =
 
         BadBody string ->
             string
+
+
+type Verb
+    = GET
+    | POST
+    | PUT
+    | PATCH
+    | DELETE
+
+
+verbToString : Verb -> String
+verbToString verb =
+    case verb of
+        GET ->
+            "GET"
+
+        POST ->
+            "POST"
+
+        PUT ->
+            "PUT"
+
+        PATCH ->
+            "PATCH"
+
+        DELETE ->
+            "DELETE"
+
+
+type alias RequestParameters msg =
+    { url : String
+    , jwt : JWT
+    , body : Http.Body
+    , expect : Expect msg
+    }
+
+
+userTokenHeader : String
+userTokenHeader =
+    "User-Token"
+
+
+jwtHeader : JWT -> Http.Header
+jwtHeader =
+    Http.header userTokenHeader
+
+
+byVerb :
+    Verb
+    -> RequestParameters msg
+    -> Cmd msg
+byVerb verb ps =
+    Http.request
+        { method = verb |> verbToString
+        , headers = [ jwtHeader ps.jwt ]
+        , url = ps.url
+        , body = ps.body
+        , expect = ps.expect
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+get :
+    { url : String
+    , jwt : JWT
+    , expect : Expect msg
+    }
+    -> Cmd msg
+get ps =
+    byVerb GET
+        { url = ps.url
+        , jwt = ps.jwt
+        , body = Http.emptyBody
+        , expect = ps.expect
+        }
+
+
+post :
+    { url : String
+    , body : Http.Body
+    , jwt : JWT
+    , expect : Expect msg
+    }
+    -> Cmd msg
+post ps =
+    byVerb POST
+        { url = ps.url
+        , jwt = ps.jwt
+        , body = ps.body
+        , expect = ps.expect
+        }

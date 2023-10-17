@@ -16,8 +16,9 @@ import Http exposing (Error)
 import Json.Decode as Decode
 import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel as Model exposing (Flags, Model, insertData, reset, updateAccountingEntryTemplate)
 import Pages.AccountingEntryTemplate.ParseAndUpdateUtil exposing (handleSelection, parseAndUpdateAmount, parseAndUpdateCredit, parseAndUpdateDebit, updateCredit, updateDebit)
-import Pages.LinkUtil exposing (linkAccount, linkAccountingEntryTemplate, linkDelete, linkGetAll, linkInsert, linkReplace, linkServer, makeLinkCompanyId)
+import Pages.LinkUtil as LinkUtil exposing (makeLinkCompanyId)
 import Pages.SharedViewComponents exposing (accountForDropdown, accountListForDropdown, backToEntryPage)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 
 
 
@@ -50,8 +51,8 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( Model.init flags
     , Cmd.batch
-        [ getAccounts flags.companyId
-        , getAccountingEntryTemplates flags.companyId
+        [ getAccounts flags.authorizedAccess flags.companyId
+        , getAccountingEntryTemplates flags.authorizedAccess flags.companyId
         ]
     )
 
@@ -101,7 +102,7 @@ update msg model =
         GotResponseCreateOrReplace result ->
             case result of
                 Ok _ ->
-                    ( reset model, getAccountingEntryTemplates model.companyId )
+                    ( reset model, getAccountingEntryTemplates model.authorizedAccess model.companyId )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -117,7 +118,7 @@ update msg model =
         GotResponseDelete result ->
             case result of
                 Ok _ ->
-                    ( reset model, getAccountingEntryTemplates model.companyId )
+                    ( reset model, getAccountingEntryTemplates model.authorizedAccess model.companyId )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -141,13 +142,13 @@ update msg model =
             ( parseAndUpdateAmount model newContent, Cmd.none )
 
         CreateAccountingEntryTemplate ->
-            ( model, createAccountingEntryTemplate model.aet )
+            ( model, createAccountingEntryTemplate model.authorizedAccess model.aet )
 
         ReplaceAccountingEntryTemplate ->
-            ( model, replaceAccountingEntryTemplate model.aet )
+            ( model, replaceAccountingEntryTemplate model.authorizedAccess model.aet )
 
         DeleteAccountingEntryTemplate ->
-            ( model, deleteAccountingEntryTemplate model.aet )
+            ( model, deleteAccountingEntryTemplate model.authorizedAccess model.aet )
 
         DropdownCreditChanged selectedCredit ->
             ( handleSelection updateCredit { model | selectedCredit = selectedCredit } selectedCredit, Cmd.none )
@@ -341,44 +342,49 @@ mkTableLine txt aet =
 -- COMMUNICATION
 
 
-getAccountingEntryTemplates : Int -> Cmd Msg
-getAccountingEntryTemplates companyId =
-    Http.get
-        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkGetAll, makeLinkCompanyId companyId ]
+getAccountingEntryTemplates : AuthorizedAccess -> Int -> Cmd Msg
+getAccountingEntryTemplates authorizedAccess companyId =
+    HttpUtil.get
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntryTemplate", "getAll", makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseAllAccountingEntryTemplates (Decode.list decoderAccountingEntryTemplate)
+        , jwt = authorizedAccess.jwt
         }
 
 
-createAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
-createAccountingEntryTemplate aet =
-    Http.post
-        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkInsert ]
+createAccountingEntryTemplate : AuthorizedAccess -> AccountingEntryTemplate -> Cmd Msg
+createAccountingEntryTemplate authorizedAccess aet =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntryTemplate", " insert" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplateCreationParams (AccountingEntryTemplateUtil.getAccountingEntryTemplateCreationParams aet))
+        , jwt = authorizedAccess.jwt
         }
 
 
-replaceAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
-replaceAccountingEntryTemplate aet =
-    Http.post
-        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkReplace ]
+replaceAccountingEntryTemplate : AuthorizedAccess -> AccountingEntryTemplate -> Cmd Msg
+replaceAccountingEntryTemplate authorizedAccess aet =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntryTemplate", "replace" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccountingEntryTemplate
         , body = Http.jsonBody (encoderAccountingEntryTemplate aet)
+        , jwt = authorizedAccess.jwt
         }
 
 
-deleteAccountingEntryTemplate : AccountingEntryTemplate -> Cmd Msg
-deleteAccountingEntryTemplate aet =
-    Http.post
-        { url = String.join "/" [ linkServer, linkAccountingEntryTemplate, linkDelete ]
+deleteAccountingEntryTemplate : AuthorizedAccess -> AccountingEntryTemplate -> Cmd Msg
+deleteAccountingEntryTemplate authorizedAccess aet =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "accountingEntryTemplate", "delete" ]
         , expect = HttpUtil.expectWhatever GotResponseDelete
         , body = Http.jsonBody (encoderAccountingEntryTemplateKey { id = aet.id })
+        , jwt = authorizedAccess.jwt
         }
 
 
-getAccounts : Int -> Cmd Msg
-getAccounts companyId =
-    Http.get
-        { url = String.join "/" [ linkServer, linkAccount, linkGetAll, makeLinkCompanyId companyId ]
+getAccounts : AuthorizedAccess -> Int -> Cmd Msg
+getAccounts authorizedAccess companyId =
+    HttpUtil.get
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "account", "getAll", makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseAllAccounts (Decode.list decoderAccount)
+        , jwt = authorizedAccess.jwt
         }

@@ -9,6 +9,7 @@ import bridges.elm._
 import db.creation.{AccountingEntryCreationParams, AccountingEntryTemplateCreationParams, CompanyCreationParams}
 import db.{Account, AccountingEntry, AccountingEntryTemplate, Company}
 import shapeless.Lazy
+import user.Credentials
 
 import scala.reflect.runtime.universe.TypeTag
 
@@ -69,6 +70,7 @@ object Bridge {
     mkAndWrite[AccountingEntryTemplateCreationParams]()
     mkAndWrite[CompanyCreationParams]()
     mkAndWrite[ReportLanguageComponents]()
+    mkAndWrite[Credentials]()
   }
 
 }

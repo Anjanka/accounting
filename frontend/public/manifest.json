@@ -1,0 +1,10 @@
+{
+  "short_name": "Accounting",
+  "name": "Accounting",
+  "icons": [
+  ],
+  "start_url": "./accounting/index.html",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

@@ -17,8 +17,9 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List.Extra
-import Pages.LinkUtil exposing (linkAccount, linkDelete, linkGetAll, linkInsert, linkReplace, linkServer, makeLinkCompanyId)
+import Pages.LinkUtil as LinkUtil exposing (makeLinkCompanyId)
 import Pages.SharedViewComponents exposing (backToEntryPage)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Task
 
 
@@ -52,6 +53,7 @@ type alias Model =
     , editViewActive : Bool
     , selectedCategory : Maybe String
     , selectedAccountType : Maybe String
+    , authorizedAccess : AuthorizedAccess
     }
 
 
@@ -72,6 +74,7 @@ type alias Flags =
     { companyId : Int
     , accountingYear : Maybe Int
     , lang : String
+    , authorizedAccess : AuthorizedAccess
     }
 
 
@@ -89,8 +92,9 @@ init flags =
       , editViewActive = False
       , selectedCategory = Nothing
       , selectedAccountType = Nothing
+      , authorizedAccess = flags.authorizedAccess
       }
-    , getAccounts flags.companyId
+    , getAccounts flags.authorizedAccess flags.companyId
     )
 
 
@@ -121,7 +125,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ShowAllAccounts ->
-            ( { model | buttonPressed = True }, getAccounts model.companyId )
+            ( { model | buttonPressed = True }, getAccounts model.authorizedAccess model.companyId )
 
         HideAllAccounts ->
             ( { model | buttonPressed = False }, Cmd.none )
@@ -143,7 +147,7 @@ update msg model =
         GotResponseCreateOrReplace result ->
             case result of
                 Ok _ ->
-                    ( reset model, getAccounts model.companyId )
+                    ( reset model, getAccounts model.authorizedAccess model.companyId )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -151,7 +155,7 @@ update msg model =
         GotResponseDelete result ->
             case result of
                 Ok _ ->
-                    ( reset model, getAccounts model.companyId )
+                    ( reset model, getAccounts model.authorizedAccess model.companyId )
 
                 Err error ->
                     ( { model | error = HttpUtil.errorToString error }, Cmd.none )
@@ -187,13 +191,13 @@ update msg model =
             ( updateSelectedAccountType newModel selectedValue, Cmd.none )
 
         ReplaceAccount ->
-            ( model, replaceAccount model.account )
+            ( model, replaceAccount model.authorizedAccess model.account )
 
         CreateAccount ->
-            ( model, createAccount model.account )
+            ( model, createAccount model.authorizedAccess model.account )
 
         DeleteAccount ->
-            ( model, deleteAccount model.account )
+            ( model, deleteAccount model.authorizedAccess model.account )
 
         ActivateEditView account ->
             ( updateForEdit model account, resetViewport )
@@ -384,38 +388,42 @@ resetViewport =
 -- COMMUNICATION
 
 
-getAccounts : Int -> Cmd Msg
-getAccounts companyId =
-    Http.get
-        { url = String.join "/" [ linkServer, linkAccount, linkGetAll, makeLinkCompanyId companyId ]
+getAccounts : AuthorizedAccess -> Int -> Cmd Msg
+getAccounts authorizedAccess companyId =
+    HttpUtil.get
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "account", "getAll", makeLinkCompanyId companyId ]
         , expect = HttpUtil.expectJson GotResponseForAllAccounts (Decode.list decoderAccount)
+        , jwt = authorizedAccess.jwt
         }
 
 
-replaceAccount : Account -> Cmd Msg
-replaceAccount account =
-    Http.post
-        { url = String.join "/" [ linkServer, linkAccount, linkReplace ]
+replaceAccount : AuthorizedAccess -> Account -> Cmd Msg
+replaceAccount authorizedAccess account =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "account", "replace" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
         , body = Http.jsonBody (encoderAccount account)
+        , jwt = authorizedAccess.jwt
         }
 
 
-createAccount : Account -> Cmd Msg
-createAccount account =
-    Http.post
-        { url = String.join "/" [ linkServer, linkAccount, linkInsert ]
+createAccount : AuthorizedAccess -> Account -> Cmd Msg
+createAccount authorizedAccess account =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "account", "insert" ]
         , expect = HttpUtil.expectJson GotResponseCreateOrReplace decoderAccount
         , body = Http.jsonBody (encoderAccount account)
+        , jwt = authorizedAccess.jwt
         }
 
 
-deleteAccount : Account -> Cmd Msg
-deleteAccount account =
-    Http.post
-        { url = String.join "/" [ linkServer, linkAccount, linkDelete ]
+deleteAccount : AuthorizedAccess -> Account -> Cmd Msg
+deleteAccount authorizedAccess account =
+    HttpUtil.post
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "account", "delete" ]
         , expect = HttpUtil.expectWhatever GotResponseDelete
         , body = Http.jsonBody (encoderAccountKey { id = account.id, companyId = account.companyId })
+        , jwt = authorizedAccess.jwt
         }
 
 

@@ -1,7 +1,6 @@
 package controllers
 
-import java.io.ByteArrayInputStream
-
+import action.UserAction
 import akka.stream.scaladsl.StreamConverters
 import base.DateUtil.Implicits._
 import base.Id.CompanyKey
@@ -9,25 +8,27 @@ import base.{ BusinessConstants, NominalAccount, NominalAccountEntry, ReportLang
 import db.AccountingEntryDAO.CompanyYearKey
 import db._
 import io.circe.Json
-import javax.inject.Inject
 import play.api.libs.circe.Circe
 import play.api.mvc.{ Action, BaseController, ControllerComponents }
 import report.{ JournalCreator, NominalAccountsCreator, ReportCreator }
 
+import java.io.ByteArrayInputStream
+import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ReportController @Inject() (
     accountingEntryDAO: AccountingEntryDAO,
     companyDAO: CompanyDAO,
     accountDAO: AccountDAO,
-    val controllerComponents: ControllerComponents
+    override protected val controllerComponents: ControllerComponents,
+    userAction: UserAction
 )(implicit
     ec: ExecutionContext
 ) extends BaseController
     with Circe {
 
   def journal(companyId: Int, accountingYear: Int): Action[Json] =
-    Action.async(circe.json) { request =>
+    userAction.async(circe.json) { request =>
       val languageComponentsCandidate = request.body.as[ReportLanguageComponents]
       languageComponentsCandidate match {
         case Left(decodingFailure) =>
@@ -54,16 +55,15 @@ class ReportController @Inject() (
               contentLength = None,
               inline = false,
               fileName = None
-            ).withHeaders(
-              CONTENT_TYPE -> "application/pdf",
-              CONTENT_DISPOSITION -> "attachment"
+            ).as(
+              contentType = "application/pdf"
             )
           }
       }
     }
 
   def nominalAccounts(companyId: Int, accountingYear: Int): Action[Json] =
-    Action.async(circe.json) { request =>
+    userAction.async(circe.json) { request =>
       val languageComponentsCandidate = request.body.as[ReportLanguageComponents]
       languageComponentsCandidate match {
         case Left(decodingFailure) =>

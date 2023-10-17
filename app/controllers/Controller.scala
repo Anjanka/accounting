@@ -1,16 +1,17 @@
 package controllers
 
+import action.UserAction
 import controllers.syntax._
 import db.DAO
 import io.circe.syntax._
-import io.circe.{Decoder, DecodingFailure, Encoder, Json}
+import io.circe.{ Decoder, DecodingFailure, Encoder, Json }
 import play.api.libs.circe.Circe
 import play.api.mvc._
 import slick.dbio.DBIO
 import slick.lifted.Rep
 import slick.relational.RelationalProfile
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, CreationParams, Id]
     extends BaseController
@@ -22,6 +23,9 @@ trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, Creati
 
   protected implicit def creationParamsDecoder: Decoder[CreationParams]
   protected implicit def keyDecoder: Decoder[Key]
+
+  protected def userAction: UserAction
+
   def nextId: CreationParams => DBIO[Id]
   def constructor: (Id, CreationParams) => Content
   def keyOf: Content => Key
@@ -29,7 +33,7 @@ trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, Creati
   def dao: DAO[Content, Table, Key]
 
   def find(key: Key): Action[AnyContent] =
-    Action.async {
+    userAction.async {
       dao.find(key).map(result => Ok(result.asJson)).recoverServerError
     }
 
@@ -43,21 +47,21 @@ trait Controller[Content, Table <: RelationalProfile#Table[Content], Key, Creati
     parseAndProcess("id", dao.delete)((key, _) => Ok(s"Value with $key was deleted successfully."))
 
   def findAll: Action[AnyContent] =
-    Action.async {
+    userAction.async {
       dao.all.map { values =>
         Ok(values.asJson)
       }.recoverServerError
     }
 
   def findPartial[Part](part: Part)(compare: (Table, Part) => Rep[Boolean]): Action[AnyContent] =
-    Action.async {
+    userAction.async {
       dao.findPartial(part)(compare).map(result => Ok(result.asJson)).recoverServerError
     }
 
   def parseAndProcess[A: Decoder, B](suffix: String, process: A => Future[B])(
       respond: (A, B) => Result
   ): Action[Json] =
-    Action.async(circe.json) { request =>
+    userAction.async(circe.json) { request =>
       val aCandidate = request.body.as[A]
       val result = aCandidate match {
         case Right(a) =>
@@ -81,7 +85,8 @@ object Controller {
       _nextId: CreationParams => DBIO[Id],
       _constructor: (Id, CreationParams) => Content,
       _keyOf: Content => Key,
-      _dao: DAO[Content, Table, Key]
+      _dao: DAO[Content, Table, Key],
+      _userAction: UserAction
   )(_controllerComponents: ControllerComponents)(implicit
       _executionContext: ExecutionContext,
       _encoderContent: Encoder[Content],
@@ -100,6 +105,7 @@ object Controller {
       override protected val decoderContent: Decoder[Content] = _decoderContent
       override protected val creationParamsDecoder: Decoder[CreationParams] = _creationParamsDecoder
       override protected val keyDecoder: Decoder[Key] = _keyDecoder
+      override protected val userAction: UserAction = _userAction
     }
 
 }

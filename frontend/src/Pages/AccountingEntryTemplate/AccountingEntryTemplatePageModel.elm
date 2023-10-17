@@ -7,6 +7,7 @@ import Api.Types.Account exposing (Account)
 import Api.Types.AccountingEntryTemplate exposing (AccountingEntryTemplate)
 import Api.Types.LanguageComponents exposing (LanguageComponents)
 import Pages.FromInput exposing (FromInput)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 
 
 type alias Model =
@@ -27,6 +28,7 @@ type alias Model =
     , selectedDebit : Maybe String
     , buttonPressed : Bool
     , editViewActive : Bool
+    , authorizedAccess : AuthorizedAccess
     }
 
 
@@ -34,6 +36,7 @@ type alias Flags =
     { companyId : Int
     , accountingYear : Maybe Int
     , lang : String
+    , authorizedAccess : AuthorizedAccess
     }
 
 
@@ -56,6 +59,7 @@ init flags =
     , selectedDebit = Nothing
     , buttonPressed = False
     , editViewActive = False
+    , authorizedAccess = flags.authorizedAccess
     }
 
 
@@ -97,4 +101,3 @@ updateContentAmount model input =
     { model
         | contentAmount = input
     }
-

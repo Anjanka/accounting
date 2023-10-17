@@ -1,5 +1,7 @@
 module Pages.LinkUtil exposing (..)
 
+import Basics.Extra exposing (flip)
+import Configuration exposing (Configuration)
 import Url.Builder exposing (Root(..))
 
 
@@ -30,11 +32,6 @@ makeLinkPath page =
             "Templates"
 
 
-makeLinkId : Int -> String
-makeLinkId id =
-    "id/" ++ String.fromInt id
-
-
 makeLinkCompanyId : Int -> String
 makeLinkCompanyId id =
     "companyId/" ++ String.fromInt id
@@ -55,50 +52,14 @@ fragmentUrl parts =
     Url.Builder.custom Relative [] [] (Just (Url.Builder.absolute parts []))
 
 
-linkServer : String
-linkServer = "http://localhost:9000"
+backendPage : Configuration -> List String -> String
+backendPage configuration pathSteps =
+    (configuration.backendURL :: pathSteps)
+        |> flip Url.Builder.relative []
 
-linkAccount : String
-linkAccount= "account"
 
-linkAccountingEntry : String
-linkAccountingEntry= "accountingEntry"
-
-linkAccountingEntryTemplate : String
-linkAccountingEntryTemplate = "accountingEntryTemplate"
-
-linkCompany : String
-linkCompany = "company"
-
-linkReports : String
-linkReports = "reports"
-
-linkJournal : String
-linkJournal = "journal"
-
-linkNominalAccounts : String
-linkNominalAccounts = "nominalAccounts"
-
-linkDelete : String
-linkDelete = "delete"
-
-linkInsert : String
-linkInsert = "insert"
-
-linkReplace : String
-linkReplace = "replace"
-
-linkGetAll : String
-linkGetAll = "getAll"
-
-linkFind : String
-linkFind = "find"
-
-linkFindByYear : String
-linkFindByYear = "findByYear"
-
-linkMoveUp : String
-linkMoveUp = "moveUp"
-
-linkMoveDown : String
-linkMoveDown = "moveDown"
+frontendPage : Configuration -> List String -> String
+frontendPage configuration pathSteps =
+    [ configuration.mainPageURL, "#" ]
+        ++ pathSteps
+        |> flip Url.Builder.relative []

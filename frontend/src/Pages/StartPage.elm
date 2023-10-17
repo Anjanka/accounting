@@ -14,8 +14,9 @@ import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Decode
 import List exposing (range)
-import Pages.LinkUtil exposing (Path(..), fragmentUrl, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
+import Pages.LinkUtil as LinkUtil exposing (Path(..), fragmentUrl, makeLinkCompanyId, makeLinkLang, makeLinkPath, makeLinkYear)
 import Pages.SharedViewComponents exposing (linkButton)
+import Pages.Util.AuthorizedAccess exposing (AuthorizedAccess)
 import Task
 import Time exposing (..)
 
@@ -60,11 +61,11 @@ type State
 
 
 type alias Flags =
-    ()
+    { authorizedAccess : AuthorizedAccess }
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
+init flags =
     ( { time = Time.millisToPosix 0
       , zone = utc
       , lang = default
@@ -79,7 +80,7 @@ init _ =
       , selectedYear = Nothing
       }
     , Cmd.batch
-        [ getCompanies
+        [ getCompanies flags.authorizedAccess
         , Task.perform SetTime Time.now
         ]
     )
@@ -183,12 +184,11 @@ view model =
 viewLanguageSelection : Model -> Html Msg
 viewLanguageSelection model =
     div [ class "page", class "startInputArea" ]
-        [ Html.form [ class "startDropdown"]
+        [ Html.form [ class "startDropdown" ]
             [ Dropdown.dropdown
                 (dropdownOptionsLanguage languageList)
-                [id "languageDropdown"]
+                [ id "languageDropdown" ]
                 model.selectedLanguage
-
             ]
         , languageButton model.selectedLanguage
         , div [] [ text model.error ]
@@ -206,11 +206,11 @@ viewCompanySelection model =
             ]
         , companyButton model.selectedCompany
         , button [ class "backButton", onClick BackToLanguageSelection ] [ text model.lang.back ]
-
-        , div[] [linkButton (fragmentUrl [ makeLinkPath CompanyPage, makeLinkLang model.lang.short ])
+        , div []
+            [ linkButton (fragmentUrl [ makeLinkPath CompanyPage, makeLinkLang model.lang.short ])
                 [ class "linkButton" ]
                 [ text model.lang.manageCompanies ]
-          ]
+            ]
         , div [] [ text model.error ]
         ]
 
@@ -224,9 +224,10 @@ viewAccountingYearSelection model =
                 []
                 model.selectedYear
             ]
-        , div[] [ yearButton model
-        , button [ class "backButton", onClick BackToCompanySelection ] [ text model.lang.back ]
-         ]
+        , div []
+            [ yearButton model
+            , button [ class "backButton", onClick BackToCompanySelection ] [ text model.lang.back ]
+            ]
         , div [] [ text model.error ]
         ]
 
@@ -243,19 +244,18 @@ companyButton selectedValue =
 
 yearButton : Model -> Html Msg
 yearButton model =
-          Bootstrap.Button.linkButton
-                [  Bootstrap.Button.disabled (isNothing  model.selectedYear)
-                  , Bootstrap.Button.attrs (href (fragmentUrl [ makeLinkCompanyId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ]) :: [class "linkButton"] )
-                ]
-                [ text "Ok" ]
-
- --   linkButtonWithDisabled (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ])
- --       [ class "linkButton" ]
- --       [ text "Ok" ]
- --       (isNothing  model.selectedYear)
+    Bootstrap.Button.linkButton
+        [ Bootstrap.Button.disabled (isNothing model.selectedYear)
+        , Bootstrap.Button.attrs (href (fragmentUrl [ makeLinkCompanyId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ]) :: [ class "linkButton" ])
+        ]
+        [ text "Ok" ]
 
 
 
+--   linkButtonWithDisabled (fragmentUrl [ makeLinkId model.companyId, makeLinkPath AccountingEntryPage, makeLinkYear model.accountingYear, makeLinkLang model.lang.short ])
+--       [ class "linkButton" ]
+--       [ text "Ok" ]
+--       (isNothing  model.selectedYear)
 
 
 dropdownOptionsLanguage : List LanguageForList -> Dropdown.Options Msg
@@ -317,10 +317,11 @@ accountingYearForDropdown int =
 -- COMMUNICATION
 
 
-getCompanies : Cmd Msg
-getCompanies =
-    Http.get
-        { url = "http://localhost:9000/company/getAll"
+getCompanies : AuthorizedAccess -> Cmd Msg
+getCompanies authorizedAccess =
+    HttpUtil.get
+        { url = LinkUtil.backendPage authorizedAccess.configuration [ "company", "getAll" ]
+        , jwt = authorizedAccess.jwt
         , expect = HttpUtil.expectJson GotResponseForAllCompanies (Decode.list decoderCompany)
         }
 

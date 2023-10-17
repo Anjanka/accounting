@@ -1,8 +1,11 @@
-module Pages.AccountingMain exposing (..)
+module Main exposing (..)
 
+import Api.Auxiliary exposing (JWT)
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
+import Configuration exposing (Configuration)
 import Html exposing (Html, div, text)
+import Maybe.Extra
 import Pages.AccountPage as Account
 import Pages.AccountingEntry.AccountingEntryPage as AccountingEntry
 import Pages.AccountingEntry.AccountingEntryPageModel as AccountingEntryModel
@@ -10,18 +13,20 @@ import Pages.AccountingEntryTemplate.AccountingEntryTemplatePage as AccountingEn
 import Pages.AccountingEntryTemplate.AccountingEntryTemplatePageModel as AccountingEntryTemplateModel
 import Pages.Company.CompanyPage as Company
 import Pages.Company.CompanyPageModel as CompanyModel
+import Pages.Login.LoginPage as LoginPage
 import Pages.StartPage as Start
+import Ports
 import Url exposing (Protocol(..), Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, s)
 
 
-main : Program () Model Msg
+main : Program Configuration Model Msg
 main =
     Browser.application
         { init = init
         , onUrlChange = ChangedUrl
         , onUrlRequest = ClickedLink
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> Sub.batch [ Ports.fetchToken FetchToken ]
         , update = update
         , view = \model -> { title = titleFor model, body = [ view model ] }
         }
@@ -30,6 +35,9 @@ main =
 type alias Model =
     { key : Nav.Key
     , page : Page
+    , entryRoute : Maybe Route
+    , configuration : Configuration
+    , jwt : Maybe JWT
     }
 
 
@@ -51,6 +59,9 @@ titleFor model =
         AccountingEntryTemplate _ ->
             "Manage Templates"
 
+        Login _ ->
+            "Log In"
+
         NotFound ->
             "Page not Found"
 
@@ -61,22 +72,32 @@ type Page
     | Account Account.Model
     | AccountingEntry AccountingEntryModel.Model
     | AccountingEntryTemplate AccountingEntryTemplateModel.Model
+    | Login LoginPage.Model
     | NotFound
 
 
 type Msg
     = ClickedLink UrlRequest
     | ChangedUrl Url
+    | FetchToken JWT
     | StartMsg Start.Msg
     | AccountMsg Account.Msg
     | CompanyMsg Company.Msg
     | AccountingEntryTemplateMsg AccountingEntryTemplate.Msg
     | AccountingEntryMsg AccountingEntry.Msg
+    | LoginMsg LoginPage.Msg
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
-    updateUrl url { page = NotFound, key = key }
+init : Configuration -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init configuration url key =
+    ( { page = NotFound
+      , entryRoute = parsePage url
+      , key = key
+      , configuration = configuration
+      , jwt = Nothing
+      }
+    , Ports.doFetchToken ()
+    )
 
 
 view : Model -> Html Msg
@@ -97,6 +118,9 @@ view model =
         AccountingEntryTemplate accountingEntryTemplate ->
             Html.map AccountingEntryTemplateMsg (AccountingEntryTemplate.view accountingEntryTemplate)
 
+        Login login ->
+            Html.map LoginMsg (LoginPage.view login)
+
         NotFound ->
             div [] [ text "404 - PAGE NOT FOUND" ]
 
@@ -113,7 +137,16 @@ update msg model =
                     ( model, Nav.load href )
 
         ChangedUrl url ->
-            updateUrl url model
+            { model | entryRoute = url |> parsePage }
+                |> followRoute
+
+        FetchToken token ->
+            let
+                actualToken =
+                    Just token |> Maybe.Extra.filter (String.isEmpty >> not)
+            in
+            { model | jwt = actualToken }
+                |> followRoute
 
         StartMsg startMsg ->
             case model.page of
@@ -155,6 +188,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        LoginMsg loginMsg ->
+            case model.page of
+                Login login ->
+                    stepLogin model (LoginPage.update loginMsg login)
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 stepStart : Model -> ( Start.Model, Cmd Start.Msg ) -> ( Model, Cmd Msg )
 stepStart model ( start, cmd ) =
@@ -181,48 +222,88 @@ stepAccountingEntryTemplate model ( accountingEntryTemplate, cmd ) =
     ( { model | page = AccountingEntryTemplate accountingEntryTemplate }, Cmd.map AccountingEntryTemplateMsg cmd )
 
 
+stepLogin : Model -> ( LoginPage.Model, Cmd LoginPage.Msg ) -> ( Model, Cmd Msg )
+stepLogin model ( login, cmd ) =
+    ( { model | page = Login login }, Cmd.map LoginMsg cmd )
+
+
 type Route
     = StartRoute
     | CompanyRoute String
     | AccountRoute Int String
     | AccountingEntryRoute Int Int String
     | AccountingEntryTemplateRoute Int String
+    | LoginRoute
 
 
-updateUrl : Url -> Model -> ( Model, Cmd Msg )
-updateUrl url model =
-    let
-        yearFromEntryPage =
-            case model.page of
-                AccountingEntry accountingEntry ->
-                    Just accountingEntry.accountingYear
-
-                _ ->
-                    Nothing
-    in
-    case Parser.parse parser (fragmentToPath url) of
-        Just StartRoute ->
-            Start.init ()
-                |> stepStart model
-
-        Just (CompanyRoute lang) ->
-            Company.init { lang = lang }
-                |> stepCompany model
-
-        Just (AccountRoute companyId lang) ->
-            Account.init { companyId = companyId, accountingYear = yearFromEntryPage, lang = lang }
-                |> stepAccount model
-
-        Just (AccountingEntryRoute companyId accountingYear lang) ->
-            AccountingEntry.init { companyId = companyId, accountingYear = accountingYear, lang = lang }
-                |> stepAccountingEntry model
-
-        Just (AccountingEntryTemplateRoute companyId lang) ->
-            AccountingEntryTemplate.init { companyId = companyId, accountingYear = yearFromEntryPage, lang = lang }
-                |> stepAccountingEntryTemplate model
-
-        Nothing ->
+followRoute : Model -> ( Model, Cmd Msg )
+followRoute model =
+    case ( model.jwt, model.entryRoute ) of
+        ( _, Nothing ) ->
             ( { model | page = NotFound }, Cmd.none )
+
+        ( Nothing, Just _ ) ->
+            LoginPage.init { configuration = model.configuration } |> stepLogin model
+
+        ( Just userJWT, Just entryRoute ) ->
+            let
+                yearFromEntryPage =
+                    case model.page of
+                        AccountingEntry accountingEntry ->
+                            Just accountingEntry.accountingYear
+
+                        _ ->
+                            Nothing
+
+                authorizedAccess =
+                    { configuration = model.configuration, jwt = userJWT }
+            in
+            case entryRoute of
+                LoginRoute ->
+                    LoginPage.init
+                        { configuration = model.configuration
+                        }
+                        |> stepLogin model
+
+                StartRoute ->
+                    Start.init
+                        { authorizedAccess = authorizedAccess
+                        }
+                        |> stepStart model
+
+                CompanyRoute lang ->
+                    Company.init
+                        { lang = lang
+                        , authorizedAccess = authorizedAccess
+                        }
+                        |> stepCompany model
+
+                AccountRoute companyId lang ->
+                    Account.init
+                        { companyId = companyId
+                        , accountingYear = yearFromEntryPage
+                        , lang = lang
+                        , authorizedAccess = authorizedAccess
+                        }
+                        |> stepAccount model
+
+                AccountingEntryRoute companyId accountingYear lang ->
+                    AccountingEntry.init
+                        { companyId = companyId
+                        , accountingYear = accountingYear
+                        , lang = lang
+                        , authorizedAccess = authorizedAccess
+                        }
+                        |> stepAccountingEntry model
+
+                AccountingEntryTemplateRoute companyId lang ->
+                    AccountingEntryTemplate.init
+                        { companyId = companyId
+                        , accountingYear = yearFromEntryPage
+                        , lang = lang
+                        , authorizedAccess = authorizedAccess
+                        }
+                        |> stepAccountingEntryTemplate model
 
 
 parser : Parser (Route -> a) a
@@ -243,7 +324,13 @@ parser =
         , Parser.map AccountRoute (companyIdParser </> s "Accounts" </> languageParser)
         , Parser.map AccountingEntryTemplateRoute (companyIdParser </> s "Templates" </> languageParser)
         , Parser.map AccountingEntryRoute (companyIdParser </> s "Accounting" </> accountingYearParser </> languageParser)
+        , Parser.map LoginRoute (s "Login")
         ]
+
+
+parsePage : Url -> Maybe Route
+parsePage =
+    fragmentToPath >> Parser.parse parser
 
 
 fragmentToPath : Url -> Url
