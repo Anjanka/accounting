@@ -13,12 +13,6 @@ type Path
     | AccountingEntryTemplatePage
 
 
-
---makeLinkHost : String
---makeLinkHost =
---    "http://localhost:8080"
-
-
 makeLinkPath : Path -> String
 makeLinkPath page =
     case page of
@@ -67,6 +61,37 @@ backendPage : Configuration -> List String -> String
 backendPage configuration pathSteps =
     (configuration.backendURL :: pathSteps)
         |> flip Url.Builder.relative []
+
+
+linkAccount : String
+linkAccount= "account"
+
+linkAccountingEntry : String
+linkAccountingEntry= "accountingEntry"
+
+linkAccountingEntryTemplate : String
+linkAccountingEntryTemplate = "accountingEntryTemplate"
+
+linkCompany : String
+linkCompany = "company"
+
+linkReports : String
+linkReports = "reports"
+
+linkJournal : String
+linkJournal = "journal"
+
+linkNominalAccounts : String
+linkNominalAccounts = "nominalAccounts"
+
+linkDelete : String
+linkDelete = "delete"
+
+linkInsert : String
+linkInsert = "insert"
+
+linkReplace : String
+linkReplace = "replace"
 
 frontendPage : Configuration -> List String -> String
 frontendPage configuration pathSteps =
