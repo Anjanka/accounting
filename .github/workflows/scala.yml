@@ -3,6 +3,7 @@ name: Build and publish Docker backend image
 on:
   push:
     branches:
+      - "master"
       - "main"
     paths:
       - app/**
