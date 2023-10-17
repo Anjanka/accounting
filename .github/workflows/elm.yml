@@ -28,7 +28,7 @@ jobs:
 #       because the variables are readable from the result.
         run: |
           cd frontend
-          rm .envl
+          rm .env
           export ELM_APP_BACKEND_URL=${{ secrets.ELM_APP_BACKEND_URL }}
           export ELM_APP_MAIN_PAGE_URL=${{ secrets.ELM_APP_MAIN_PAGE_URL }}
           elm-app build
